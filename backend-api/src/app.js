@@ -12,4 +12,9 @@ app.get('/', (req, res) => {
     });
 });
 
+
+// Serve static files
+app.use("/public", express.static("public"));
+
+
 module.exports = app;
