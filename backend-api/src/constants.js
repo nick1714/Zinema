@@ -20,7 +20,7 @@ const JWT_CONFIG = {
 const SKIP_AUTH = process.env.SKIP_AUTH === "false" ? false : true;
 
 // Debug: In ra giá trị để kiểm tra
-console.log('🔧 DEBUG - Environment variables:');
+console.log('DEBUG - Environment variables:');
 console.log('process.env.SKIP_AUTH:', process.env.SKIP_AUTH);
 console.log('SKIP_AUTH final value:', SKIP_AUTH);
 
