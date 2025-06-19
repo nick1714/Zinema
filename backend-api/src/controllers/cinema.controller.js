@@ -9,18 +9,30 @@ const JSend = require('../jsend');
  * @param {Function} next - Express next middleware
  */
 async function getAllRooms(req, res, next) {
-    try {
-        const rooms = await cinemaService.getAllRooms();
+    let result = {
+        rooms: [],
+        metadata: {
+            totalRecords: 0,
+            firstPage: 1,
+            lastPage: 1,
+            page: 1,
+            limit: 10,
+        },
+    };
 
-        return res.json(
-            JSend.success({
-                rooms
-            })
-        );
+    try {
+        result = await cinemaService.getAllRooms(req.query);
     } catch (error) {
         console.log(error);
         return next(new ApiError(500, 'Internal Server Error'));
     }
+
+    return res.json(
+        JSend.success({
+            rooms: result.rooms,
+            metadata: result.metadata,
+        })
+    );
 }
 
 /**
@@ -30,27 +42,17 @@ async function getAllRooms(req, res, next) {
  * @param {Function} next - Express next middleware
  */
 async function getRoomById(req, res, next) {
+    const { id } = req.params;
     try {
-        const id = parseInt(req.params.id);
-
-        if (isNaN(id)) {
-            return next(new ApiError(400, 'Invalid room ID'));
-        }
-
         const room = await cinemaService.getRoomById(id);
-
-        return res.json(
-            JSend.success({
-                room
-            })
-        );
-    } catch (error) {
-        console.log(error);
-
-        if (error.message === 'Room not found') {
+        if (!room) {
             return next(new ApiError(404, 'Room not found'));
         }
-
+        return res.json(JSend.success({
+            room 
+        }));
+    } catch (error) {
+        console.log(error);
         return next(new ApiError(500, 'Internal Server Error'));
     }
 }
