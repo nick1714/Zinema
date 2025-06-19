@@ -4,7 +4,6 @@
  */
 exports.seed = async function(knex) {
   console.log('=== BẮT ĐẦU KHỞI TẠO DATABASE MỚI ===');
-  console.log('Vui lòng đợi, quá trình này có thể mất một chút thời gian...');
   
   // Xóa bỏ các bảng hiện có nếu có
   try {
@@ -43,9 +42,11 @@ exports.seed = async function(knex) {
   // Bảng accounts - tài khoản người dùng
   await knex.schema.createTable('accounts', (table) => {
     table.increments('id').primary();
-    table.string('phone_number', 15).notNullable().unique();
+    table.string('phone_number', 15).unique(); // Cho phép NULL cho Google Auth
     table.string('email', 100).unique();
-    table.string('password', 100).notNullable();
+    table.string('password', 100); // Cho phép NULL cho Google Auth
+    table.string('google_id', 255).unique();
+    table.enum('auth_provider', ['local', 'google']).defaultTo('local');
     table.integer('role_id').unsigned().notNullable();
     table.boolean('is_active').defaultTo(true);
     table.timestamps(true, true);
