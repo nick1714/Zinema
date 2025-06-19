@@ -1,0 +1,1105 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Cinema Management API",
+    "description": "API quản lý rạp chiếu phim",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "datb2203438@student.ctu.edu.vn, nhutb2205986@student.ctu.edu.vn"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {"name": "Authentication", "description": "Đăng ký, đăng nhập, quản lý staff"},
+    {"name": "Films", "description": "Quản lý phim"},
+    {"name": "Rooms", "description": "Quản lý phòng chiếu"},
+    {"name": "Seats", "description": "Quản lý ghế ngồi"},
+    {"name": "Showtimes", "description": "Quản lý suất chiếu"},
+    {"name": "Food", "description": "Quản lý đồ ăn & combo"},
+    {"name": "Tickets", "description": "Đặt vé & quản lý vé"}
+  ],
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/LoginInput"}
+            }
+          }
+        },
+        "responses": {
+          "200": {"$ref": "#/components/responses/LoginSuccess"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/api/auth/google": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Đăng nhập với Google OAuth 2.0",
+        "description": "Redirect đến Google để xác thực. Sau khi thành công, Google sẽ redirect về callback URL.",
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth",
+            "headers": {
+              "Location": {
+                "schema": {"type": "string"},
+                "description": "Google OAuth authorization URL"
+              }
+            }
+          },
+          "500": {"$ref": "#/components/responses/InternalServerError"}
+        }
+      }
+    },
+    "/api/auth/google/callback": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Callback từ Google OAuth",
+        "description": "Endpoint callback mà Google sẽ redirect về sau khi user authorize. Tự động tạo account nếu là user mới.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {"type": "string"},
+            "description": "Authorization code từ Google"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {"type": "string"},
+            "description": "State parameter để validate request"
+          }
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/GoogleAuthSuccess"},
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "500": {"$ref": "#/components/responses/InternalServerError"}
+        }
+      }
+    },
+    "/api/v1/auth/google/complete": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Update info after google auth",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleCompleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"$ref": "#/components/responses/GoogleAuthSuccess"},
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      }
+    },
+    "/api/auth/employees": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Lấy danh sách nhân viên (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {"$ref": "#/components/responses/StaffList"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
+    "/api/auth/employee/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Thêm nhân viên mới (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/StaffInput"}
+            }
+          }
+        },
+        "responses": {
+          "201": {"$ref": "#/components/responses/UserCreated"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
+    "/api/auth/customers": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Lấy danh sách khách hàng (Admin/Staff only)",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {"$ref": "#/components/responses/CustomersList"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
+    "/api/films": {
+      "get": {
+        "tags": ["Films"],
+        "summary": "Lấy danh sách phim",
+        "parameters": [
+          {"$ref": "#/components/parameters/PageParam"},
+          {"$ref": "#/components/parameters/LimitParam"},
+          {"name": "title", "in": "query", "schema": {"type": "string"}},
+          {"name": "genre", "in": "query", "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/FilmsList"}
+        }
+      },
+      "post": {
+        "tags": ["Films"],
+        "summary": "Thêm phim mới (Admin)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {"$ref": "#/components/schemas/FilmInput"}
+            }
+          }
+        },
+        "responses": {
+          "201": {"$ref": "#/components/responses/FilmCreated"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
+    "/api/films/{id}": {
+      "get": {
+        "tags": ["Films"],
+        "summary": "Lấy thông tin phim theo ID",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/FilmDetail"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      },
+      "put": {
+        "tags": ["Films"],
+        "summary": "Cập nhật phim (Admin)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {"$ref": "#/components/schemas/FilmInput"}
+            }
+          }
+        },
+        "responses": {
+          "200": {"$ref": "#/components/responses/FilmUpdated"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      },
+      "delete": {
+        "tags": ["Films"],
+        "summary": "Xóa phim (Admin)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/Success"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/api/rooms": {
+      "get": {
+        "tags": ["Rooms"],
+        "summary": "Lấy danh sách phòng chiếu",
+        "responses": {
+          "200": {"$ref": "#/components/responses/RoomsList"}
+        }
+      },
+      "post": {
+        "tags": ["Rooms"],
+        "summary": "Tạo phòng chiếu mới (Admin)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/RoomInput"}
+            }
+          }
+        },
+        "responses": {
+          "201": {"$ref": "#/components/responses/RoomCreated"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
+    "/api/rooms/{id}": {
+      "get": {
+        "tags": ["Rooms"],
+        "summary": "Lấy thông tin phòng theo ID",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/RoomDetail"}
+        }
+      },
+      "put": {
+        "tags": ["Rooms"],
+        "summary": "Cập nhật phòng (Admin)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/RoomInput"}
+            }
+          }
+        },
+        "responses": {
+          "200": {"$ref": "#/components/responses/RoomUpdated"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      },
+      "delete": {
+        "tags": ["Rooms"],
+        "summary": "Xóa phòng (Admin)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/Success"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }  
+    },
+    "/api/showtimes": {
+      "get": {
+        "tags": ["Showtimes"],
+        "summary": "Lấy danh sách suất chiếu",
+        "parameters": [
+          {"$ref": "#/components/parameters/PageParam"},
+          {"name": "film_id", "in": "query", "schema": {"type": "integer"}},
+          {"name": "date", "in": "query", "schema": {"type": "string", "format": "date"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/ShowtimesList"}
+        }
+      },
+      "post": {
+        "tags": ["Showtimes"],
+        "summary": "Tạo suất chiếu mới (Admin/Staff)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/ShowtimeInput"}
+            }
+          }
+        },
+        "responses": {
+          "201": {"$ref": "#/components/responses/ShowtimeCreated"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
+    "/api/showtimes/{id}": {
+      "get": {
+        "tags": ["Showtimes"],
+        "summary": "Lấy thông tin suất chiếu",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/ShowtimeDetail"}
+        }
+      },
+      "put": {
+        "tags": ["Showtimes"],
+        "summary": "Cập nhật suất chiếu (Admin/Staff)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/ShowtimeInput"}
+            }
+          }
+        },
+        "responses": {
+          "200": {"$ref": "#/components/responses/ShowtimeUpdated"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      },
+      "delete": {
+        "tags": ["Showtimes"],
+        "summary": "Xóa suất chiếu (Admin/Staff)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/Success"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/api/showtimes/movies/{movieId}": {
+      "get": {
+        "tags": ["Showtimes"],
+        "summary": "Lấy suất chiếu theo phim",
+        "parameters": [
+          {"name": "movieId", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {
+          "200": {"$ref": "#/components/responses/ShowtimesList"}
+        }
+      }
+    }   
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "PageParam": {
+        "name": "page",
+        "in": "query",
+        "schema": {"type": "integer", "default": 1}
+      },
+      "LimitParam": {
+        "name": "limit", 
+        "in": "query",
+        "schema": {"type": "integer", "default": 10}
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer"},
+          "full_name": {"type": "string"},
+          "email": {"type": "string"},
+          "phone_number": {"type": "string"},
+          "role": {"type": "string", "enum": ["admin", "staff"]}
+        }
+      },
+      "GoogleCompleteInput": {
+        "type": "object",
+        "required": ["phone_number"],
+        "properties": {
+          "phone_number": {"type": "string"},
+          "full_name": {"type": "string"},
+          "temp_data": {"type": "string"}
+        }
+      },
+      "LoginInput": {
+        "type": "object",
+        "required": ["phone_number", "password"],
+        "properties": {
+          "phone_number": {"type": "string"},
+          "password": {"type": "string"}
+        }
+      },
+      "StaffInput": {
+        "type": "object",
+        "required": ["full_name", "email", "phone_number", "password", "password_confirm"],
+        "properties": {
+          "full_name": {"type": "string"},
+          "email": {"type": "string", "format": "email"},
+          "phone_number": {"type": "string"},
+          "password": {"type": "string"},
+          "password_confirm": {"type": "string"},
+          "date_of_birth": {"type": "string", "format": "date"},
+          "address": {"type": "string"},
+          "position": {"type": "string"}
+        }
+      },
+      "Film": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer"},
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "director": {"type": "string"},
+          "genre": {"type": "string"},
+          "duration_min": {"type": "integer"},
+          "cast": {"type": "string"},
+          "release_date": {"type": "string", "format": "date"},
+          "end_date": {"type": "string", "format": "date"},
+          "country": {"type": "string"},
+          "age_rating": {"type": "string"},
+          "status": {"type": "string", "enum": ["active", "inactive"]},
+          "trailer_url": {"type": "string", "format": "uri"},
+          "poster_url": {"type": "string", "format": "uri"}
+        }
+      },
+      "FilmInput": {
+        "type": "object",
+        "required": ["title", "description"],
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "director": {"type": "string"},
+          "genre": {"type": "string"},
+          "duration_min": {"type": "integer"},
+          "cast": {"type": "string"},
+          "release_date": {"type": "string", "format": "date"},
+          "end_date": {"type": "string", "format": "date"},
+          "country": {"type": "string"},
+          "age_rating": {"type": "string"},
+          "status": {"type": "string", "enum": ["active", "inactive"]},
+          "trailer_url": {"type": "string", "format": "uri"},
+          "poster": {"type": "string", "format": "binary"}
+        }
+      },
+      "Room": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer"},
+          "name": {"type": "string"},
+          "capacity": {"type": "integer"},
+          "rows": {"type": "integer"},
+          "columns": {"type": "integer"},
+          "type": {"type": "string", "enum": ["2D", "3D", "4DX", "IMAX"]},
+          "status": {"type": "string", "enum": ["active", "maintenance", "inactive"]}
+        }
+      },
+      "RoomInput": {
+        "type": "object",
+        "required": ["name", "capacity", "rows", "columns", "type"],
+        "properties": {
+          "name": {"type": "string"},
+          "capacity": {"type": "integer"},
+          "rows": {"type": "integer"},
+          "columns": {"type": "integer"},
+          "type": {"type": "string", "enum": ["2D", "3D", "4DX", "IMAX"]},
+          "status": {"type": "string", "enum": ["active", "maintenance", "inactive"], "default": "active"}
+        }
+      },
+      "Seat": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer"},
+          "cinema_room_id": {"type": "integer"},
+          "seat_type_id": {"type": "integer"},
+          "name": {"type": "string"},
+          "row": {"type": "string"},
+          "column": {"type": "integer"},
+          "status": {"type": "string", "enum": ["available", "unavailable"]},
+          "price": {"type": "number"}
+        }
+      },
+      "Showtime": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer"},
+          "film_id": {"type": "integer"},
+          "room_id": {"type": "integer"},
+          "start_time": {"type": "string", "format": "date-time"},
+          "end_time": {"type": "string", "format": "date-time"},
+          "price": {"type": "number"},
+          "status": {"type": "string", "enum": ["scheduled", "canceled", "completed"]},
+          "film": {"$ref": "#/components/schemas/Film"},
+          "room": {"$ref": "#/components/schemas/Room"}
+        }
+      },
+      "ShowtimeInput": {
+        "type": "object",
+        "required": ["film_id", "room_id", "start_time", "end_time", "price"],
+        "properties": {
+          "film_id": {"type": "integer"},
+          "room_id": {"type": "integer"},
+          "start_time": {"type": "string", "format": "date-time"},
+          "end_time": {"type": "string", "format": "date-time"},
+          "price": {"type": "number"}
+        }
+      }
+    },
+    "responses": {
+      "Success": {
+        "description": "Success",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {"type": "object"}
+              }
+            }
+          }
+        }
+      },
+      "UserCreated": {
+        "description": "Create user successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "user": {"$ref": "#/components/schemas/User"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "LoginSuccess": {
+        "description": "Login successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "user": {"$ref": "#/components/schemas/User"},
+                    "token": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "GoogleAuthSuccess": {
+        "description": "Google OAuth successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "isNewUser": {
+                      "type": "boolean",
+                      "description": "True nếu là user mới được tạo, false nếu là user đã tồn tại"
+                    },
+                    "user": {"$ref": "#/components/schemas/User"},
+                    "token": {
+                      "type": "string",
+                      "description": "JWT token để authenticate các request tiếp theo"
+                    },
+                    "message": {
+                      "type": "string",
+                      "examples": ["Account created successfully!", "Login successful"]
+                    }
+                  }
+                }
+              }
+            },
+            "examples": {
+              "newUser": {
+                "summary": "User mới được tạo",
+                "value": {
+                  "status": "success",
+                  "data": {
+                    "isNewUser": true,
+                    "user": {
+                      "id": 25,
+                      "email": "user@gmail.com",
+                      "auth_provider": "google",
+                      "role": "customer",
+                      "full_name": "User Name",
+                      "phone_number": null
+                    },
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "message": "Account created successfully!"
+                  }
+                }
+              },
+              "existingUser": {
+                "summary": "User đã tồn tại",
+                "value": {
+                  "status": "success",
+                  "data": {
+                    "isNewUser": false,
+                    "user": {
+                      "id": 25,
+                      "email": "user@gmail.com",
+                      "auth_provider": "google",
+                      "role": "customer",
+                      "full_name": "User Name",
+                      "phone_number": "0987654321"
+                    },
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "message": "Login successful"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserInfo": {
+        "description": "User information",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "user": {"$ref": "#/components/schemas/User"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "StaffList": {
+        "description": "Staff list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "staffUsers": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/User"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CustomersList": {
+        "description": "Customer list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "customers": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/User"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RoomsList": {
+        "description": "Showroom list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "rooms": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/Room"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RoomDetail": {
+        "description": "Showroom detail",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "room": {"$ref": "#/components/schemas/Room"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FilmsList": {
+        "description": "Film list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "films": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/Film"}
+                    },
+                    "metadata": {"$ref": "#/components/schemas/PaginationMetadata"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FilmDetail": {
+        "description": "Film detail",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "film": {"$ref": "#/components/schemas/Film"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FilmCreated": {
+        "description": "Create film successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "film": {"$ref": "#/components/schemas/Film"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FilmUpdated": {
+        "description": "Update film successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "film": {"$ref": "#/components/schemas/Film"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RoomsList": {
+        "description": "Showroom list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "rooms": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/Room"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ShowtimesList": {
+        "description": "Showtime list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "showtimes": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/Showtime"}
+                    },
+                    "metadata": {"$ref": "#/components/schemas/PaginationMetadata"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ShowtimeDetail": {
+        "description": "Showtime detail",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "showtime": {"$ref": "#/components/schemas/Showtime"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ShowtimeCreated": {
+        "description": "Create showtime successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "showtime": {"$ref": "#/components/schemas/Showtime"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ShowtimeUpdated": {
+        "description": "Update showtime successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "showtime": {"$ref": "#/components/schemas/Showtime"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaginationMetadata": {
+        "description": "Pagination metadata",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "totalRecords": {"type": "integer"},
+                "firstPage": {"type": "integer"},
+                "lastPage": {"type": "integer"}, 
+                "page": {"type": "integer"},
+                "limit": {"type": "integer"}
+              }
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Invalid input data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "error"},
+                "message": {"type": "string"}
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized access",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "error"},
+                "message": {"type": "string", "example": "Unauthorized"}
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden access",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "error"},
+                "message": {"type": "string", "example": "Access denied"}
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "error"},
+                "message": {"type": "string", "example": "Not found"}
+              }
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Data conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "error"},
+                "message": {"type": "string", "example": "Email already exists"}
+              }
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "error"},
+                "message": {"type": "string", "example": "Internal Server Error"}
+              }
+            }
+          }
+        }
+      },
+      "RoomCreated": {
+        "description": "Create room successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "room": {"$ref": "#/components/schemas/Room"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RoomUpdated": {
+        "description": "Update room successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "example": "success"},
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "room": {"$ref": "#/components/schemas/Room"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} 
