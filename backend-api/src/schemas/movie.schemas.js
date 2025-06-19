@@ -7,6 +7,7 @@ const movieSchema = z.object({
   description: z.string().min(1, "Mô tả không được để trống").max(2000, "Mô tả quá dài"),
   duration: z.coerce.number().int("Thời lượng phải là số nguyên").min(1, "Thời lượng phải lớn hơn 0").max(600, "Thời lượng không được quá 600 phút"),
   release_date: z.string().date("Ngày phát hành không hợp lệ"),
+  end_date: z.string().date("Ngày kết thúc không hợp lệ").optional(),
   genre: z.string().min(1, "Thể loại không được để trống").max(100, "Thể loại quá dài"),
   director: z.string().min(1, "Đạo diễn không được để trống").max(255, "Tên đạo diễn quá dài"),
   cast: z.string().min(1, "Diễn viên không được để trống").max(1000, "Danh sách diễn viên quá dài"),
@@ -20,7 +21,8 @@ const movieSchema = z.object({
     errorMap: () => ({ message: "Trạng thái phải là active hoặc inactive" })
   }).optional().default("active"),
   // Field cho file upload
-  posterFile: z.any().optional()
+  posterFile: z.any().optional(),
+  poster: z.any().optional() // Multer upload field
 });
 
 // Schema cho query parameters khi lấy danh sách phim
@@ -38,7 +40,8 @@ const createMovieSchema = movieSchema.omit({
   id: true, 
   poster_url: true 
 }).extend({
-  posterFile: z.any().optional()
+  posterFile: z.any().optional(),
+  poster: z.any().optional() // Multer upload field
 });
 
 // Schema cho cập nhật phim (partial) 
@@ -46,7 +49,8 @@ const updateMovieSchema = movieSchema.omit({
   id: true,
   poster_url: true
 }).partial().extend({
-  posterFile: z.any().optional()
+  posterFile: z.any().optional(),
+  poster: z.any().optional() // Multer upload field
 });
 
 module.exports = {
