@@ -17,7 +17,7 @@
   ],
   "tags": [
     {"name": "Authentication", "description": "Đăng ký, đăng nhập, quản lý staff"},
-    {"name": "Films", "description": "Quản lý phim"},
+    {"name": "Movies", "description": "Quản lý phim"},
     {"name": "Rooms", "description": "Quản lý phòng chiếu"},
     {"name": "Seats", "description": "Quản lý ghế ngồi"},
     {"name": "Showtimes", "description": "Quản lý suất chiếu"},
@@ -29,6 +29,7 @@
       "post": {
         "tags": ["Authentication"],
         "summary": "Login",
+        "description": "0987654321 admin123",
         "requestBody": {
           "required": true,
           "content": {
@@ -59,53 +60,6 @@
             }
           },
           "500": {"$ref": "#/components/responses/InternalServerError"}
-        }
-      }
-    },
-    "/api/auth/google/callback": {
-      "get": {
-        "tags": ["Authentication"],
-        "summary": "Callback từ Google OAuth",
-        "description": "Endpoint callback mà Google sẽ redirect về sau khi user authorize. Tự động tạo account nếu là user mới.",
-        "parameters": [
-          {
-            "name": "code",
-            "in": "query",
-            "required": true,
-            "schema": {"type": "string"},
-            "description": "Authorization code từ Google"
-          },
-          {
-            "name": "state",
-            "in": "query",
-            "schema": {"type": "string"},
-            "description": "State parameter để validate request"
-          }
-        ],
-        "responses": {
-          "200": {"$ref": "#/components/responses/GoogleAuthSuccess"},
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "500": {"$ref": "#/components/responses/InternalServerError"}
-        }
-      }
-    },
-    "/api/v1/auth/google/complete": {
-      "post": {
-        "tags": ["Authentication"],
-        "summary": "Update info after google auth",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GoogleCompleteInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {"$ref": "#/components/responses/GoogleAuthSuccess"},
-          "400": {"$ref": "#/components/responses/BadRequest"}
         }
       }
     },
@@ -150,9 +104,9 @@
         }
       }
     },
-    "/api/films": {
+    "/api/movies": {
       "get": {
-        "tags": ["Films"],
+        "tags": ["movies"],
         "summary": "Lấy danh sách phim",
         "parameters": [
           {"$ref": "#/components/parameters/PageParam"},
@@ -165,7 +119,7 @@
         }
       },
       "post": {
-        "tags": ["Films"],
+        "tags": ["movies"],
         "summary": "Thêm phim mới (Admin)",
         "security": [{"bearerAuth": []}],
         "requestBody": {
@@ -181,9 +135,9 @@
         }
       }
     },
-    "/api/films/{id}": {
+    "/api/movies/{id}": {
       "get": {
-        "tags": ["Films"],
+        "tags": ["movies"],
         "summary": "Lấy thông tin phim theo ID",
         "parameters": [
           {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
@@ -194,7 +148,7 @@
         }
       },
       "put": {
-        "tags": ["Films"],
+        "tags": ["movies"],
         "summary": "Cập nhật phim (Admin)",
         "security": [{"bearerAuth": []}],
         "parameters": [
@@ -214,8 +168,9 @@
         }
       },
       "delete": {
-        "tags": ["Films"],
-        "summary": "Xóa phim (Admin)",
+        "tags": ["movies"],
+        "summary": "Xóa mềm phim (Admin)",
+        "description": "Thao tác này không xóa phim vĩnh viễn khỏi CSDL, mà chỉ cập nhật trạng thái của phim thành 'inactive'.",
         "security": [{"bearerAuth": []}],
         "parameters": [
           {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}
@@ -456,12 +411,11 @@
           "description": {"type": "string"},
           "director": {"type": "string"},
           "genre": {"type": "string"},
-          "duration_min": {"type": "integer"},
+          "duration": {"type": "integer"},
           "cast": {"type": "string"},
           "release_date": {"type": "string", "format": "date"},
-          "end_date": {"type": "string", "format": "date"},
           "country": {"type": "string"},
-          "age_rating": {"type": "string"},
+          "rating": {"type": "string", "enum": ["G", "PG", "PG-13", "R", "NC-17", "T13", "T16", "T18", "C"]},
           "status": {"type": "string", "enum": ["active", "inactive"]},
           "trailer_url": {"type": "string", "format": "uri"},
           "poster_url": {"type": "string", "format": "uri"}
@@ -469,21 +423,20 @@
       },
       "FilmInput": {
         "type": "object",
-        "required": ["title", "description"],
+        "required": ["title", "description", "duration", "release_date", "genre", "director", "cast", "country", "rating"],
         "properties": {
           "title": {"type": "string"},
           "description": {"type": "string"},
-          "director": {"type": "string"},
-          "genre": {"type": "string"},
-          "duration_min": {"type": "integer"},
-          "cast": {"type": "string"},
+          "duration": {"type": "integer"},
           "release_date": {"type": "string", "format": "date"},
-          "end_date": {"type": "string", "format": "date"},
+          "genre": {"type": "string"},
+          "director": {"type": "string"},
+          "cast": {"type": "string"},
           "country": {"type": "string"},
-          "age_rating": {"type": "string"},
-          "status": {"type": "string", "enum": ["active", "inactive"]},
+          "rating": {"type": "string", "enum": ["G", "PG", "PG-13", "R", "NC-17", "T13", "T16", "T18", "C"]},
+          "status": {"type": "string", "enum": ["active", "inactive"], "default": "active"},
           "trailer_url": {"type": "string", "format": "uri"},
-          "poster": {"type": "string", "format": "binary"}
+          "poster": {"type": "string", "format": "binary", "description": "File poster để upload"}
         }
       },
       "Room": {
@@ -852,28 +805,6 @@
                   "type": "object",
                   "properties": {
                     "film": {"$ref": "#/components/schemas/Film"}
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "RoomsList": {
-        "description": "Showroom list",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "status": {"type": "string", "example": "success"},
-                "data": {
-                  "type": "object",
-                  "properties": {
-                    "rooms": {
-                      "type": "array",
-                      "items": {"$ref": "#/components/schemas/Room"}
-                    }
                   }
                 }
               }
