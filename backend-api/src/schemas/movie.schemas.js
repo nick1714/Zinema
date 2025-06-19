@@ -5,7 +5,7 @@ const movieSchema = z.object({
   id: z.coerce.number().positive("ID phải là số dương"),
   title: z.string().min(1, "Tiêu đề không được để trống").max(255, "Tiêu đề quá dài"),
   description: z.string().min(1, "Mô tả không được để trống").max(2000, "Mô tả quá dài"),
-  duration: z.number().int("Thời lượng phải là số nguyên").min(1, "Thời lượng phải lớn hơn 0").max(600, "Thời lượng không được quá 600 phút"),
+  duration: z.coerce.number().int("Thời lượng phải là số nguyên").min(1, "Thời lượng phải lớn hơn 0").max(600, "Thời lượng không được quá 600 phút"),
   release_date: z.string().date("Ngày phát hành không hợp lệ"),
   genre: z.string().min(1, "Thể loại không được để trống").max(100, "Thể loại quá dài"),
   director: z.string().min(1, "Đạo diễn không được để trống").max(255, "Tên đạo diễn quá dài"),

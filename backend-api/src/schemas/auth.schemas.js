@@ -20,7 +20,7 @@ const employeeRegisterSchema = z.object({
   date_of_birth: z.string().optional(),
   address: z.string().optional(),
   position: z.string().optional(),
-}).refine(data => data.password === data.password_confirm, {
+}).strict().refine(data => data.password === data.password_confirm, {
   message: 'Mật khẩu xác nhận không khớp',
   path: ['password_confirm']
 });
@@ -32,7 +32,7 @@ const loginSchema = z.object({
     .max(15, { message: 'Số điện thoại không được quá 15 ký tự' }),
   password: z.string()
     .min(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' })
-}).refine(data => data.phone_number && data.password, {
+}).strict().refine(data => data.phone_number && data.password, {
   message: 'Số điện thoại và mật khẩu là bắt buộc',
   path: ['phone_number', 'password']
 });
@@ -48,10 +48,23 @@ const googleCompleteSchema = z.object({
     .min(2, { message: 'Họ tên phải có ít nhất 2 ký tự' })
     .max(100, { message: 'Họ tên không được quá 100 ký tự' })
     .optional()
+}).strict();
+
+// Schemas để validate toàn bộ request body
+const employeeRegisterRequestSchema = z.object({
+  input: employeeRegisterSchema,
+});
+
+const loginRequestSchema = z.object({
+  input: loginSchema,
+});
+
+const googleCompleteRequestSchema = z.object({
+  input: googleCompleteSchema,
 });
 
 module.exports = {
-  employeeRegisterSchema,
-  loginSchema,
-  googleCompleteSchema
+  employeeRegisterRequestSchema,
+  loginRequestSchema,
+  googleCompleteRequestSchema
 }; 

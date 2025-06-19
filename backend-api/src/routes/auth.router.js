@@ -3,13 +3,17 @@ const { authenticateToken, authorizeRoles } = require("../middlewares/auth.middl
 const authController = require("../controllers/auth.controller");
 const { methodNotAllowed } = require("../controllers/errors.controller");
 const { validateRequest } = require("../middlewares/validator.middleware");
-const { employeeRegisterSchema, loginSchema, googleCompleteSchema } = require("../schemas/auth.schemas");
+const { 
+  employeeRegisterRequestSchema, 
+  loginRequestSchema, 
+  googleCompleteRequestSchema 
+} = require("../schemas/auth.schemas");
 const { ROLES } = require("../constants");
 
 
 function setup(app) {
   const router = express.Router();
-  app.use("/api/v1/auth", router);  
+  app.use("/api/auth", router);  
   
   // Đăng ký tài khoản nhân viên (chỉ admin)
   router.post(
@@ -17,7 +21,7 @@ function setup(app) {
     [
       authenticateToken,
       authorizeRoles([ROLES.ADMIN]),
-      validateRequest(employeeRegisterSchema),
+      validateRequest(employeeRegisterRequestSchema),
     ],
     authController.registerEmployee
   );
@@ -26,7 +30,7 @@ function setup(app) {
   // Đăng nhập
   router.post(
     "/login",
-    validateRequest(loginSchema),
+    validateRequest(loginRequestSchema),
     authController.login
   );
   router.all("/login", methodNotAllowed);
@@ -80,7 +84,7 @@ function setup(app) {
   router.all('/google/callback', methodNotAllowed);
 
   router.post('/google/complete', 
-    validateRequest(googleCompleteSchema), 
+    validateRequest(googleCompleteRequestSchema), 
     authController.completeProfile
   );
   router.all('/google/complete', methodNotAllowed);

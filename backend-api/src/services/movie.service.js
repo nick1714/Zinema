@@ -204,48 +204,31 @@ async function updateMovie(id, updateData) {
  * @returns {Promise<Object|null>} - Object chứa thông tin phim vừa xóa hoặc null nếu không tìm thấy
  */
 async function deleteMovie(id) {
-  // Lấy thông tin poster trước khi xóa để cleanup file
-  const deletedMovie = await movieRepository()
+  // Tìm phim để đảm bảo nó tồn tại
+  const movie = await movieRepository()
       .where('id', id)
-      .select('poster_url')
       .first();
 
   // Trả về null nếu phim không tồn tại
-  if (!deletedMovie) {
+  if (!movie) {
       return null;
   }
 
-  // Xóa record khỏi database
-  await movieRepository().where('id', id).del();
+  // Cập nhật status thành 'inactive' thay vì xóa
+  const updated = await movieRepository()
+    .where({ id })
+    .update({ status: 'inactive' });
 
-  // File cleanup: Xóa file poster nếu không phải default
-  if (
-      deletedMovie.poster_url &&
-      deletedMovie.poster_url.startsWith('/public/uploads')
-  ) {
-      unlink(`.${deletedMovie.poster_url}`, () => {}); // Async file delete, ignore errors
-  }
-
-  return deletedMovie;
+  return updated;
 }
 
 /**
- * Xóa tất cả bộ phim trong database
+ * Đánh dấu tất cả phim là 'inactive'
  * @returns {Promise<void>} - Không trả về gì
  */
 async function deleteAllMovies() {
-  // Lấy danh sách poster URLs trước khi xóa để cleanup files
-  const movies = await movieRepository().select('poster_url');
-  
-  // Xóa tất cả records khỏi database
-  await movieRepository().del();
-
-  // File cleanup: Xóa tất cả file poster (trừ default)
-  movies.forEach((movie) => {
-      if (movie.poster_url && movie.poster_url.startsWith('/public/uploads')) {  
-          unlink(`.${movie.poster_url}`, () => {}); // Async file delete, ignore errors
-      }
-  });
+  // Cập nhật status của tất cả phim thành 'inactive'
+  await movieRepository().update({ status: 'inactive' });
 }
 
 module.exports = {
