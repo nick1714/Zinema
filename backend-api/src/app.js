@@ -4,6 +4,7 @@ const cors = require('cors');
 const JSend = require("./jsend");
 const cinemaRouter = require("./routes/cinema.router");
 const movieRouter = require("./routes/movie.router");
+const showtimeRouter = require("./routes/showtime.router");
 const {
   resourceNotFound,
   handleError,
@@ -25,6 +26,7 @@ app.use("/public", express.static("public"));
 // Setup routes
 cinemaRouter.setup(app);
 movieRouter.setup(app);
+showtimeRouter.setup(app);
 
 // 404 handler - must be after all routes
 app.use(resourceNotFound);
