@@ -192,35 +192,36 @@ async function updateShowtime(id, updateData) {
 }
 
 /**
- * Xóa một suất chiếu theo ID
- * @param {number} id - ID của suất chiếu cần xóa
- * @returns {Promise<Object|null>} - Object chứa thông tin suất chiếu vừa xóa hoặc null nếu không tìm thấy
+ * Hủy một suất chiếu
+ * @param {number} id - ID của suất chiếu cần hủy
+ * @returns {Promise<Object|null>} - Object chứa thông tin suất chiếu vừa bị hủy hoặc null nếu không tìm thấy
  */
 async function deleteShowtime(id) {
-  // Lấy thông tin suất chiếu trước khi xóa
-  const deletedShowtime = await showtimeRepository()
+  // Tìm suất chiếu để đảm bảo nó tồn tại
+  const showtime = await showtimeRepository()
       .where('id', id)
-      .select('*')
       .first();
 
   // Trả về null nếu suất chiếu không tồn tại
-  if (!deletedShowtime) {
+  if (!showtime) {
       return null;
   }
 
-  // Xóa record khỏi database
-  await showtimeRepository().where('id', id).del();
+  // Cập nhật status thành 'canceled' thay vì xóa
+  const updated = await showtimeRepository()
+    .where({ id })
+    .update({ status: 'canceled' });
 
-  return deletedShowtime;
+  return updated;
 }
 
 /**
- * Xóa tất cả suất chiếu trong database
+ * Hủy tất cả suất chiếu
  * @returns {Promise<void>} - Không trả về gì
  */
 async function deleteAllShowtimes() {
-  // Xóa tất cả records khỏi database
-  await showtimeRepository().del();
+  // Cập nhật status của tất cả suất chiếu thành 'canceled'
+  await showtimeRepository().update({ status: 'canceled' });
 }
 
 module.exports = {

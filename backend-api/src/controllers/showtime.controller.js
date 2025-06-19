@@ -126,7 +126,7 @@ async function updateShowtime(req, res, next) {
 }
 
 /**
- * Xóa suất chiếu theo ID
+ * Hủy suất chiếu theo ID
  * @param {Object} req - Express request
  * @param {Object} res - Express response
  * @param {Function} next - Express next middleware
@@ -135,15 +135,15 @@ async function deleteShowtime(req, res, next) {
     const { id } = req.params;
     
     try {
-        // Gọi service để xóa suất chiếu
-        const deletedShowtime = await showtimeService.deleteShowtime(id);
+        // Gọi service để hủy suất chiếu
+        const canceledShowtime = await showtimeService.deleteShowtime(id);
 
-        if (!deletedShowtime) {
+        if (!canceledShowtime) {
             return next(new ApiError(404, 'Showtime not found'));
         }
 
         return res.json(
-            JSend.success({ showtime: deletedShowtime }, "Showtime deleted successfully")
+            JSend.success({ showtime: canceledShowtime }, "Showtime canceled successfully")
         );
     } catch (error) {
         console.error("Error in deleteShowtime controller:", error);
@@ -152,18 +152,18 @@ async function deleteShowtime(req, res, next) {
 }
 
 /**
- * Xóa tất cả suất chiếu
+ * Hủy tất cả suất chiếu
  * @param {Object} req - Express request
  * @param {Object} res - Express response
  * @param {Function} next - Express next middleware
  */
 async function deleteAllShowtimes(req, res, next) {
     try {
-        // Gọi service để xóa tất cả suất chiếu
+        // Gọi service để hủy tất cả suất chiếu
         await showtimeService.deleteAllShowtimes();
 
         return res.json(
-            JSend.success(null, "All showtimes deleted successfully")
+            JSend.success(null, "All showtimes canceled successfully")
         );
     } catch (error) {
         console.error("Error in deleteAllShowtimes controller:", error);
