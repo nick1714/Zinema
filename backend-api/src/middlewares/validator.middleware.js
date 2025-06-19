@@ -3,53 +3,42 @@ const { z } = require("zod");
 const ApiError = require("../api-error");
 
 /**
- * Xác thực đối tượng yêu cầu bằng zod
- * @param {z.AnyZodObject} validator - Zod schema
- * @param {string} source - Nguồn dữ liệu để xác thực (body, params, query)
+ * Validates the request object using the provided zod validator.
+ *
+ * @param {z.AnyZodObject} validator
  */
-function validateRequest(validator, source = 'body') {
+
+function validateRequest(validator) {
   return (req, res, next) => {
     try {
-      let dataToValidate;
-      
-      // Xác định nguồn dữ liệu cần validate
-      switch (source) {
-        case 'params':
-          dataToValidate = req.params;
-          break;
-        case 'query':
-          dataToValidate = req.query;
-          break;
-        case 'body':
-        default:
-          dataToValidate = req.body;
-          
-          // Nếu có file upload, thêm vào dữ liệu
-          if (req.file) {
-            dataToValidate.poster_url = `/uploads/posters/${req.file.filename}`;
-          }
-          break;
+      let input = { ...req.params };
+
+      if (req.method === "GET" || req.method === "DELETE") {
+        input = { ...input, ...req.query };
+      }
+
+      if (req.method === "POST" || req.method === "PUT") {
+        input = {
+          ...input,
+          ...(req.body ? req.body : {}),
+        };
       }
       
-      // Validate dữ liệu
-      const validatedData = validator.parse(dataToValidate);
+      console.log("Input before validation:", input);
       
-      // Cập nhật lại request với dữ liệu đã validate
-      if (source === 'body') {
-        req.body = validatedData;
-      } else if (source === 'params') {
-        req.params = validatedData;
-      } else if (source === 'query') {
-        req.query = validatedData;
-      }
+      validator.parse({ input });
 
       return next();
     } catch (error) {
       console.log("Validation error:", error);
       if (error instanceof z.ZodError) {
         const errorMessages = error.issues.map((issue) => {
-          const path = issue.path.join('.');
-          return `${path ? path + ': ' : ''}${issue.message}`;
+          const errorPath = issue.path.join(".");
+          if (issue.code === z.ZodIssueCode.unrecognized_keys) {
+            const invalidKeys = issue.keys.join(", ");
+            return `${errorPath} contains invalid keys: ${invalidKeys}`;
+          }
+          return `${errorPath}: ${issue.message}`;
         });
         return next(new ApiError(400, errorMessages.join("; ")));
       }
