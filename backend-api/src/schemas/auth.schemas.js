@@ -32,10 +32,7 @@ const loginSchema = z.object({
     .max(15, { message: 'Số điện thoại không được quá 15 ký tự' }),
   password: z.string()
     .min(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' })
-}).strict().refine(data => data.phone_number && data.password, {
-  message: 'Số điện thoại và mật khẩu là bắt buộc',
-  path: ['phone_number', 'password']
-});
+}).strict();
 
 // Schema cho hoàn tất Google Auth
 const googleCompleteSchema = z.object({
@@ -50,21 +47,82 @@ const googleCompleteSchema = z.object({
     .optional()
 }).strict();
 
+// Schema cho cập nhật thông tin khách hàng
+const updateCustomerSchema = z.object({
+  full_name: z.string()
+    .min(2, { message: 'Họ tên phải có ít nhất 2 ký tự' })
+    .max(255, { message: 'Họ tên không được quá 255 ký tự' })
+    .optional(),
+  
+  phone_number: z.string()
+    .min(10, { message: 'Số điện thoại phải có ít nhất 10 ký tự' })
+    .max(15, { message: 'Số điện thoại không được quá 15 ký tự' })
+    .optional(),
+  
+  address: z.string()
+    .max(500, { message: 'Địa chỉ không được quá 500 ký tự' })
+    .optional(),
+  
+  gender: z.enum(['male', 'female', 'other'], {
+    errorMap: () => ({ message: 'Giới tính phải là male, female hoặc other' })
+  }).optional(),
+  
+  date_of_birth: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Ngày sinh phải có định dạng YYYY-MM-DD' })
+    .optional(),
+}).strict();
+
+// Schema cho cập nhật thông tin nhân viên
+const updateEmployeeSchema = z.object({
+  email: z.string()
+    .email({ message: 'Email không đúng định dạng' })
+    .max(255, { message: 'Email không được quá 255 ký tự' })
+    .optional(),
+  
+  full_name: z.string()
+    .min(2, { message: 'Họ tên phải có ít nhất 2 ký tự' })
+    .max(100, { message: 'Họ tên không được quá 100 ký tự' })
+    .optional(),
+  
+  phone_number: z.string()
+    .min(10, { message: 'Số điện thoại phải có ít nhất 10 ký tự' })
+    .max(15, { message: 'Số điện thoại không được quá 15 ký tự' })
+    .optional(),
+  
+  date_of_birth: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Ngày sinh phải có định dạng YYYY-MM-DD' })
+    .optional(),
+  
+  address: z.string()
+    .max(500, { message: 'Địa chỉ không được quá 500 ký tự' })
+    .optional(),
+  
+  position: z.string()
+    .max(100, { message: 'Chức vụ không được quá 100 ký tự' })
+    .optional(),
+}).strict();
+
 // Schemas để validate toàn bộ request body
-const employeeRegisterRequestSchema = z.object({
-  input: employeeRegisterSchema,
+const employeeRegisterRequestSchema = employeeRegisterSchema;
+
+const loginRequestSchema = loginSchema;
+
+const googleCompleteRequestSchema = googleCompleteSchema;
+
+const updateCustomerRequestSchema = z.object({
+  input: updateCustomerSchema,
+  id: z.string().optional(), // Cho phép id từ req.params
 });
 
-const loginRequestSchema = z.object({
-  input: loginSchema,
-});
-
-const googleCompleteRequestSchema = z.object({
-  input: googleCompleteSchema,
+const updateEmployeeRequestSchema = z.object({
+  input: updateEmployeeSchema,
+  id: z.string().optional(), // Cho phép id từ req.params
 });
 
 module.exports = {
   employeeRegisterRequestSchema,
   loginRequestSchema,
-  googleCompleteRequestSchema
+  googleCompleteRequestSchema,
+  updateCustomerRequestSchema,
+  updateEmployeeRequestSchema
 }; 

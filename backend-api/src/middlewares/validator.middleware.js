@@ -11,22 +11,50 @@ const ApiError = require("../api-error");
 function validateRequest(validator) {
   return (req, res, next) => {
     try {
-      let input = { ...req.params };
+      let input;
 
+      // GET/DELETE: Wrap query params và params trong input
       if (req.method === "GET" || req.method === "DELETE") {
-        input = { ...input, ...req.query };
-          }
-
-      if (req.method === "POST" || req.method === "PUT") {
         input = {
-          ...input,
-          ...(req.body ? req.body : {}),
+          input: { ...req.params, ...req.query }
         };
+      }
+      
+      // POST/PUT: Xử lý theo content-type
+      if (req.method === "POST" || req.method === "PUT") {
+        const contentType = req.get('Content-Type') || '';
+        
+        // Multipart form data: wrap fields trong input + thêm id
+        if (contentType.includes('multipart/form-data')) {
+          input = {
+            input: {
+              ...(req.body ? req.body : {}),
+              ...(req.params.id ? { id: req.params.id } : {})
+            }
+          };
+        }
+        // JSON: wrap body trong input + thêm id từ params
+        else {
+          // Nếu body đã có input, giữ nguyên; nếu không thì wrap
+          if (req.body && req.body.input) {
+            input = {
+              ...(req.body ? req.body : {}),
+              ...(req.params.id ? { id: req.params.id } : {})
+            };
+          } else {
+            input = {
+              input: {
+                ...(req.body ? req.body : {})
+              },
+              ...(req.params.id ? { id: req.params.id } : {})
+            };
+          }
+        }
       }
       
       console.log("Input before validation:", input);
       
-      validator.parse({ input });
+      validator.parse(input);
 
       return next();
     } catch (error) {

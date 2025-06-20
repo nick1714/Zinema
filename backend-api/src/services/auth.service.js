@@ -7,7 +7,16 @@ const { generateToken } = require('../middlewares/auth.middleware');
 // Số rounds để hash password
 const SALT_ROUNDS = 10;
 
-// Repository pattern
+// OAuth2Client configuration
+const client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback'
+);
+
+/**
+ * Repository pattern cho các tables
+ */
 function roleRepository() {
     return knex('roles');
 }
@@ -25,13 +34,189 @@ function employeeRepository() {
 }
 
 /**
+ * Helper function: Filter và transform dữ liệu employee từ request payload
+ * @param {Object} payload - Raw data từ request body
+ * @returns {Object} - Filtered data object cho database operations
+ */
+function readEmployeeData(payload) {
+    return {
+        ...(payload.email && { email: payload.email }),
+        ...(payload.full_name && { full_name: payload.full_name }),
+        ...(payload.phone_number && { phone_number: payload.phone_number }),
+        ...(payload.date_of_birth && { date_of_birth: payload.date_of_birth }),
+        ...(payload.address && { address: payload.address }),
+        ...(payload.position && { position: payload.position }),
+    };
+}
+
+/**
+ * Helper function: Lấy thông tin user (customer/employee) bằng account_id
+ * @param {Number} accountId - ID của tài khoản
+ * @param {String} role - Vai trò của tài khoản
+ * @returns {Promise<Object>} - Thông tin user
+ */
+async function getUserInfoByAccountId(accountId, role) {
+    try {
+        let userInfo = null;
+        if (role === ROLES.CUSTOMER) {
+            userInfo = await customerRepository()
+                .where('account_id', accountId)
+                .first();
+        } else if (role === ROLES.STAFF || role === ROLES.ADMIN) {
+            userInfo = await employeeRepository()
+                .where('account_id', accountId)
+                .first();
+        }
+        return userInfo;
+    } catch (error) {
+        console.error(`Get user info by account id error:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Đăng ký tài khoản nhân viên mới
+ * @param {Object} payload - Dữ liệu đăng ký từ request body
+ * @returns {Promise<Object>} - Object chứa thông tin nhân viên vừa tạo
+ */
+async function registerEmployee(payload) {
+    try {
+        // Kiểm tra số điện thoại đã tồn tại chưa
+        const existingAccount = await accountRepository()
+            .where('phone_number', payload.phone_number)
+            .first();
+        
+        if (existingAccount) {
+            throw new Error('Phone number already exists');
+        }
+        
+        // Hash password
+        const hashedPassword = await bcrypt.hash(payload.password, SALT_ROUNDS);
+        
+        // Filter data cho employee
+        const employeeData = readEmployeeData(payload);
+        
+        // Lấy role_id của STAFF
+        const staffRole = await getRoleByName(ROLES.STAFF);
+        
+        // Tạo transaction để đảm bảo tính toàn vẹn dữ liệu
+        const result = await knex.transaction(async (trx) => {
+            // Tạo tài khoản
+            const [accountId] = await accountRepository()
+                .transacting(trx)
+                .insert({
+                    phone_number: payload.phone_number,
+                    email: payload.email,
+                    password: hashedPassword,
+                    role_id: staffRole.id,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                })
+                .returning('id');
+            
+            // Tạo thông tin nhân viên
+            const [employeeId] = await employeeRepository()
+                .transacting(trx)
+                .insert({
+                    ...employeeData,
+                    account_id: accountId.id,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                })
+                .returning('id');
+            
+            // Lấy thông tin nhân viên vừa tạo
+            const employee = await employeeRepository()
+                .transacting(trx)
+                .where('id', employeeId.id)
+                .first();
+            
+            return {
+                ...employee,
+                account_id: accountId.id
+            };
+        });
+        
+        return result;
+    } catch (error) {
+        console.error('Register employee error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Đăng nhập người dùng
+ * @param {String} phone_number - Số điện thoại đăng nhập
+ * @param {String} password - Mật khẩu đăng nhập
+ * @returns {Promise<Object>} - Object chứa thông tin đăng nhập và token
+ */
+async function login(phone_number, password) {
+    try {
+        // Tìm tài khoản theo số điện thoại
+        const account = await accountRepository()
+            .where('phone_number', phone_number)
+            .first();
+        
+        if (!account) {
+            throw new Error('Invalid credentials');
+        }
+        
+        // So sánh password
+        const isPasswordValid = await bcrypt.compare(password, account.password);
+        
+        if (!isPasswordValid) {
+            throw new Error('Invalid credentials');
+        }
+        
+        // Lấy thông tin vai trò
+        const role = await getRoleById(account.role_id);
+        
+        // Lấy thông tin khách hàng hoặc nhân viên
+        let userInfo = null;
+        
+        if (role.name === ROLES.CUSTOMER) {
+            userInfo = await customerRepository()
+                .where('account_id', account.id)
+                .first();
+        } else if (role.name === ROLES.STAFF || role.name === ROLES.ADMIN) {
+            userInfo = await employeeRepository()
+                .where('account_id', account.id)
+                .first();
+        }
+        
+        // Tạo token với role
+        const tokenData = {
+            ...account,
+            role: role.name
+        };
+        
+        const token = generateToken(tokenData);
+        
+        // Trả về thông tin đăng nhập và token
+        return {
+            account: {
+                id: account.id,
+                phone_number: account.phone_number,
+                role: role.name
+            },
+            user: userInfo,
+            token
+        };
+    } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+    }
+}
+
+/**
  * Lấy danh sách tất cả vai trò
  * @returns {Promise<Array>} - Danh sách vai trò
  */
 async function getAllRoles() {
     try {
         const roles = await roleRepository()
-            .select('*');
+            .select('*')
+            .orderBy('id', 'asc');
         
         return roles;
     } catch (error) {
@@ -84,169 +269,15 @@ async function getRoleByName(name) {
     }
 }
 
-
 /**
- * Đăng ký tài khoản nhân viên
- * @param {Object} userData - Dữ liệu đăng ký
- * @returns {Promise<Object>} - Thông tin nhân viên đã tạo
- */
-async function registerEmployee(userData) {
-    try {
-        // Kiểm tra số điện thoại đã tồn tại chưa
-        const existingAccount = await accountRepository()
-            .where('phone_number', userData.phone_number)
-            .first();
-        
-        if (existingAccount) {
-            throw new Error('Phone number already exists');
-        }
-        
-        // Hash password
-        const hashedPassword = await bcrypt.hash(userData.password, SALT_ROUNDS);
-        
-        // Loại bỏ password_confirm
-        const { password_confirm, ...dataToSave } = userData;
-        
-        // Lấy role_id của STAFF
-        const staffRole = await getRoleByName(ROLES.STAFF);
-        
-        // Tạo transaction để đảm bảo tính toàn vẹn dữ liệu
-        const result = await knex.transaction(async (trx) => {
-            // Tạo tài khoản
-            const [accountId] = await accountRepository()
-                .transacting(trx)
-                .insert({
-                    phone_number: dataToSave.phone_number,
-                    password: hashedPassword,
-                    role_id: staffRole.id,
-                    created_at: new Date(),
-                    updated_at: new Date()
-                })
-                .returning('id');
-            
-            // Tạo thông tin nhân viên
-            const [employeeId] = await employeeRepository()
-                .transacting(trx)
-                .insert({
-                    email: dataToSave.email,
-                    full_name: dataToSave.full_name,
-                    date_of_birth: dataToSave.date_of_birth,
-                    address: dataToSave.address,
-                    phone_number: dataToSave.phone_number,
-                    position: dataToSave.position,
-                    account_id: accountId.id,
-                    created_at: new Date(),
-                    updated_at: new Date()
-                })
-                .returning('id');
-            
-            // Lấy thông tin nhân viên vừa tạo
-            const employee = await employeeRepository()
-                .transacting(trx)
-                .where('id', employeeId.id)
-                .first();
-            
-            return {
-                ...employee,
-                account_id: accountId.id
-            };
-        });
-        
-        return result;
-    } catch (error) {
-        console.error('Register employee error:', error);
-        throw error;
-    }
-}
-
-/**
- * Đăng nhập
- * @param {String} phone_number - Số điện thoại đăng nhập
- * @param {String} password - Mật khẩu đăng nhập
- * @returns {Promise<Object>} - Thông tin đăng nhập và token
- */
-async function login(phone_number, password) {
-    try {
-        // Tìm tài khoản theo số điện thoại
-        const account = await accountRepository()
-            .where('phone_number', phone_number)
-            .first();
-        
-        if (!account) {
-            throw new Error('Invalid credentials');
-        }
-        
-        // So sánh password
-        const isPasswordValid = await bcrypt.compare(password, account.password);
-        
-        if (!isPasswordValid) {
-            throw new Error('Invalid credentials');
-        }
-        
-        // Lấy thông tin vai trò
-        const role = await getRoleById(account.role_id);
-        
-        // Lấy thông tin khách hàng hoặc nhân viên
-        let userInfo = null;
-        
-        if (role.name === ROLES.CUSTOMER) {
-            userInfo = await customerRepository()
-                .where('account_id', account.id)
-                .first();
-        } else if (role.name === ROLES.STAFF || role.name === ROLES.ADMIN) {
-            userInfo = await employeeRepository()
-                .where('account_id', account.id)
-                .first();
-        }
-        
-        // Tạo token
-        const tokenData = {
-            ...account,
-            role: role.name
-        };
-        
-        const token = generateToken(tokenData);
-        
-        // Trả về thông tin đăng nhập và token
-        return {
-            account: {
-                id: account.id,
-                phone_number: account.phone_number,
-                role: role.name
-            },
-            user: userInfo,
-            token
-        };
-    } catch (error) {
-        console.error('Login error:', error);
-        throw error;
-    }
-}
-
-/**
- * Lấy danh sách khách hàng
- * @returns {Promise<Array>} - Danh sách khách hàng
- */
-async function getAllCustomers() {
-    try {
-        const customers = await customerRepository()
-            .select('*');
-        
-        return customers;
-    } catch (error) {
-        console.error('Get all customers error:', error);
-        throw error;
-    }
-}
-
-/**
- * Lấy danh sách nhân viên
+ * Lấy danh sách tất cả nhân viên
  * @returns {Promise<Array>} - Danh sách nhân viên
  */
 async function getAllEmployees() {
     try {
         const employees = await employeeRepository()
-            .select('*');
+            .select('*')
+            .orderBy('created_at', 'desc');
         
         return employees;
     } catch (error) {
@@ -256,19 +287,32 @@ async function getAllEmployees() {
 }
 
 /**
- * Lấy thông tin khách hàng theo ID
+ * Lấy danh sách tất cả khách hàng
+ * @returns {Promise<Array>} - Danh sách khách hàng
+ */
+async function getAllCustomers() {
+    try {
+        const customers = await customerRepository()
+            .select('*')
+            .orderBy('created_at', 'desc');
+        
+        return customers;
+    } catch (error) {
+        console.error('Get all customers error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Lấy thông tin chi tiết khách hàng theo ID
  * @param {Number} id - ID của khách hàng
- * @returns {Promise<Object>} - Thông tin khách hàng
+ * @returns {Promise<Object|null>} - Thông tin khách hàng hoặc null nếu không tìm thấy
  */
 async function getCustomerById(id) {
     try {
         const customer = await customerRepository()
             .where('id', id)
             .first();
-        
-        if (!customer) {
-            throw new Error('Customer not found');
-        }
         
         return customer;
     } catch (error) {
@@ -278,19 +322,15 @@ async function getCustomerById(id) {
 }
 
 /**
- * Lấy thông tin nhân viên theo ID
+ * Lấy thông tin chi tiết nhân viên theo ID
  * @param {Number} id - ID của nhân viên
- * @returns {Promise<Object>} - Thông tin nhân viên
+ * @returns {Promise<Object|null>} - Thông tin nhân viên hoặc null nếu không tìm thấy
  */
 async function getEmployeeById(id) {
     try {
         const employee = await employeeRepository()
             .where('id', id)
             .first();
-        
-        if (!employee) {
-            throw new Error('Employee not found');
-        }
         
         return employee;
     } catch (error) {
@@ -300,61 +340,133 @@ async function getEmployeeById(id) {
 }
 
 /**
- * Lấy thông tin tài khoản theo ID
- * @param {Number} id - ID của tài khoản
- * @returns {Promise<Object>} - Thông tin tài khoản
+ * Cập nhật thông tin khách hàng
+ * @param {Number} id - ID của khách hàng
+ * @param {Object} updateData - Dữ liệu cập nhật
+ * @returns {Promise<Object|null>} - Thông tin khách hàng sau khi cập nhật hoặc null nếu không tìm thấy
  */
-async function getAccountById(id) {
+async function updateCustomer(id, updateData) {
     try {
-        const account = await accountRepository()
+        const customer = await customerRepository()
             .where('id', id)
-            .select('id', 'phone_number', 'role_id')
             .first();
         
-        if (!account) {
-            throw new Error('Account not found');
+        if (!customer) {
+            return null;
         }
         
-        return account;
+        // Chỉ lấy các trường có trong updateData (được gửi từ client)
+        const customerData = {};
+        
+        // Kiểm tra từng trường có trong updateData hay không (bao gồm cả giá trị falsy)
+        if (updateData.hasOwnProperty('full_name')) {
+            customerData.full_name = updateData.full_name;
+        }
+        if (updateData.hasOwnProperty('phone_number')) {
+            customerData.phone_number = updateData.phone_number;
+        }
+        if (updateData.hasOwnProperty('address')) {
+            customerData.address = updateData.address;
+        }
+        if (updateData.hasOwnProperty('gender')) {
+            customerData.gender = updateData.gender;
+        }
+        if (updateData.hasOwnProperty('date_of_birth')) {
+            customerData.date_of_birth = updateData.date_of_birth;
+        }
+        
+        // Chỉ cập nhật nếu có dữ liệu thay đổi
+        if (Object.keys(customerData).length > 0) {
+            await customerRepository()
+                .where('id', id)
+                .update({
+                    ...customerData,
+                    updated_at: new Date()
+                });
+            
+            // Lấy lại dữ liệu mới từ database sau khi cập nhật
+            const updatedCustomer = await customerRepository()
+                .where('id', id)
+                .first();
+            
+            return updatedCustomer;
+        }
+        
+        // Không có gì thay đổi, trả về dữ liệu hiện tại
+        return customer;
     } catch (error) {
-        console.error('Get account by ID error:', error);
+        console.error('Update customer error:', error);
         throw error;
     }
 }
 
 /**
- * Lấy thông tin user (customer/employee) bằng account_id
- * @param {Number} accountId - ID của tài khoản
- * @param {String} role - Vai trò của tài khoản
- * @returns {Promise<Object>} - Thông tin user
+ * Cập nhật thông tin nhân viên
+ * @param {Number} id - ID của nhân viên
+ * @param {Object} updateData - Dữ liệu cập nhật
+ * @returns {Promise<Object|null>} - Thông tin nhân viên sau khi cập nhật hoặc null nếu không tìm thấy
  */
-async function getUserInfoByAccountId(accountId, role) {
+async function updateEmployee(id, updateData) {
     try {
-        let userInfo = null;
-        if (role === ROLES.CUSTOMER) {
-            userInfo = await customerRepository()
-                .where('account_id', accountId)
-                .first();
-        } else if (role === ROLES.STAFF || role === ROLES.ADMIN) {
-            userInfo = await employeeRepository()
-                .where('account_id', accountId)
-                .first();
+        const employee = await employeeRepository()
+            .where('id', id)
+            .first();
+        
+        if (!employee) {
+            return null;
         }
-        return userInfo;
+        
+        // Chỉ lấy các trường có trong updateData (được gửi từ client)
+        const employeeData = {};
+        
+        // Kiểm tra từng trường có trong updateData hay không (bao gồm cả giá trị falsy)
+        if (updateData.hasOwnProperty('email')) {
+            employeeData.email = updateData.email;
+        }
+        if (updateData.hasOwnProperty('full_name')) {
+            employeeData.full_name = updateData.full_name;
+        }
+        if (updateData.hasOwnProperty('phone_number')) {
+            employeeData.phone_number = updateData.phone_number;
+        }
+        if (updateData.hasOwnProperty('date_of_birth')) {
+            employeeData.date_of_birth = updateData.date_of_birth;
+        }
+        if (updateData.hasOwnProperty('address')) {
+            employeeData.address = updateData.address;
+        }
+        if (updateData.hasOwnProperty('position')) {
+            employeeData.position = updateData.position;
+        }
+        
+        // Chỉ cập nhật nếu có dữ liệu thay đổi
+        if (Object.keys(employeeData).length > 0) {
+            await employeeRepository()
+                .where('id', id)
+                .update({
+                    ...employeeData,
+                    updated_at: new Date()
+                });
+            
+            // Lấy lại dữ liệu mới từ database sau khi cập nhật
+            const updatedEmployee = await employeeRepository()
+                .where('id', id)
+                .first();
+            
+            return updatedEmployee;
+        }
+        
+        // Không có gì thay đổi, trả về dữ liệu hiện tại
+        return employee;
     } catch (error) {
-        console.error(`Get user info by account id error:`, error);
+        console.error('Update employee error:', error);
         throw error;
     }
 }
-
-const client = new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback'
-);
 
 /**
  * Tạo URL để redirect đến Google OAuth
+ * @returns {String} - Google OAuth authorization URL
  */
 function getGoogleAuthURL() {
     const scopes = [
@@ -371,6 +483,8 @@ function getGoogleAuthURL() {
 
 /**
  * Xác thực với Google và lấy thông tin user
+ * @param {String} code - Authorization code từ Google
+ * @returns {Promise<Object>} - Thông tin user từ Google
  */
 async function verifyGoogleToken(code) {
     try {
@@ -395,6 +509,8 @@ async function verifyGoogleToken(code) {
 
 /**
  * Xử lý đăng nhập Google
+ * @param {String} code - Authorization code từ Google
+ * @returns {Promise<Object>} - Kết quả xử lý Google auth
  */
 async function handleGoogleAuth(code) {
     try {
@@ -431,7 +547,8 @@ async function handleGoogleAuth(code) {
             const tokenData = {
                 id: existingUser.id,
                 role_id: existingUser.role === 'customer' ? 3 : (existingUser.role === 'staff' ? 2 : 1),
-                phone_number: existingUser.phone_number
+                phone_number: existingUser.phone_number,
+                role: existingUser.role
             };
             const token = generateToken(tokenData);
             return {
@@ -487,7 +604,8 @@ async function handleGoogleAuth(code) {
             const tokenData = {
                 id: fullUser.id,
                 role_id: customerRole.id,
-                phone_number: fullUser.phone_number
+                phone_number: fullUser.phone_number,
+                role: fullUser.role
             };
             const token = generateToken(tokenData);
 
@@ -507,6 +625,9 @@ async function handleGoogleAuth(code) {
 
 /**
  * Hoàn tất đăng ký user mới từ Google
+ * @param {Object} googleUser - Thông tin user từ Google  
+ * @param {Object} additionalInfo - Thông tin bổ sung từ user
+ * @returns {Promise<Object>} - Kết quả đăng ký
  */
 async function completeGoogleRegistration(googleUser, additionalInfo) {
     try {
@@ -565,7 +686,8 @@ async function completeGoogleRegistration(googleUser, additionalInfo) {
         const tokenData = {
             id: fullUser.id,
             role_id: customerRole.id,
-            phone_number: fullUser.phone_number
+            phone_number: fullUser.phone_number,
+            role: fullUser.role
         };
         const token = generateToken(tokenData);
 
@@ -582,17 +704,17 @@ async function completeGoogleRegistration(googleUser, additionalInfo) {
 }
 
 module.exports = {
-    ROLES,
     registerEmployee,
     login,
     getAllRoles,
     getRoleById,
     getRoleByName,
-    getAllCustomers,
     getAllEmployees,
+    getAllCustomers,
     getCustomerById,
     getEmployeeById,
-    getAccountById,
+    updateCustomer,
+    updateEmployee,
     getUserInfoByAccountId,
     getGoogleAuthURL,
     handleGoogleAuth,

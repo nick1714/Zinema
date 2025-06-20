@@ -6,7 +6,9 @@ const { validateRequest } = require("../middlewares/validator.middleware");
 const { 
   employeeRegisterRequestSchema, 
   loginRequestSchema, 
-  googleCompleteRequestSchema 
+  googleCompleteRequestSchema,
+  updateCustomerRequestSchema,
+  updateEmployeeRequestSchema
 } = require("../schemas/auth.schemas");
 const { ROLES } = require("../constants");
 
@@ -75,6 +77,54 @@ function setup(app) {
     authController.getCustomers
   );
   router.all("/customers", methodNotAllowed);
+
+  // Lấy thông tin chi tiết khách hàng theo ID (chỉ admin và nhân viên)
+  router.get(
+    "/customers/:id",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
+    ],
+    authController.getCustomerById
+  );
+
+  // Cập nhật thông tin khách hàng theo ID (chỉ admin và nhân viên)
+  router.put(
+    "/customers/:id",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
+      validateRequest(updateCustomerRequestSchema),
+    ],
+    authController.updateCustomer
+  );
+  
+  // Method not allowed cho customers/:id
+  router.all("/customers/:id", methodNotAllowed);
+
+  // Lấy thông tin chi tiết nhân viên theo ID (chỉ admin)
+  router.get(
+    "/employees/:id",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN]),
+    ],
+    authController.getEmployeeById
+  );
+
+  // Cập nhật thông tin nhân viên theo ID (chỉ admin)
+  router.put(
+    "/employees/:id",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN]),
+      validateRequest(updateEmployeeRequestSchema),
+    ],
+    authController.updateEmployee
+  );
+  
+  // Method not allowed cho employees/:id
+  router.all("/employees/:id", methodNotAllowed);
 
   // Google Auth routes
   router.get('/google', authController.initiateGoogleAuth);

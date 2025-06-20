@@ -69,9 +69,8 @@ module.exports.setup = (app) => {
     authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
     validateRequest(
       z.object({
-        input: updateShowtimeSchema.extend({
-          id: z.coerce.number().positive("ID phải là số dương")
-        }).strict(),
+        input: updateShowtimeSchema.strict(),
+        id: z.coerce.number().positive("ID phải là số dương")
       })
     ),
     showtimeController.updateShowtime
