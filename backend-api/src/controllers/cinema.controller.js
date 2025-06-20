@@ -49,7 +49,7 @@ async function getRoomById(req, res, next) {
             return next(new ApiError(404, 'Room not found'));
         }
         return res.json(JSend.success({
-            room 
+            room
         }));
     } catch (error) {
         console.log(error);

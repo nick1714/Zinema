@@ -21,8 +21,7 @@ const movieSchema = z.object({
     errorMap: () => ({ message: "Trạng thái phải là active hoặc inactive" })
   }).optional().default("active"),
   // Field cho file upload
-  posterFile: z.any().optional(),
-  poster: z.any().optional() // Multer upload field
+  posterFile: z.any().optional()
 });
 
 // Schema cho query parameters khi lấy danh sách phim
@@ -40,8 +39,7 @@ const createMovieSchema = movieSchema.omit({
   id: true, 
   poster_url: true 
 }).extend({
-  posterFile: z.any().optional(),
-  poster: z.any().optional() // Multer upload field
+  posterFile: z.any().optional()
 });
 
 // Schema cho cập nhật phim (partial) 
@@ -49,8 +47,7 @@ const updateMovieSchema = movieSchema.omit({
   id: true,
   poster_url: true
 }).partial().extend({
-  posterFile: z.any().optional(),
-  poster: z.any().optional() // Multer upload field
+  posterFile: z.any().optional()
 });
 
 module.exports = {

@@ -204,6 +204,8 @@ async function completeProfile(req, res, next) {
         
         const additionalInfo = {
             phone_number,
+            address,
+            date_of_birth,
             full_name: full_name || googleUser.name
         };
 
