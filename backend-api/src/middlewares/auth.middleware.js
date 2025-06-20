@@ -11,7 +11,8 @@ function generateToken(accountData) {
   const payload = {
     id: accountData.id,
     role_id: accountData.role_id,
-    phone_number: accountData.phone_number
+    phone_number: accountData.phone_number,
+    role: accountData.role 
   };
   
   return jwt.sign(payload, JWT_CONFIG.SECRET, { expiresIn: JWT_CONFIG.EXPIRES_IN });
@@ -30,11 +31,12 @@ function authenticateToken(req, res, next) {
   // Bỏ qua xác thực nếu cờ SKIP_AUTH được bật
   if (SKIP_AUTH) {
     console.log('SKIP_AUTH enabled - bypassing authentication');
-    // Thiết lập user giả
+    // Thiết lập user giả với role admin
     req.user = {
       id: 1,
       role_id: 1,
-      phone_number: "0987654321"
+      phone_number: "0987654321",
+      role: "admin"
     };
     return next();
   }
@@ -69,6 +71,10 @@ function authorizeRoles(allowedRoles) {
   return async (req, res, next) => {
     // Bỏ qua phân quyền nếu cờ SKIP_AUTH được bật
     if (SKIP_AUTH) {
+      // Đảm bảo req.user có role
+      if (!req.user.role) {
+        req.user.role = "admin";
+      }
       return next();
     }
     

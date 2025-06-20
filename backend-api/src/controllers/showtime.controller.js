@@ -72,9 +72,9 @@ async function getShowtimeById(req, res, next) {
  */
 async function createShowtime(req, res, next) {
     try {
-        // Lấy dữ liệu từ request body
+        // Lấy dữ liệu từ request body.input (do có wrapper input)
         const showtimeData = {
-            ...req.body
+            ...(req.body.input || req.body)
         };
 
         console.log("Received showtime data:", showtimeData);
@@ -102,9 +102,9 @@ async function updateShowtime(req, res, next) {
     const { id } = req.params;
     
     try {
-        // Lấy dữ liệu cập nhật từ request body
+        // Lấy dữ liệu cập nhật từ request body.input (do có wrapper input)
         const updateData = {
-            ...req.body
+            ...(req.body.input || req.body)
         };
 
         console.log("Updating showtime with data:", updateData);

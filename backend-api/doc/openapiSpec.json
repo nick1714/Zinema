@@ -21,10 +21,6 @@
         "description": "Authentication and authorization"
       },
       {
-        "name": "system",
-        "description": "System health and information"
-      },
-      {
         "name": "cinema-rooms",
         "description": "Cinema rooms management"
       },
@@ -50,32 +46,6 @@
       }
     ],
     "paths": {
-      "/": {
-        "get": {
-          "summary": "API health check",
-          "description": "Check if the API is running",
-          "operationId": "healthCheck",
-          "tags": ["system"],
-          "responses": {
-            "200": {
-              "description": "API is running",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/SuccessResponse"
-                  },
-                  "example": {
-                    "status": "success",
-                    "data": {
-                      "message": "Cinema Management API"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
       "/api/rooms": {
         "get": {
           "summary": "Get all cinema rooms",
@@ -812,7 +782,7 @@
           }
         }
       },
-      "/api/auth/register": {
+      "/api/auth/employee/register": {
         "post": {
           "summary": "Register new employee",
           "description": "Register a new employee account (Admin only)",
@@ -829,6 +799,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RegisterEmployeeRequest"
+                },
+                "example": {
+                  "full_name": "Lê Văn Minh",
+                  "email": "levanminh@company.com",
+                  "phone_number": "0912345678",
+                  "password": "securepassword123",
+                  "password_confirm": "securepassword123",
+                  "date_of_birth": "1988-03-10",
+                  "address": "789 Đường DEF, Quận Bình Thạnh, TP.HCM",
+                  "position": "Marketing Manager"
                 }
               }
             }
@@ -881,6 +861,10 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LoginRequest"
+                },
+                "example": {
+                  "phone_number": "0912345678",
+                  "password": "securepassword123"
                 }
               }
             }
@@ -944,6 +928,100 @@
           }
         }
       },
+      "/api/auth/me": {
+        "get": {
+          "summary": "Get current user info",
+          "description": "Get information about the currently authenticated user",
+          "operationId": "getCurrentUser",
+          "tags": ["auth"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Current user information",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "user": {
+                            "oneOf": [
+                              { "$ref": "#/components/schemas/Employee" },
+                              { "$ref": "#/components/schemas/Customer" }
+                            ]
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": ["admin", "staff", "customer"]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
+      "/api/auth/roles": {
+        "get": {
+          "summary": "Get available roles",
+          "description": "Get list of available user roles (Admin only)",
+          "operationId": "getRoles",
+          "tags": ["auth"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of roles",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "roles": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": ["admin", "staff", "customer"]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "403": { "$ref": "#/components/responses/Forbidden" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
       "/api/auth/google": {
         "get": {
           "summary": "Redirect to Google OAuth",
@@ -967,7 +1045,97 @@
           }
         }
       },
-      
+      "/api/auth/google/callback": {
+        "get": {
+          "summary": "Google OAuth callback",
+          "description": "Handles Google OAuth callback (cannot be tested in Swagger UI)",
+          "operationId": "googleCallback",
+          "tags": ["auth"],
+          "parameters": [
+            {
+              "name": "code",
+              "in": "query",
+              "description": "Authorization code from Google",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "state",
+              "in": "query",
+              "description": "State parameter for security",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "302": {
+              "description": "Redirect after Google auth processing"
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
+      "/api/auth/google/complete": {
+        "post": {
+          "summary": "Complete Google OAuth profile",
+          "description": "Complete user profile after Google OAuth",
+          "operationId": "completeGoogleProfile",
+          "tags": ["auth"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleCompleteRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Profile completed successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Profile completed successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "token": {
+                            "type": "string",
+                            "description": "JWT access token"
+                          },
+                          "user": {
+                            "$ref": "#/components/schemas/Customer"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": ["customer"]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
       "/api/auth/employees": {
         "get": {
           "summary": "Get all employees",
@@ -1054,6 +1222,257 @@
             },
             "401": { "$ref": "#/components/responses/Unauthorized" },
             "403": { "$ref": "#/components/responses/Forbidden" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
+      "/api/auth/customers/{id}": {
+        "get": {
+          "summary": "Get customer by ID",
+          "description": "Get detailed information about a specific customer (Admin/Staff only)",
+          "operationId": "getCustomerById",
+          "tags": ["auth"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/idParam"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Customer details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "customer": {
+                            "$ref": "#/components/schemas/Customer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "403": { "$ref": "#/components/responses/Forbidden" },
+            "404": { "$ref": "#/components/responses/NotFound" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        },
+        "put": {
+          "summary": "Update customer by ID",
+          "description": "Update customer information (Admin/Staff only)",
+          "operationId": "updateCustomer",
+          "tags": ["auth"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/idParam"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["input"],
+                  "properties": {
+                    "input": {
+                      "$ref": "#/components/schemas/UpdateCustomerRequest"
+                    }
+                  }
+                },
+                "example": {
+                  "input": {
+                    "full_name": "Trần Thị Bảo",
+                    "phone_number": "0987654321",
+                    "address": "456 Đường XYZ, Quận 3, TP.HCM",
+                    "date_of_birth": "1995-12-20",
+                    "gender": "female"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Customer updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Customer updated successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "customer": {
+                            "$ref": "#/components/schemas/Customer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "403": { "$ref": "#/components/responses/Forbidden" },
+            "404": { "$ref": "#/components/responses/NotFound" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
+      "/api/auth/employees/{id}": {
+        "get": {
+          "summary": "Get employee by ID",
+          "description": "Get detailed information about a specific employee (Admin only)",
+          "operationId": "getEmployeeById",
+          "tags": ["auth"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/idParam"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Employee details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "employee": {
+                            "$ref": "#/components/schemas/Employee"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "403": { "$ref": "#/components/responses/Forbidden" },
+            "404": { "$ref": "#/components/responses/NotFound" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        },
+        "put": {
+          "summary": "Update employee by ID",
+          "description": "Update employee information (Admin only)",
+          "operationId": "updateEmployee",
+          "tags": ["auth"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/idParam"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["input"],
+                  "properties": {
+                    "input": {
+                      "$ref": "#/components/schemas/UpdateEmployeeRequest"
+                    }
+                  }
+                },
+                "example": {
+                  "input": {
+                    "full_name": "Nguyễn Văn An",
+                    "email": "nguyenvanan@company.com",
+                    "phone_number": "0123456789",
+                    "date_of_birth": "1990-05-15",
+                    "address": "123 Đường ABC, Quận 1, TP.HCM",
+                    "position": "Senior Developer"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Employee updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Employee updated successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "employee": {
+                            "$ref": "#/components/schemas/Employee"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "403": { "$ref": "#/components/responses/Forbidden" },
+            "404": { "$ref": "#/components/responses/NotFound" },
             "500": { "$ref": "#/components/responses/InternalServerError" }
           }
         }
@@ -1649,49 +2068,47 @@
         },
         "RegisterEmployeeRequest": {
           "type": "object",
-          "required": ["full_name", "email", "phone_number", "password", "position", "salary", "role"],
+          "required": ["full_name", "email", "phone_number", "password", "password_confirm"],
           "properties": {
             "full_name": {
               "type": "string",
-              "maxLength": 255,
+              "minLength": 2,
+              "maxLength": 100,
               "description": "Employee full name"
             },
             "email": {
               "type": "string",
               "format": "email",
-              "maxLength": 255,
               "description": "Employee email (must be unique)"
             },
             "phone_number": {
               "type": "string",
-              "pattern": "^[0-9]{10,15}$",
+              "minLength": 10,
+              "maxLength": 15,
               "description": "Employee phone number (must be unique)"
             },
             "password": {
               "type": "string",
               "minLength": 6,
+              "maxLength": 50,
               "description": "Employee password"
+            },
+            "password_confirm": {
+              "type": "string",
+              "description": "Password confirmation (must match password)"
+            },
+            "date_of_birth": {
+              "type": "string",
+              "format": "date",
+              "description": "Employee date of birth"
+            },
+            "address": {
+              "type": "string",
+              "description": "Employee address"
             },
             "position": {
               "type": "string",
-              "maxLength": 100,
               "description": "Employee position"
-            },
-            "salary": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1000000000,
-              "description": "Employee salary"
-            },
-            "hire_date": {
-              "type": "string",
-              "format": "date",
-              "description": "Employee hire date (default: today)"
-            },
-            "role": {
-              "type": "string",
-              "enum": ["admin", "staff"],
-              "description": "Employee role"
             }
           }
         },
@@ -1700,7 +2117,8 @@
           "properties": {
             "full_name": {
               "type": "string",
-              "maxLength": 255,
+              "minLength": 2,
+              "maxLength": 100,
               "description": "Employee full name"
             },
             "email": {
@@ -1711,29 +2129,25 @@
             },
             "phone_number": {
               "type": "string",
-              "pattern": "^[0-9]{10,15}$",
+              "minLength": 10,
+              "maxLength": 15,
               "description": "Employee phone number"
+            },
+            "date_of_birth": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "Employee date of birth (YYYY-MM-DD format)"
+            },
+            "address": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "Employee address"
             },
             "position": {
               "type": "string",
               "maxLength": 100,
               "description": "Employee position"
-            },
-            "salary": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1000000000,
-              "description": "Employee salary"
-            },
-            "hire_date": {
-              "type": "string",
-              "format": "date",
-              "description": "Employee hire date"
-            },
-            "role": {
-              "type": "string",
-              "enum": ["admin", "staff"],
-              "description": "Employee role"
             }
           }
         },
@@ -1742,24 +2156,26 @@
           "properties": {
             "full_name": {
               "type": "string",
+              "minLength": 2,
               "maxLength": 255,
               "description": "Customer full name"
             },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "maxLength": 255,
-              "description": "Customer email"
-            },
             "phone_number": {
               "type": "string",
-              "pattern": "^[0-9]{10,15}$",
+              "minLength": 10,
+              "maxLength": 15,
               "description": "Customer phone number"
+            },
+            "address": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "Customer address"
             },
             "date_of_birth": {
               "type": "string",
               "format": "date",
-              "description": "Customer date of birth"
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "Customer date of birth (YYYY-MM-DD format)"
             },
             "gender": {
               "type": "string",
@@ -1774,13 +2190,37 @@
           "properties": {
             "phone_number": {
               "type": "string",
-              "pattern": "^[0-9]{10,15}$",
+              "minLength": 10,
+              "maxLength": 15,
               "description": "User phone number"
             },
             "password": {
               "type": "string",
               "minLength": 6,
               "description": "User password"
+            }
+          }
+        },
+        "GoogleCompleteRequest": {
+          "type": "object",
+          "required": ["temp_data", "phone_number"],
+          "properties": {
+            "temp_data": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Temporary data from Google OAuth"
+            },
+            "phone_number": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 15,
+              "description": "User phone number"
+            },
+            "full_name": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 100,
+              "description": "User full name (optional)"
             }
           }
         }

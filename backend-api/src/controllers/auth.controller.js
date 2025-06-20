@@ -112,8 +112,29 @@ async function getCustomers(req, res, next) {
  */
 async function getCurrentUser(req, res, next) {
     try {
-        const { id: accountId, role } = req.user;
+        const { id: accountId, role_id } = req.user;
+        
+        // Debug: Log thông tin request
+        console.log('DEBUG getCurrentUser:');
+        console.log('- req.user:', req.user);
+        console.log('- accountId:', accountId);
+        console.log('- role_id:', role_id);
+        
+        // Lấy role từ token hoặc từ database
+        let role = req.user.role; // Từ token
+        if (!role) {
+            // lấy role từ database nếu token cũ không có
+            const roleInfo = await authService.getRoleById(role_id);
+            role = roleInfo.name;
+            console.log('- role from token:', role);
+        }
+        
         const user = await authService.getUserInfoByAccountId(accountId, role);
+        //Debug 
+        console.log('- user found:', user ? 'YES' : 'NO');
+        if (user) {
+            console.log('- user data:', user);
+        }
 
         if (!user) {
             return next(new ApiError(404, 'User profile not found.'));
@@ -235,11 +256,125 @@ async function completeProfile(req, res, next) {
     }
 }
 
+/**
+ * Lấy thông tin chi tiết khách hàng theo ID
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function getCustomerById(req, res, next) {
+  try {
+    const { id } = req.params;
+    
+    if (isNaN(id) || parseInt(id) <= 0) {
+      return next(new ApiError(400, 'Invalid ID format'));
+    }
+    
+    const customer = await authService.getCustomerById(parseInt(id));
+    
+    if (!customer) {
+      return next(new ApiError(404, 'Customer not found'));
+    }
+    
+    res.json(JSend.success({ customer }));
+  } catch (error) {
+    console.error('Get customer by ID error:', error);
+    return next(new ApiError(500, 'Internal Server Error'));
+  }
+}
+
+/**
+ * Lấy thông tin chi tiết nhân viên theo ID
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function getEmployeeById(req, res, next) {
+  try {
+    const { id } = req.params;
+    
+    if (isNaN(id) || parseInt(id) <= 0) {
+      return next(new ApiError(400, 'Invalid ID format'));
+    }
+    
+    const employee = await authService.getEmployeeById(parseInt(id));
+    
+    if (!employee) {
+      return next(new ApiError(404, 'Employee not found'));
+    }
+    
+    res.json(JSend.success({ employee }));
+  } catch (error) {
+    console.error('Get employee by ID error:', error);
+    return next(new ApiError(500, 'Internal Server Error'));
+  }
+}
+
+/**
+ * Cập nhật thông tin khách hàng
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function updateCustomer(req, res, next) {
+  try {
+    const { id } = req.params;
+    const updateData = req.body.input;
+    
+    if (isNaN(id) || parseInt(id) <= 0) {
+      return next(new ApiError(400, 'Invalid ID format'));
+    }
+    
+    const customer = await authService.updateCustomer(parseInt(id), updateData);
+    
+    if (!customer) {
+      return next(new ApiError(404, 'Customer not found'));
+    }
+    
+    res.json(JSend.success({ customer }, 'Customer updated successfully'));
+  } catch (error) {
+    console.error('Update customer error:', error);
+    return next(new ApiError(500, 'Internal Server Error'));
+  }
+}
+
+/**
+ * Cập nhật thông tin nhân viên
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function updateEmployee(req, res, next) {
+  try {
+    const { id } = req.params;
+    const updateData = req.body.input;
+    
+    if (isNaN(id) || parseInt(id) <= 0) {
+      return next(new ApiError(400, 'Invalid ID format'));
+    }
+    
+    const employee = await authService.updateEmployee(parseInt(id), updateData);
+    
+    if (!employee) {
+      return next(new ApiError(404, 'Employee not found'));
+    }
+    
+    res.json(JSend.success({ employee }, 'Employee updated successfully'));
+  } catch (error) {
+    console.error('Update employee error:', error);
+    return next(new ApiError(500, 'Internal Server Error'));
+  }
+}
+
 module.exports = {
   registerEmployee,
   login,
   getEmployees,
   getCustomers,
+  getCustomerById,
+  getEmployeeById,
+  updateCustomer,
+  updateEmployee,
   getCurrentUser,
   getRoles,
   initiateGoogleAuth,
