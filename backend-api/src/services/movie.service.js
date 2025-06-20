@@ -13,28 +13,28 @@ function movieRepository() {
 
 /**
  * Filter và transform dữ liệu movie từ request payload
- * Chỉ lấy các fields có giá trị và map field names cho khớp với database schema
  * @param {Object} payload - Raw data từ request body
  * @returns {Object} - Filtered data object cho database operations
  */
+
 function readMovieData(payload) {
-    return {
-        // Chỉ thêm field nếu có giá trị (truthy)
-        ...(payload.title && { title: payload.title }),
-        ...(payload.description && { description: payload.description }),
-        // Map 'duration' từ API thành 'duration_min' trong database
-        ...(payload.duration && { duration_min: payload.duration }),
-        ...(payload.release_date && { release_date: payload.release_date }),
-        ...(payload.genre && { genre: payload.genre }),
-        ...(payload.director && { director: payload.director }),
-        ...(payload.cast && { cast: payload.cast }),
-        ...(payload.country && { country: payload.country }),
-        // Map 'rating' từ API thành 'age_rating' trong database
-        ...(payload.rating && { age_rating: payload.rating }),
-        ...(payload.poster_url && { poster_url: payload.poster_url }),
-        ...(payload.trailer_url && { trailer_url: payload.trailer_url }),
-        ...(payload.status && { status: payload.status }),
-    };
+  return {
+      // Chỉ thêm field nếu có giá trị (truthy)
+      ...(payload.title && { title: payload.title }),
+      ...(payload.description && { description: payload.description }),
+      // Map 'duration' từ API thành 'duration_min' trong database
+      ...(payload.duration && { duration_min: payload.duration }),
+      ...(payload.release_date && { release_date: payload.release_date }),
+      ...(payload.genre && { genre: payload.genre }),
+      ...(payload.director && { director: payload.director }),
+      ...(payload.cast && { cast: payload.cast }),
+      ...(payload.country && { country: payload.country }),
+      // Map 'rating' từ API thành 'age_rating' trong database
+      ...(payload.rating && { age_rating: payload.rating }),
+      ...(payload.poster_url && { poster_url: payload.poster_url }),
+      ...(payload.trailer_url && { trailer_url: payload.trailer_url }),
+      ...(payload.status && { status: payload.status }),
+  };
 }
 
 /**
@@ -44,8 +44,8 @@ function readMovieData(payload) {
  */
 async function createMovie(payload) {
     try {
-        // Filter và transform dữ liệu cho database
-        const movieData = readMovieData(payload);
+        // Filter và transform dữ liệu cho database (full create mode)
+        const movieData = readMovieData(payload); // isPartial = false
         console.log("Data to insert:", movieData);
         
         // Thêm timestamps
@@ -163,19 +163,19 @@ async function getMovieById(id) {
  */
 async function updateMovie(id, updateData) {
   // Lấy thông tin phim hiện tại để kiểm tra tồn tại và cleanup file
-  const updatedMovie = await movieRepository()
+  const currentMovie = await movieRepository()
       .where('id', id)
       .select('*')
       .first();
 
   // Trả về null nếu phim không tồn tại
-  if (!updatedMovie) {
+  if (!currentMovie) {
       return null;
   }
 
-  // Filter và transform dữ liệu cập nhật
+  // Filter và transform dữ liệu cập nhật 
   const movieData = readMovieData(updateData);
-
+  
   // Chỉ update nếu có dữ liệu hợp lệ
   if (Object.keys(movieData).length > 0) {
       await movieRepository().where('id', id).update({
@@ -187,15 +187,15 @@ async function updateMovie(id, updateData) {
   // File cleanup: Xóa file poster cũ nếu có poster mới và poster cũ không phải default
   if (
       movieData.poster_url &&
-      updatedMovie.poster_url &&
-      movieData.poster_url !== updatedMovie.poster_url &&
-      updatedMovie.poster_url.startsWith('/public/uploads')
+      currentMovie.poster_url &&
+      movieData.poster_url !== currentMovie.poster_url &&
+      currentMovie.poster_url.startsWith('/public/uploads')
   ) {
-      unlink(`.${updatedMovie.poster_url}`, () => {}); 
+      unlink(`.${currentMovie.poster_url}`, () => {}); 
   }
 
-  // Merge old data với new data và trả về
-  return { ...updatedMovie, ...movieData };
+  // Merge old data với new data và trả về result cuối cùng
+  return { ...currentMovie, ...movieData };
 }
 
 /**
