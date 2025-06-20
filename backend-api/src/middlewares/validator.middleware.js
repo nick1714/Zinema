@@ -15,7 +15,7 @@ function validateRequest(validator) {
 
       if (req.method === "GET" || req.method === "DELETE") {
         input = { ...input, ...req.query };
-      }
+          }
 
       if (req.method === "POST" || req.method === "PUT") {
         input = {
