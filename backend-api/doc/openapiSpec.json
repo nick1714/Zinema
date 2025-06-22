@@ -1045,97 +1045,6 @@
           }
         }
       },
-      "/api/auth/google/callback": {
-        "get": {
-          "summary": "Google OAuth callback",
-          "description": "Handles Google OAuth callback (cannot be tested in Swagger UI)",
-          "operationId": "googleCallback",
-          "tags": ["auth"],
-          "parameters": [
-            {
-              "name": "code",
-              "in": "query",
-              "description": "Authorization code from Google",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "state",
-              "in": "query",
-              "description": "State parameter for security",
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "302": {
-              "description": "Redirect after Google auth processing"
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/google/complete": {
-        "post": {
-          "summary": "Complete Google OAuth profile",
-          "description": "Complete user profile after Google OAuth",
-          "operationId": "completeGoogleProfile",
-          "tags": ["auth"],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GoogleCompleteRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Profile completed successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Profile completed successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "token": {
-                            "type": "string",
-                            "description": "JWT access token"
-                          },
-                          "user": {
-                            "$ref": "#/components/schemas/Customer"
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": ["customer"]
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
       "/api/auth/employees": {
         "get": {
           "summary": "Get all employees",
@@ -1276,7 +1185,7 @@
         },
         "put": {
           "summary": "Update customer by ID",
-          "description": "Update customer information (Admin/Staff only)",
+          "description": "Update customer information. Admin/Staff can update any customer. Customers can only update their own profile.",
           "operationId": "updateCustomer",
           "tags": ["auth"],
           "security": [
@@ -2198,29 +2107,6 @@
               "type": "string",
               "minLength": 6,
               "description": "User password"
-            }
-          }
-        },
-        "GoogleCompleteRequest": {
-          "type": "object",
-          "required": ["temp_data", "phone_number"],
-          "properties": {
-            "temp_data": {
-              "type": "string",
-              "minLength": 1,
-              "description": "Temporary data from Google OAuth"
-            },
-            "phone_number": {
-              "type": "string",
-              "minLength": 10,
-              "maxLength": 15,
-              "description": "User phone number"
-            },
-            "full_name": {
-              "type": "string",
-              "minLength": 2,
-              "maxLength": 100,
-              "description": "User full name (optional)"
             }
           }
         }
