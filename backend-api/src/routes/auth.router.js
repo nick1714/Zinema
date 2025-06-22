@@ -13,7 +13,7 @@ const {
 const { ROLES } = require("../constants");
 
 
-function setup(app) {
+module.exports.setup = (app) => {
   const router = express.Router();
   app.use("/api/auth", router);  
   
@@ -93,13 +93,13 @@ function setup(app) {
     "/customers/:id",
     [
       authenticateToken,
-      authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
+      authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
       validateRequest(updateCustomerRequestSchema),
     ],
     authController.updateCustomer
   );
   
-  // Method not allowed cho customers/:id
+  // Bất kỳ phương thức nào khác sẽ bị chặn ở đây
   router.all("/customers/:id", methodNotAllowed);
 
   // Lấy thông tin chi tiết nhân viên theo ID (chỉ admin)
@@ -132,12 +132,5 @@ function setup(app) {
 
   router.get('/google/callback', authController.googleCallback);
   router.all('/google/callback', methodNotAllowed);
-
-  router.post('/google/complete', 
-    validateRequest(googleCompleteRequestSchema), 
-    authController.completeProfile
-  );
-  router.all('/google/complete', methodNotAllowed);
 }
 
-module.exports = setup; 

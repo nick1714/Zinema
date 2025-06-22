@@ -35,7 +35,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(getSwaggerDocument()));
 app.use("/public", express.static("public"));
 
 // Setup routes
-authRouter(app);
+authRouter.setup(app);
 cinemaRouter.setup(app);
 movieRouter.setup(app);
 showtimeRouter.setup(app);

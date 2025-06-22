@@ -354,46 +354,35 @@ async function updateCustomer(id, updateData) {
         if (!customer) {
             return null;
         }
-        
-        // Chỉ lấy các trường có trong updateData (được gửi từ client)
-        const customerData = {};
-        
-        // Kiểm tra từng trường có trong updateData hay không (bao gồm cả giá trị falsy)
-        if (updateData.hasOwnProperty('full_name')) {
-            customerData.full_name = updateData.full_name;
-        }
-        if (updateData.hasOwnProperty('phone_number')) {
-            customerData.phone_number = updateData.phone_number;
-        }
-        if (updateData.hasOwnProperty('address')) {
-            customerData.address = updateData.address;
-        }
-        if (updateData.hasOwnProperty('gender')) {
-            customerData.gender = updateData.gender;
-        }
-        if (updateData.hasOwnProperty('date_of_birth')) {
-            customerData.date_of_birth = updateData.date_of_birth;
+
+        // Lọc ra các trường hợp lệ và có giá trị từ updateData
+        const allowedFields = ['full_name', 'phone_number', 'address', 'gender', 'date_of_birth'];
+        const customerDataToUpdate = {};
+
+        if (updateData) { // Đảm bảo updateData không phải là undefined/null
+            allowedFields.forEach(field => {
+                if (updateData[field] !== undefined) {
+                    customerDataToUpdate[field] = updateData[field];
+                }
+            });
         }
         
         // Chỉ cập nhật nếu có dữ liệu thay đổi
-        if (Object.keys(customerData).length > 0) {
+        if (Object.keys(customerDataToUpdate).length > 0) {
             await customerRepository()
                 .where('id', id)
                 .update({
-                    ...customerData,
+                    ...customerDataToUpdate,
                     updated_at: new Date()
                 });
-            
-            // Lấy lại dữ liệu mới từ database sau khi cập nhật
-            const updatedCustomer = await customerRepository()
-                .where('id', id)
-                .first();
-            
-            return updatedCustomer;
         }
         
-        // Không có gì thay đổi, trả về dữ liệu hiện tại
-        return customer;
+        // Lấy lại dữ liệu mới từ database sau khi cập nhật
+        const updatedCustomer = await customerRepository()
+            .where('id', id)
+            .first();
+            
+        return updatedCustomer;
     } catch (error) {
         console.error('Update customer error:', error);
         throw error;
@@ -623,86 +612,6 @@ async function handleGoogleAuth(code) {
     }
 }
 
-/**
- * Hoàn tất đăng ký user mới từ Google
- * @param {Object} googleUser - Thông tin user từ Google  
- * @param {Object} additionalInfo - Thông tin bổ sung từ user
- * @returns {Promise<Object>} - Kết quả đăng ký
- */
-async function completeGoogleRegistration(googleUser, additionalInfo) {
-    try {
-        // Kiểm tra phone_number đã được sử dụng chưa
-        const existingPhone = await knex('customers')
-            .where('phone_number', additionalInfo.phone_number)
-            .first();
-
-        if (existingPhone) {
-            throw new Error('Phone number already exists');
-        }
-
-        // Lấy role customer
-        const customerRole = await knex('roles')
-            .where('name', ROLES.CUSTOMER)
-            .first();
-
-        // Tạo account mới
-        const [newAccount] = await knex('accounts')
-            .insert({
-                email: googleUser.email,
-                google_id: googleUser.google_id,
-                auth_provider: 'google',
-                role_id: customerRole.id,
-                is_active: true,
-                created_at: new Date(),
-                updated_at: new Date()
-            })
-            .returning('*');
-
-        // Tạo customer record
-        await knex('customers')
-            .insert({
-                account_id: newAccount.id,
-                full_name: additionalInfo.full_name || googleUser.name,
-                phone_number: additionalInfo.phone_number,
-                created_at: new Date(),
-                updated_at: new Date()
-            });
-
-        // Lấy thông tin user đầy đủ
-        const fullUser = await knex('accounts')
-            .leftJoin('customers', 'accounts.id', 'customers.account_id')
-            .leftJoin('roles', 'accounts.role_id', 'roles.id')
-            .where('accounts.id', newAccount.id)
-            .select(
-                'accounts.id',
-                'accounts.email',
-                'accounts.auth_provider',
-                'roles.name as role',
-                'customers.full_name',
-                'customers.phone_number'
-            )
-            .first();
-
-        const tokenData = {
-            id: fullUser.id,
-            role_id: customerRole.id,
-            phone_number: fullUser.phone_number,
-            role: fullUser.role
-        };
-        const token = generateToken(tokenData);
-
-        return {
-            success: true,
-            user: fullUser,
-            token,
-            isNewUser: true
-        };
-    } catch (error) {
-        console.error('Complete Google registration error:', error);
-        throw error;
-    }
-}
-
 module.exports = {
     registerEmployee,
     login,
@@ -717,6 +626,5 @@ module.exports = {
     updateEmployee,
     getUserInfoByAccountId,
     getGoogleAuthURL,
-    handleGoogleAuth,
-    completeGoogleRegistration
+    handleGoogleAuth
 }; 

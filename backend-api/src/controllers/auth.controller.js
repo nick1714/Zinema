@@ -211,52 +211,6 @@ async function googleCallback(req, res, next) {
 }
 
 /**
- * Hoàn tất đăng ký với thông tin bổ sung
- * @param {Object} req - Express request
- * @param {Object} res - Express response
- * @param {Function} next - Express next middleware
- */
-async function completeProfile(req, res, next) {
-    try {
-        const { temp_data, phone_number, full_name } = req.body;
-
-        // Decode temp data
-        const googleUser = JSON.parse(Buffer.from(temp_data, 'base64').toString());
-        
-        const additionalInfo = {
-            phone_number,
-            address,
-            date_of_birth,
-            full_name: full_name || googleUser.name
-        };
-
-        const result = await authService.completeGoogleRegistration(googleUser, additionalInfo);
-
-        return res
-            .status(201)
-            .json(
-                JSend.success({
-                    account: result.user,
-                    token: result.token,
-                    message: 'Google registration completed successfully'
-                })
-            );
-    } catch (error) {
-        console.error('Complete profile error:', error);
-        
-        if (error.message === 'Phone number already exists') {
-            return next(new ApiError(409, 'Phone number already exists'));
-        }
-        
-        if (error.message.includes('Invalid')) {
-            return next(new ApiError(400, 'Invalid temporary data'));
-        }
-        
-        return next(new ApiError(500, 'Internal Server Error'));
-    }
-}
-
-/**
  * Lấy thông tin chi tiết khách hàng theo ID
  * @param {Object} req - Express request
  * @param {Object} res - Express response
@@ -318,14 +272,27 @@ async function getEmployeeById(req, res, next) {
  */
 async function updateCustomer(req, res, next) {
   try {
-    const { id } = req.params;
+    const customerIdToUpdate = parseInt(req.params.id);
     const updateData = req.body.input;
-    
-    if (isNaN(id) || parseInt(id) <= 0) {
+    const loggedInUser = req.user;
+
+    if (isNaN(customerIdToUpdate) || customerIdToUpdate <= 0) {
       return next(new ApiError(400, 'Invalid ID format'));
     }
+
+    // --- KIỂM TRA QUYỀN SỞ HỮU ---
+    // Nếu là CUSTOMER, chỉ cho phép họ cập nhật thông tin của chính mình
+    if (loggedInUser.role === 'customer') {
+      const customerProfile = await authService.getCustomerById(customerIdToUpdate);
+      
+      // So sánh account_id của profile khách hàng với id của người dùng trong token
+      if (!customerProfile || customerProfile.account_id !== loggedInUser.id) {
+        return next(new ApiError(403, 'Forbidden: You can only update your own profile.'));
+      }
+    }
+    // --- KẾT THÚC KIỂM TRA ---
     
-    const customer = await authService.updateCustomer(parseInt(id), updateData);
+    const customer = await authService.updateCustomer(customerIdToUpdate, updateData);
     
     if (!customer) {
       return next(new ApiError(404, 'Customer not found'));
@@ -378,6 +345,5 @@ module.exports = {
   getCurrentUser,
   getRoles,
   initiateGoogleAuth,
-  googleCallback,
-  completeProfile
+  googleCallback
 }; 

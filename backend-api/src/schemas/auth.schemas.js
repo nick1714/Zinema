@@ -36,15 +36,13 @@ const loginSchema = z.object({
 
 // Schema cho hoàn tất Google Auth
 const googleCompleteSchema = z.object({
-  temp_data: z.string()
-    .min(1, { message: 'Dữ liệu tạm thời là bắt buộc' }),
   phone_number: z.string()
     .min(10, { message: 'Số điện thoại phải có ít nhất 10 ký tự' })
     .max(15, { message: 'Số điện thoại không được quá 15 ký tự' }),
   full_name: z.string()
     .min(2, { message: 'Họ tên phải có ít nhất 2 ký tự' })
     .max(100, { message: 'Họ tên không được quá 100 ký tự' })
-    .optional()
+    .optional() // full_name có thể không cần thiết nếu đã có từ Google
 }).strict();
 
 // Schema cho cập nhật thông tin khách hàng
@@ -107,7 +105,9 @@ const employeeRegisterRequestSchema = employeeRegisterSchema;
 
 const loginRequestSchema = loginSchema;
 
-const googleCompleteRequestSchema = googleCompleteSchema;
+const googleCompleteRequestSchema = z.object({
+  input: googleCompleteSchema,
+});
 
 const updateCustomerRequestSchema = z.object({
   input: updateCustomerSchema,
