@@ -43,6 +43,10 @@
       {
         "name": "tickets",
         "description": "Tickets management"
+      },
+      {
+        "name": "bookings",
+        "description": "Booking management"
       }
     ],
     "paths": {
@@ -928,100 +932,6 @@
           }
         }
       },
-      "/api/auth/me": {
-        "get": {
-          "summary": "Get current user info",
-          "description": "Get information about the currently authenticated user",
-          "operationId": "getCurrentUser",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Current user information",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "user": {
-                            "oneOf": [
-                              { "$ref": "#/components/schemas/Employee" },
-                              { "$ref": "#/components/schemas/Customer" }
-                            ]
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": ["admin", "staff", "customer"]
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/roles": {
-        "get": {
-          "summary": "Get available roles",
-          "description": "Get list of available user roles (Admin only)",
-          "operationId": "getRoles",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of roles",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "roles": {
-                            "type": "array",
-                            "items": {
-                              "type": "string",
-                              "enum": ["admin", "staff", "customer"]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
       "/api/auth/google": {
         "get": {
           "summary": "Redirect to Google OAuth",
@@ -1381,6 +1291,374 @@
             "400": { "$ref": "#/components/responses/BadRequest" },
             "401": { "$ref": "#/components/responses/Unauthorized" },
             "403": { "$ref": "#/components/responses/Forbidden" },
+            "404": { "$ref": "#/components/responses/NotFound" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
+      "/api/bookings": {
+        "post": {
+          "summary": "Create a new booking",
+          "description": "Create a new booking with tickets and food orders",
+          "operationId": "createBooking",
+          "tags": ["bookings"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBookingRequest"
+                },
+                "example": {
+                  "showtime_id": 100,
+                  "seats": [1, 2, 3],
+                  "food_items": [
+                    {
+                      "food_id": 1,
+                      "quantity": 2
+                    },
+                    {
+                      "food_id": 2,
+                      "quantity": 1
+                    }
+                  ],
+                  "customer_phone": "0987954320"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Booking created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Tạo booking thành công"
+                      },
+                      "data": {
+                        "$ref": "#/components/schemas/BookingDetail"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "403": { "$ref": "#/components/responses/Forbidden" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        },
+        "get": {
+          "summary": "Get all bookings",
+          "description": "Get all bookings with pagination and filtering. Customers can only see their own bookings.",
+          "operationId": "getAllBookings",
+          "tags": ["bookings"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "status",
+              "in": "query",
+              "description": "Filter by booking status",
+              "schema": {
+                "type": "string",
+                "enum": ["pending", "confirmed", "cancelled", "completed"]
+              }
+            },
+            {
+              "name": "customer_id",
+              "in": "query",
+              "description": "Filter by customer ID (Admin/Staff only)",
+              "schema": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            {
+              "name": "showtime_id",
+              "in": "query",
+              "description": "Filter by showtime ID",
+              "schema": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            {
+              "name": "booking_date",
+              "in": "query",
+              "description": "Filter by booking date (YYYY-MM-DD)",
+              "schema": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            {
+              "$ref": "#/components/parameters/pageParam"
+            },
+            {
+              "$ref": "#/components/parameters/limitParam"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of bookings",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Lấy danh sách booking thành công"
+                      },
+                      "data": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/BookingSummary"
+                        }
+                      },
+                      "metadata": {
+                        "$ref": "#/components/schemas/PaginationMetadata"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
+      "/api/bookings/{id}": {
+        "get": {
+          "summary": "Get booking by ID",
+          "description": "Get detailed information about a specific booking",
+          "operationId": "getBookingById",
+          "tags": ["bookings"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/idParam"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Booking details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Lấy thông tin booking thành công"
+                      },
+                      "data": {
+                        "$ref": "#/components/schemas/BookingDetail"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "404": { "$ref": "#/components/responses/NotFound" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        },
+        "put": {
+          "summary": "Update booking",
+          "description": "Update booking status and payment information",
+          "operationId": "updateBooking",
+          "tags": ["bookings"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/idParam"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateBookingRequest"
+                },
+                "example": {
+                  "status": "confirmed",
+                  "payment_method": "credit_card",
+                  "payment_status": "paid"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Booking updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Cập nhật booking thành công"
+                      },
+                      "data": {
+                        "$ref": "#/components/schemas/BookingDetail"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "404": { "$ref": "#/components/responses/NotFound" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        },
+        "delete": {
+          "summary": "Delete booking",
+          "description": "Delete a booking (Admin only)",
+          "operationId": "deleteBooking",
+          "tags": ["bookings"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/idParam"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Booking deleted successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Xóa booking thành công"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
+            "403": { "$ref": "#/components/responses/Forbidden" },
+            "404": { "$ref": "#/components/responses/NotFound" },
+            "500": { "$ref": "#/components/responses/InternalServerError" }
+          }
+        }
+      },
+      "/api/bookings/{id}/confirm": {
+        "post": {
+          "summary": "Confirm booking and payment",
+          "description": "Confirm a booking and process payment",
+          "operationId": "confirmBooking",
+          "tags": ["bookings"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/idParam"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmBookingRequest"
+                },
+                "example": {
+                  "payment_method": "credit_card",
+                  "payment_details": {
+                    "payment_gateway": "cash"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Booking confirmed successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["success"]
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Xác nhận booking thành công"
+                      },
+                      "data": {
+                        "$ref": "#/components/schemas/BookingDetail"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "401": { "$ref": "#/components/responses/Unauthorized" },
             "404": { "$ref": "#/components/responses/NotFound" },
             "500": { "$ref": "#/components/responses/InternalServerError" }
           }
@@ -2109,6 +2387,321 @@
               "description": "User password"
             }
           }
+        },
+        "BookingSummary": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Booking ID"
+            },
+            "customer_id": {
+              "type": "integer",
+              "description": "Customer ID"
+            },
+            "showtime_id": {
+              "type": "integer",
+              "description": "Showtime ID"
+            },
+            "booking_date": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Booking date"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["pending", "confirmed", "cancelled", "completed"],
+              "description": "Booking status"
+            },
+            "customer_name": {
+              "type": "string",
+              "description": "Customer full name"
+            },
+            "customer_phone": {
+              "type": "string",
+              "description": "Customer phone number"
+            },
+            "movie_title": {
+              "type": "string",
+              "description": "Movie title"
+            },
+            "room_name": {
+              "type": "string",
+              "description": "Cinema room name"
+            },
+            "start_time": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Showtime start time"
+            },
+            "end_time": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Showtime end time"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "BookingDetail": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/BookingSummary"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "movie_duration": {
+                  "type": "integer",
+                  "description": "Movie duration in minutes"
+                },
+                "movie_rating": {
+                  "type": "string",
+                  "description": "Movie age rating"
+                },
+                "base_price": {
+                  "type": "number",
+                  "description": "Base ticket price"
+                },
+                "tickets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingTicket"
+                  }
+                },
+                "food_orders": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingFoodOrder"
+                  }
+                },
+                "invoice": {
+                  "$ref": "#/components/schemas/BookingInvoice"
+                }
+              }
+            }
+          ]
+        },
+        "BookingTicket": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Ticket ID"
+            },
+            "seat_id": {
+              "type": "integer",
+              "description": "Seat ID"
+            },
+            "price": {
+              "type": "number",
+              "description": "Ticket price"
+            },
+            "row": {
+              "type": "string",
+              "description": "Seat row"
+            },
+            "column": {
+              "type": "integer",
+              "description": "Seat column"
+            },
+            "seat_name": {
+              "type": "string",
+              "description": "Seat name (e.g., A1)"
+            },
+            "seat_type_name": {
+              "type": "string",
+              "description": "Seat type name"
+            },
+            "seat_type_price": {
+              "type": "number",
+              "description": "Seat type price"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "BookingFoodOrder": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Food order ID"
+            },
+            "food_id": {
+              "type": "integer",
+              "description": "Food ID"
+            },
+            "quantity": {
+              "type": "integer",
+              "description": "Food quantity"
+            },
+            "price": {
+              "type": "number",
+              "description": "Total price for this food item"
+            },
+            "food_name": {
+              "type": "string",
+              "description": "Food name"
+            },
+            "food_unit_price": {
+              "type": "number",
+              "description": "Food unit price"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "BookingInvoice": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Invoice ID"
+            },
+            "payment_method": {
+              "type": "string",
+              "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
+              "description": "Payment method"
+            },
+            "payment_status": {
+              "type": "string",
+              "enum": ["pending", "paid", "failed"],
+              "description": "Payment status"
+            },
+            "amount": {
+              "type": "number",
+              "description": "Total amount"
+            },
+            "payment_date": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Payment date"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "CreateBookingRequest": {
+          "type": "object",
+          "required": ["showtime_id", "seats"],
+          "properties": {
+            "showtime_id": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Showtime ID"
+            },
+            "seats": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "minItems": 1,
+              "maxItems": 8,
+              "description": "Array of seat IDs to book"
+            },
+            "food_items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/BookingFoodItem"
+              },
+              "description": "Optional food items to order"
+            },
+            "customer_phone": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 15,
+              "description": "Customer phone number (for staff booking on behalf)"
+            }
+          }
+        },
+        "BookingFoodItem": {
+          "type": "object",
+          "required": ["food_id", "quantity"],
+          "properties": {
+            "food_id": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Food ID"
+            },
+            "quantity": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "description": "Food quantity"
+            }
+          }
+        },
+        "UpdateBookingRequest": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["pending", "confirmed", "cancelled", "completed"],
+              "description": "Booking status"
+            },
+            "payment_method": {
+              "type": "string",
+              "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
+              "description": "Payment method"
+            },
+            "payment_status": {
+              "type": "string",
+              "enum": ["pending", "paid", "failed"],
+              "description": "Payment status"
+            }
+          }
+        },
+        "ConfirmBookingRequest": {
+          "type": "object",
+          "required": ["payment_method"],
+          "properties": {
+            "payment_method": {
+              "type": "string",
+              "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
+              "description": "Payment method"
+            },
+            "payment_details": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Payment amount"
+                },
+                "transaction_id": {
+                  "type": "string",
+                  "description": "Transaction ID from payment gateway"
+                },
+                "payment_gateway": {
+                  "type": "string",
+                  "description": "Payment gateway used"
+                }
+              },
+              "description": "Optional payment details"
+            }
+          }
         }
       },
       "responses": {
@@ -2222,6 +2815,12 @@
                   "value": {
                     "status": "fail",
                     "message": "Customer not found"
+                  }
+                },
+                "booking_not_found": {
+                  "value": {
+                    "status": "fail",
+                    "message": "Booking not found"
                   }
                 }
               }
