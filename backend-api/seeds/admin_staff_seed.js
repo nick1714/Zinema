@@ -57,9 +57,9 @@ exports.seed = async function(knex) {
 
   // Tạo 2 admin
   await createUser({
-    phone: '0987654321',
+    phone: '0912345678',
     email: 'admin1@cinema.com',
-    password: 'Admin123',
+    password: 'securepassword123',
     roleId: adminRole.id,
     fullName: 'Admin One',
     position: 'Administrator'
