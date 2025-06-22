@@ -7,6 +7,7 @@ const authRouter = require("./routes/auth.router");
 const cinemaRouter = require("./routes/cinema.router");
 const movieRouter = require("./routes/movie.router");
 const showtimeRouter = require("./routes/showtime.router");
+const bookingRouter = require("./routes/booking.router");
 const {
   resourceNotFound,
   handleError,
@@ -39,6 +40,7 @@ authRouter.setup(app);
 cinemaRouter.setup(app);
 movieRouter.setup(app);
 showtimeRouter.setup(app);
+bookingRouter.setup(app);
 
 // 404 handler - must be after all routes
 app.use(resourceNotFound);

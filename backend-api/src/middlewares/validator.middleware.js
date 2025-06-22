@@ -75,6 +75,56 @@ function validateRequest(validator) {
   };
 }
 
+/**
+ * Validates request body directly without wrapping in 'input' object
+ * Dùng cho các API đơn giản như login, register
+ *
+ * @param {z.AnyZodObject} validator
+ * @param {string} target - 'body' | 'query' | 'params'
+ */
+function validate(validator, target = 'body') {
+  return (req, res, next) => {
+    try {
+      let dataToValidate;
+      
+      switch (target) {
+        case 'body':
+          dataToValidate = req.body || {};
+          break;
+        case 'query':
+          dataToValidate = req.query || {};
+          break;
+        case 'params':
+          dataToValidate = req.params || {};
+          break;
+        default:
+          dataToValidate = req.body || {};
+      }
+      
+      console.log(`Validating ${target}:`, dataToValidate);
+      
+      validator.parse(dataToValidate);
+      
+      return next();
+    } catch (error) {
+      console.log("Validation error:", error);
+      if (error instanceof z.ZodError) {
+        const errorMessages = error.issues.map((issue) => {
+          const errorPath = issue.path.join(".");
+          if (issue.code === z.ZodIssueCode.unrecognized_keys) {
+            const invalidKeys = issue.keys.join(", ");
+            return `${errorPath} contains invalid keys: ${invalidKeys}`;
+          }
+          return `${errorPath}: ${issue.message}`;
+        });
+        return next(new ApiError(400, errorMessages.join("; ")));
+      }
+      return next(new ApiError(500, "Internal Server Error"));
+    }
+  };
+}
+
 module.exports = {
   validateRequest,
+  validate,
 };

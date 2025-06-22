@@ -2,7 +2,7 @@ const express = require("express");
 const { authenticateToken, authorizeRoles } = require("../middlewares/auth.middleware");
 const authController = require("../controllers/auth.controller");
 const { methodNotAllowed } = require("../controllers/errors.controller");
-const { validateRequest } = require("../middlewares/validator.middleware");
+const { validateRequest, validate } = require("../middlewares/validator.middleware");
 const { 
   employeeRegisterRequestSchema, 
   loginRequestSchema, 
@@ -23,7 +23,7 @@ module.exports.setup = (app) => {
     [
       authenticateToken,
       authorizeRoles([ROLES.ADMIN]),
-      validateRequest(employeeRegisterRequestSchema),
+      validate(employeeRegisterRequestSchema, 'body'),
     ],
     authController.registerEmployee
   );
@@ -32,7 +32,7 @@ module.exports.setup = (app) => {
   // Đăng nhập
   router.post(
     "/login",
-    validateRequest(loginRequestSchema),
+    validate(loginRequestSchema, 'body'),
     authController.login
   );
   router.all("/login", methodNotAllowed);
