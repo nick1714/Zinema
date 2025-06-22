@@ -37,7 +37,7 @@ exports.seed = async function(knex) {
   
   const defaultResult = await knex('accounts')
     .insert({
-      phone_number: '0987654322',
+      phone_number: '0987654320',
       email: 'customer@example.com',
       password: defaultHashedPassword,
       role_id: customerRole.id,
@@ -53,7 +53,7 @@ exports.seed = async function(knex) {
     .insert({
       account_id: defaultAccountId,
       full_name: 'Khách Hàng',
-      phone_number: '0987654322',
+      phone_number: '0987954320',
       address: '123 Đường Khách Hàng, Q.1, TP.HCM',
       gender: 'other',
       date_of_birth: new Date('1990-01-01'),
@@ -104,6 +104,6 @@ exports.seed = async function(knex) {
       });
   }
   
-  console.log('Đã tạo tài khoản khách hàng mặc định với phone: 0987654322, email: customer@example.com và mật khẩu: Customer123');
+  console.log('Đã tạo tài khoản khách hàng mặc định với phone: 0987654320, email: customer@example.com và mật khẩu: Customer123');
   console.log('Đã tạo thêm 10 tài khoản khách hàng ngẫu nhiên với mật khẩu: Password123');
 }; 

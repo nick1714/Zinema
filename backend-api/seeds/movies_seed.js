@@ -1,83 +1,86 @@
-const { faker } = require('@faker-js/faker/locale/vi');
-
 /**
  * @param { import("knex").Knex } knex
- * @returns { Promise<void> } 
+ * @returns { Promise<void> }
  */
 exports.seed = async function(knex) {
-  console.log('Seeding movies...');
+  console.log('Seeding 4 currently showing movies...');
   
   // Xóa dữ liệu cũ
   await knex('movies').del();
   
-  // Danh sách thể loại phim
-  const genres = [
-    'Hành động', 'Phiêu lưu', 'Hoạt hình', 'Hài', 'Tội phạm', 
-    'Tài liệu', 'Chính kịch', 'Gia đình', 'Giả tưởng', 'Lịch sử', 
-    'Kinh dị', 'Âm nhạc', 'Bí ẩn', 'Lãng mạn', 'Khoa học viễn tưởng', 
-    'Ly kỳ', 'Siêu anh hùng', 'Chiến tranh'
-  ];
-  
-  // Danh sách đạo diễn
-  const directors = [
-    'Christopher Nolan', 'Steven Spielberg', 'Martin Scorsese', 
-    'Quentin Tarantino', 'James Cameron', 'Denis Villeneuve', 
-    'David Fincher', 'Bong Joon-ho', 'Greta Gerwig', 'Ngô Thanh Vân',
-    'Trấn Thành', 'Victor Vũ', 'Charlie Nguyễn', 'Phan Gia Nhật Linh'
-  ];
-  
-  // Danh sách quốc gia
-  const countries = ['Việt Nam', 'Mỹ', 'Hàn Quốc', 'Nhật Bản', 'Trung Quốc', 'Anh', 'Pháp'];
-  
-  // Danh sách xếp hạng độ tuổi
-  const ageRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17', 'T13', 'T16', 'T18', 'C'];
-  
-  // Tạo dữ liệu phim
-  const movies = [];
-  const numMovies = 30; // Số lượng phim cần tạo
-  
-  for (let i = 0; i < numMovies; i++) {
-    const releaseDate = faker.date.between({ 
-      from: new Date('2023-01-01'), 
-      to: new Date('2024-12-31') 
-    });
-    
-    const genre = faker.helpers.arrayElements(genres, { min: 1, max: 3 }).join(', ');
-    const director = faker.helpers.arrayElement(directors);
-    const country = faker.helpers.arrayElement(countries);
-    const ageRating = faker.helpers.arrayElement(ageRatings);
-    
-    // Tạo ngày kết thúc (sau ngày khởi chiếu 1-6 tháng)
-    const endDate = new Date(releaseDate);
-    endDate.setMonth(endDate.getMonth() + faker.number.int({ min: 1, max: 6 }));
-    
-    // Tạo danh sách diễn viên
-    const numActors = faker.number.int({ min: 3, max: 8 });
-    const actors = [];
-    for (let j = 0; j < numActors; j++) {
-      actors.push(faker.person.fullName());
-    }
-    
-    movies.push({
-      title: faker.helpers.maybe(() => faker.word.words({ count: { min: 2, max: 5 } }), { probability: 0.7 }) || 
-             faker.music.songName(),
-      description: faker.lorem.paragraph(),
-      director: director,
-      cast: actors.join(', '),
-      genre: genre,
-      duration_min: faker.number.int({ min: 90, max: 180 }),
-      release_date: releaseDate,
-      end_date: endDate,
-      country: country,
-      age_rating: ageRating,
-      status: faker.helpers.arrayElement(['active', 'inactive']),
-      poster_url: `/public/images/posters/poster-${i + 1}.jpg`,
-      trailer_url: `https://www.youtube.com/watch?v=${faker.string.alphanumeric(11)}`,
-      created_at: faker.date.past(),
+  // 4 phim đang chiếu
+  const movies = [
+    {
+      title: 'Chiến Binh Cuối Cùng',
+      description: 'Một bộ phim hành động-phiêu lưu kịch tính, theo chân đội lính đánh thuê giải cứu con tin tại vùng đất hoang dã.',
+      director: 'Christopher Nolan',
+      cast: 'Leonardo DiCaprio, Tom Hardy, Joseph Gordon-Levitt',
+      genre: 'Hành động, Phiêu lưu',
+      duration_min: 130,
+      release_date: new Date('2025-05-15'),
+      end_date:    new Date('2025-07-15'),
+      country: 'Mỹ',
+      age_rating: 'PG-13',
+      status: 'active',
+      poster_url: '/public/images/posters/warrior-final.jpg',
+      trailer_url: 'https://www.youtube.com/watch?v=ABC123DEF45',
+      created_at: new Date('2025-04-01T09:00:00Z'),
       updated_at: new Date()
-    });
-  }
+    },
+    {
+      title: 'Hành Trình Sao Hỏa',
+      description: 'Phim khoa học viễn tưởng đỉnh cao, theo tiểu đoàn đầu tiên lên sao Hỏa đối mặt với hiểm nguy và bí ẩn ngoài hành tinh.',
+      director: 'Denis Villeneuve',
+      cast: 'Matt Damon, Jessica Chastain, Bill Skarsgård',
+      genre: 'Khoa học viễn tưởng, Ly kỳ',
+      duration_min: 120,
+      release_date: new Date('2025-06-01'),
+      end_date:    new Date('2025-08-01'),
+      country: 'Mỹ',
+      age_rating: 'T13',
+      status: 'active',
+      poster_url: '/public/images/posters/mars-journey.jpg',
+      trailer_url: 'https://www.youtube.com/watch?v=XYZ678GHI90',
+      created_at: new Date('2025-05-01T10:30:00Z'),
+      updated_at: new Date()
+    },
+    {
+      title: 'Tiếng Gọi Rừng Sâu',
+      description: 'Từ màn ảnh hoạt hình, câu chuyện cảm động về hành trình khám phá và bảo vệ khu rừng nguyên sinh của cậu bé nhỏ Ella.',
+      director: 'Bong Joon-ho',
+      cast: 'Ella Tran, Minh Bùi, Hương Giang',
+      genre: 'Hoạt hình, Gia đình',
+      duration_min: 100,
+      release_date: new Date('2025-04-20'),
+      end_date:    new Date('2025-07-01'),
+      country: 'Hàn Quốc',
+      age_rating: 'G',
+      status: 'active',
+      poster_url: '/public/images/posters/forest-call.jpg',
+      trailer_url: 'https://www.youtube.com/watch?v=LMN234OPQ56',
+      created_at: new Date('2025-03-15T08:45:00Z'),
+      updated_at: new Date()
+    },
+    {
+      title: 'Bóng Ma Đêm Khuya',
+      description: 'Phim kinh dị-huyền bí, hé lộ những bí mật đen tối trong một ngôi làng hẻo lánh bị bóng ma ám ảnh.',
+      director: 'James Wan',
+      cast: 'Lily Collins, Robert Pattinson, Anya Taylor-Joy',
+      genre: 'Kinh dị, Bí ẩn',
+      duration_min: 120,
+      release_date: new Date('2025-06-10'),
+      end_date:    new Date('2025-07-30'),
+      country: 'Anh',
+      age_rating: 'R',
+      status: 'active',
+      poster_url: '/public/images/posters/night-ghost.jpg',
+      trailer_url: 'https://www.youtube.com/watch?v=QRS345TUV78',
+      created_at: new Date('2025-05-20T11:15:00Z'),
+      updated_at: new Date()
+    }
+  ];
   
+  // Chèn vào DB
   await knex('movies').insert(movies);
-  console.log(`Đã thêm ${movies.length} bộ phim`);
-}; 
+  console.log(`Đã thêm ${movies.length} phim đang chiếu.`);
+};
