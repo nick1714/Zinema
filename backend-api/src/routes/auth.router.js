@@ -126,11 +126,8 @@ module.exports.setup = (app) => {
   // Method not allowed cho employees/:id
   router.all("/employees/:id", methodNotAllowed);
 
-  // Google Auth routes
-  router.get('/google', authController.initiateGoogleAuth);
-  router.all('/google', methodNotAllowed);
-
-  router.get('/google/callback', authController.googleCallback);
-  router.all('/google/callback', methodNotAllowed);
+  // Google OAuth routes
+  router.get('/google/url', authController.getGoogleAuthUrl);
+  router.post('/google/callback', authController.googleCallback);
 }
 

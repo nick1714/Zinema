@@ -169,44 +169,33 @@ async function getRoles(req, res, next) {
  * @param {Object} res - Express response
  * @param {Function} next - Express next middleware
  */
-async function initiateGoogleAuth(req, res, next) {
+async function getGoogleAuthUrl(req, res) {
     try {
-        const authUrl = authService.getGoogleAuthURL();
-        res.redirect(authUrl);
+        const url = await authService.getGoogleAuthUrl();
+        res.status(200).json(JSend.success({ url }));
     } catch (error) {
-        console.error('Initiate Google auth error:', error);
-        return next(new ApiError(500, 'Failed to initiate Google authentication'));
+        res.status(500).json(JSend.error({ message: 'Could not get Google auth URL.' }));
     }
 }
 
 /**
- * Callback từ Google OAuth
+ * Callback từ Google OAuth, xử lý code từ frontend
  * @param {Object} req - Express request
  * @param {Object} res - Express response
  * @param {Function} next - Express next middleware
  */
-async function googleCallback(req, res, next) {
+async function googleCallback(req, res) {
+    const { code } = req.body;
+    if (!code) {
+        return res.status(400).json(JSend.fail({ code: 'Authorization code is missing.' }));
+    }
+
     try {
-        const { code } = req.query;
-        
-        if (!code) {
-            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=google_auth_failed`);
-        }
-
-        const result = await authService.handleGoogleAuth(code);
-
-        // Cả new user và existing user đều trả về user + token
-        return res.json(JSend.success({
-            isNewUser: result.isNewUser,
-            user: result.user,
-            token: result.token,
-            message: result.isNewUser ? 'Account created successfully!' : 'Login successful'
-        }));
+        const { user, token } = await authService.handleGoogleCallback(code);
+        res.status(200).json(JSend.success({ user, token }));
     } catch (error) {
         console.error('Google callback error:', error);
-        return res.status(500).json(JSend.error(
-            'Google authentication failed: ' + error.message
-        ));
+        res.status(500).json(JSend.error({ message: 'Google authentication failed.' }));
     }
 }
 
@@ -344,6 +333,6 @@ module.exports = {
   updateEmployee,
   getCurrentUser,
   getRoles,
-  initiateGoogleAuth,
+  getGoogleAuthUrl,
   googleCallback
 }; 

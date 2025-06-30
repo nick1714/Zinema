@@ -10,8 +10,7 @@ const SALT_ROUNDS = 10;
 // OAuth2Client configuration
 const client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback'
+    process.env.GOOGLE_CLIENT_SECRET
 );
 
 /**
@@ -453,161 +452,113 @@ async function updateEmployee(id, updateData) {
     }
 }
 
-/**
- * Tạo URL để redirect đến Google OAuth
- * @returns {String} - Google OAuth authorization URL
- */
-function getGoogleAuthURL() {
+async function getGoogleAuthUrl() {
     const scopes = [
+        'https://www.googleapis.com/auth/userinfo.profile',
         'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile'
     ];
-
-    return client.generateAuthUrl({
+    
+    console.log('DEBUG: Generating Google Auth URL');
+    console.log('DEBUG: GOOGLE_REDIRECT_URI for URL generation:', process.env.GOOGLE_REDIRECT_URI);
+    
+    // Generate the url that will be used for the consent dialog.
+    const authorizeUrl = client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
-        prompt: 'consent'
+        prompt: 'consent',
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI, // Ensure this is set in .env
     });
+    
+    console.log('DEBUG: Generated Auth URL (without sensitive parts):', authorizeUrl.substring(0, 100) + '...');
+    
+    return authorizeUrl;
 }
 
-/**
- * Xác thực với Google và lấy thông tin user
- * @param {String} code - Authorization code từ Google
- * @returns {Promise<Object>} - Thông tin user từ Google
- */
-async function verifyGoogleToken(code) {
+async function exchangeCodeForTokens(code) {
     try {
-        const { tokens } = await client.getToken(code);
-        const ticket = await client.verifyIdToken({
-            idToken: tokens.id_token,
-            audience: process.env.GOOGLE_CLIENT_ID
+        console.log('DEBUG: Starting token exchange');
+        console.log('DEBUG: Authorization code length:', code?.length);
+        console.log('DEBUG: GOOGLE_CLIENT_ID exists:', !!process.env.GOOGLE_CLIENT_ID);
+        console.log('DEBUG: GOOGLE_CLIENT_SECRET exists:', !!process.env.GOOGLE_CLIENT_SECRET);
+        console.log('DEBUG: GOOGLE_REDIRECT_URI:', process.env.GOOGLE_REDIRECT_URI);
+        
+        const { tokens } = await client.getToken({
+            code,
+            redirect_uri: process.env.GOOGLE_REDIRECT_URI, // Must match the one used in getGoogleAuthUrl
         });
-
-        const payload = ticket.getPayload();
-        return {
-            google_id: payload.sub,
-            email: payload.email,
-            name: payload.name,
-            picture: payload.picture
-        };
+        
+        console.log('DEBUG: Token exchange successful');
+        client.setCredentials(tokens);
+        return tokens;
     } catch (error) {
-        console.error('Google token verification error:', error);
-        throw new Error('Invalid Google token');
+        console.error('Failed to exchange authorization code for tokens:', error.message);
+        console.error('Full error details:', error);
+        throw new Error('Failed to authenticate with Google.');
     }
 }
 
-/**
- * Xử lý đăng nhập Google
- * @param {String} code - Authorization code từ Google
- * @returns {Promise<Object>} - Kết quả xử lý Google auth
- */
-async function handleGoogleAuth(code) {
+async function handleGoogleCallback(code) {
     try {
-        console.log('DEBUG: Starting Google Auth with code:', code ? 'CODE_EXISTS' : 'NO_CODE');
+        console.log('DEBUG: handleGoogleCallback called with code length:', code?.length);
         
-        // Lấy thông tin từ Google
-        const googleUser = await verifyGoogleToken(code);
-        console.log('DEBUG: Google User info:', {
-            google_id: googleUser.google_id,
-            email: googleUser.email,
-            name: googleUser.name
+        const tokens = await exchangeCodeForTokens(code);
+        const { id_token, access_token, refresh_token } = tokens;
+
+        const ticket = await client.verifyIdToken({
+            idToken: id_token,
+            audience: process.env.GOOGLE_CLIENT_ID,
         });
+        const payload = ticket.getPayload();
         
-        // Tìm user trong database
-        const existingUser = await knex('accounts')
-            .leftJoin('customers', 'accounts.id', 'customers.account_id')
-            .leftJoin('roles', 'accounts.role_id', 'roles.id')
-            .where('accounts.email', googleUser.email)
-            .orWhere('accounts.google_id', googleUser.google_id)
-            .select(
-                'accounts.id',
-                'accounts.email',
-                'accounts.auth_provider',
-                'roles.name as role',
-                'customers.full_name',
-                'customers.phone_number'
-            )
-            .first();
-            
-        console.log('DEBUG: Existing user found:', existingUser ? 'YES' : 'NO');
-
-        if (existingUser) {
-            // User đã tồn tại - đăng nhập luôn
-            const tokenData = {
-                id: existingUser.id,
-                role_id: existingUser.role === 'customer' ? 3 : (existingUser.role === 'staff' ? 2 : 1),
-                phone_number: existingUser.phone_number,
-                role: existingUser.role
-            };
-            const token = generateToken(tokenData);
-            return {
-                success: true,
-                user: existingUser,
-                token,
-                isNewUser: false
-            };
-        } else {
-            // User mới - tự động tạo account với thông tin từ Google
-            const customerRole = await knex('roles')
-                .where('name', ROLES.CUSTOMER)
-                .first();
-
-            // Tạo account mới với Google data
-            const [newAccount] = await knex('accounts')
-                .insert({
-                    email: googleUser.email,
-                    google_id: googleUser.google_id,
-                    auth_provider: 'google',
+        const {
+            sub: googleId,
+            email,
+            name: fullName,
+            picture: avatarUrl,
+        } = payload;
+        
+        let account = await accountRepository().where({ google_id: googleId }).first();
+        let user;
+        let roleName;
+        
+        if (!account) {
+            const customerRole = await getRoleByName(ROLES.CUSTOMER);
+            await knex.transaction(async (trx) => {
+                const [newAccountId] = await trx('accounts').insert({
+                    email: email,
+                    google_id: googleId,
                     role_id: customerRole.id,
-                    is_active: true,
-                    created_at: new Date(),
-                    updated_at: new Date()
-                })
-                .returning('*');
-
-            // Tạo customer record với placeholder phone
-            await knex('customers')
-                .insert({
-                    account_id: newAccount.id,
-                    full_name: googleUser.name,
-                    phone_number: null, // Để NULL, user có thể update sau
-                    created_at: new Date(),
-                    updated_at: new Date()
-                });
-
-            // Lấy thông tin user đầy đủ
-            const fullUser = await knex('accounts')
-                .leftJoin('customers', 'accounts.id', 'customers.account_id')
-                .leftJoin('roles', 'accounts.role_id', 'roles.id')
-                .where('accounts.id', newAccount.id)
-                .select(
-                    'accounts.id',
-                    'accounts.email',
-                    'accounts.auth_provider',
-                    'roles.name as role',
-                    'customers.full_name',
-                    'customers.phone_number'
-                )
-                .first();
-
-            const tokenData = {
-                id: fullUser.id,
-                role_id: customerRole.id,
-                phone_number: fullUser.phone_number,
-                role: fullUser.role
-            };
-            const token = generateToken(tokenData);
-
-            return {
-                success: true,
-                user: fullUser,
-                token,
-                isNewUser: true,
-                message: 'Account created successfully. You can update your phone number in profile.'
-            };
+                }).returning('id');
+                
+                account = { id: newAccountId.id, role_id: customerRole.id };
+                
+                const [newCustomerId] = await trx('customers').insert({
+                    account_id: account.id,
+                    full_name: fullName,
+                }).returning('id');
+                
+                user = await trx('customers').where('id', newCustomerId.id).first();
+            });
+            roleName = ROLES.CUSTOMER;
+        } else {
+            const role = await getRoleById(account.role_id);
+            roleName = role.name;
+            user = await getUserInfoByAccountId(account.id, roleName);
         }
+        
+        const accessTokenJWT = generateToken({ 
+            id: account.id, 
+            role_id: account.role_id,
+            phone_number: null, // Google users không có phone_number ban đầu
+            role: roleName 
+        });
+
+        return {
+            user: { ...user, role: roleName },
+            token: accessTokenJWT,
+        };
     } catch (error) {
-        console.error('Google auth error:', error);
+        console.error('Google callback handling error:', error);
         throw error;
     }
 }
@@ -625,6 +576,6 @@ module.exports = {
     updateCustomer,
     updateEmployee,
     getUserInfoByAccountId,
-    getGoogleAuthURL,
-    handleGoogleAuth
+    getGoogleAuthUrl,
+    handleGoogleCallback
 }; 
