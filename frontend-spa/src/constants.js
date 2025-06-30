@@ -1,0 +1,1 @@
+export const DEFAULT_IMAGE = '/public/images/default-movie-poster.png';
