@@ -1,2879 +1,3497 @@
 {
-    "openapi": "3.1.1",
-    "info": {
-      "title": "Cinema Management System API",
-      "version": "1.0.0",
-      "description": "API for managing cinema operations including movies, cinema rooms, and showtimes",
-      "contact": {
-        "name": "Cinema Management Team",
-        "email": "datb2203438@student.ctu.edu.vn, nhutb2205986@student.ctu.edu.vn"
-      }
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Cinema Management System API",
+    "version": "1.0.0",
+    "description": "API for managing cinema operations including movies, cinema rooms, and showtimes",
+    "contact": {
+      "name": "Cinema Management Team",
+      "email": "datb2203438@student.ctu.edu.vn, nhutb2205986@student.ctu.edu.vn"
+    }
+  },
+  "servers": [{
+    "url": "http://localhost:3000",
+    "description": "Development server"
+  }],
+  "tags": [{
+      "name": "auth",
+      "description": "Authentication and authorization"
     },
-    "servers": [
-      {
-        "url": "http://localhost:3000",
-        "description": "Development server"
-      }
-    ],
-    "tags": [
-      {
-        "name": "auth",
-        "description": "Authentication and authorization"
-      },
-      {
-        "name": "cinema-rooms",
-        "description": "Cinema rooms management"
-      },
-      {
-        "name": "movies",
-        "description": "Movies management"
-      },
-      {
-        "name": "showtimes",
-        "description": "Showtimes management"
-      },
-      {
-        "name": "seats",
-        "description": "Seats management"
-      },
-      {
-        "name": "food",
-        "description": "Food management"
-      },
-      {
-        "name": "tickets",
-        "description": "Tickets management"
-      },
-      {
-        "name": "bookings",
-        "description": "Booking management"
-      }
-    ],
-    "paths": {
-      "/api/rooms": {
-        "get": {
-          "summary": "Get all cinema rooms",
-          "description": "Get all cinema rooms with pagination and filtering",
-          "operationId": "getAllRooms",
-          "tags": ["cinema-rooms"],
-          "parameters": [
-            {
-              "name": "name",
-              "in": "query",
-              "description": "Filter by room name (partial match)",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "status",
-              "in": "query",
-              "description": "Filter by room status",
-              "schema": {
-                "type": "string",
-                "enum": ["active", "inactive", "maintenance"]
-              }
-            },
-            {
-              "$ref": "#/components/parameters/pageParam"
-            },
-            {
-              "$ref": "#/components/parameters/limitParam"
+    {
+      "name": "cinema-rooms",
+      "description": "Cinema rooms management"
+    },
+    {
+      "name": "movies",
+      "description": "Movies management"
+    },
+    {
+      "name": "showtimes",
+      "description": "Showtimes management"
+    },
+    {
+      "name": "seats",
+      "description": "Seats management"
+    },
+    {
+      "name": "food",
+      "description": "Food management"
+    },
+    {
+      "name": "tickets",
+      "description": "Tickets management"
+    },
+    {
+      "name": "bookings",
+      "description": "Booking management"
+    }
+  ],
+  "paths": {
+    "/api/rooms": {
+      "get": {
+        "summary": "Get all cinema rooms",
+        "description": "Get all cinema rooms with pagination and filtering",
+        "operationId": "getAllRooms",
+        "tags": ["cinema-rooms"],
+        "parameters": [{
+            "name": "name",
+            "in": "query",
+            "description": "Filter by room name (partial match)",
+            "schema": {
+              "type": "string"
             }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of cinema rooms",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "rooms": {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/components/schemas/CinemaRoom"
-                            }
-                          },
-                          "metadata": {
-                            "$ref": "#/components/schemas/PaginationMetadata"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by room status",
+            "schema": {
+              "type": "string",
+              "enum": ["active", "inactive", "maintenance"]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/pageParam"
+          },
+          {
+            "$ref": "#/components/parameters/limitParam"
           }
-        }
-      },
-      "/api/rooms/{id}": {
-        "get": {
-          "summary": "Get cinema room by ID",
-          "description": "Get a specific cinema room by its ID",
-          "operationId": "getRoomById",
-          "tags": ["cinema-rooms"],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Cinema room details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "room": {
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cinema rooms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "rooms": {
+                          "type": "array",
+                          "items": {
                             "$ref": "#/components/schemas/CinemaRoom"
                           }
+                        },
+                        "metadata": {
+                          "$ref": "#/components/schemas/PaginationMetadata"
                         }
                       }
                     }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/movies": {
-        "get": {
-          "summary": "Get all movies",
-          "description": "Get all movies with pagination and filtering",
-          "operationId": "getAllMovies",
-          "tags": ["movies"],
-          "parameters": [
-            {
-              "name": "title",
-              "in": "query",
-              "description": "Filter by movie title (partial match)",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "genre",
-              "in": "query",
-              "description": "Filter by movie genre (partial match)",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "status",
-              "in": "query",
-              "description": "Filter by movie status",
-              "schema": {
-                "type": "string",
-                "enum": ["active", "inactive"]
-              }
-            },
-            {
-              "name": "director",
-              "in": "query",
-              "description": "Filter by director name (partial match)",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "$ref": "#/components/parameters/pageParam"
-            },
-            {
-              "$ref": "#/components/parameters/limitParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of movies",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "movies": {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/components/schemas/Movie"
-                            }
-                          },
-                          "metadata": {
-                            "$ref": "#/components/schemas/PaginationMetadata"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "post": {
-          "summary": "Create a new movie",
-          "description": "Create a new movie with poster upload",
-          "operationId": "createMovie",
-          "tags": ["movies"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "multipart/form-data": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateMovieRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Movie created successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Movie created successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "movie": {
-                            "$ref": "#/components/schemas/Movie"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "delete": {
-          "summary": "Delete all movies",
-          "description": "Delete all movies (Admin only)",
-          "operationId": "deleteAllMovies",
-          "tags": ["movies"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "All movies deleted successfully",
-              "$ref": "#/components/responses/SuccessNoData"
-            },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/movies/{id}": {
-        "get": {
-          "summary": "Get movie by ID",
-          "description": "Get a specific movie by its ID",
-          "operationId": "getMovieById",
-          "tags": ["movies"],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Movie details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "movie": {
-                            "$ref": "#/components/schemas/Movie"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "put": {
-          "summary": "Update movie by ID",
-          "description": "Update a movie by its ID",
-          "operationId": "updateMovie",
-          "tags": ["movies"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "multipart/form-data": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateMovieRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Movie updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Movie updated successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "movie": {
-                            "$ref": "#/components/schemas/Movie"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "delete": {
-          "summary": "Delete movie by ID",
-          "description": "Delete a movie by its ID",
-          "operationId": "deleteMovie",
-          "tags": ["movies"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Movie deleted successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Movie deleted successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "movie": {
-                            "$ref": "#/components/schemas/Movie"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/showtimes": {
-        "get": {
-          "summary": "Get all showtimes",
-          "description": "Get all showtimes with pagination and filtering",
-          "operationId": "getAllShowtimes",
-          "tags": ["showtimes"],
-          "parameters": [
-            {
-              "name": "movie_id",
-              "in": "query",
-              "description": "Filter by movie ID",
-              "schema": {
-                "type": "integer",
-                "minimum": 1
-              }
-            },
-            {
-              "name": "cinema_room_id",
-              "in": "query",
-              "description": "Filter by cinema room ID",
-              "schema": {
-                "type": "integer",
-                "minimum": 1
-              }
-            },
-            {
-              "name": "status",
-              "in": "query",
-              "description": "Filter by showtime status",
-              "schema": {
-                "type": "string",
-                "enum": ["scheduled", "canceled", "completed"]
-              }
-            },
-            {
-              "name": "date",
-              "in": "query",
-              "description": "Filter by showtime date (YYYY-MM-DD)",
-              "schema": {
-                "type": "string",
-                "format": "date"
-              }
-            },
-            {
-              "$ref": "#/components/parameters/pageParam"
-            },
-            {
-              "$ref": "#/components/parameters/limitParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of showtimes",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "showtimes": {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/components/schemas/ShowtimeWithDetails"
-                            }
-                          },
-                          "metadata": {
-                            "$ref": "#/components/schemas/PaginationMetadata"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "post": {
-          "summary": "Create a new showtime",
-          "description": "Create a new showtime",
-          "operationId": "createShowtime",
-          "tags": ["showtimes"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateShowtimeRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Showtime created successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Showtime created successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "showtime": {
-                            "$ref": "#/components/schemas/Showtime"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "delete": {
-          "summary": "Delete all showtimes",
-          "description": "Delete all showtimes (Admin only)",
-          "operationId": "deleteAllShowtimes",
-          "tags": ["showtimes"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "All showtimes deleted successfully",
-              "$ref": "#/components/responses/SuccessNoData"
-            },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/showtimes/{id}": {
-        "get": {
-          "summary": "Get showtime by ID",
-          "description": "Get a specific showtime by its ID",
-          "operationId": "getShowtimeById",
-          "tags": ["showtimes"],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Showtime details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "showtime": {
-                            "$ref": "#/components/schemas/ShowtimeWithDetails"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "put": {
-          "summary": "Update showtime by ID",
-          "description": "Update a showtime by its ID",
-          "operationId": "updateShowtime",
-          "tags": ["showtimes"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateShowtimeRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Showtime updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Showtime updated successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "showtime": {
-                            "$ref": "#/components/schemas/Showtime"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "delete": {
-          "summary": "Delete showtime by ID",
-          "description": "Delete a showtime by its ID",
-          "operationId": "deleteShowtime",
-          "tags": ["showtimes"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Showtime deleted successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Showtime deleted successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "showtime": {
-                            "$ref": "#/components/schemas/Showtime"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/employee/register": {
-        "post": {
-          "summary": "Register new employee",
-          "description": "Register a new employee account (Admin only)",
-          "operationId": "registerEmployee",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RegisterEmployeeRequest"
-                },
-                "example": {
-                  "full_name": "Lê Văn Minh",
-                  "email": "levanminh@company.com",
-                  "phone_number": "0912345678",
-                  "password": "securepassword123",
-                  "password_confirm": "securepassword123",
-                  "date_of_birth": "1988-03-10",
-                  "address": "789 Đường DEF, Quận Bình Thạnh, TP.HCM",
-                  "position": "Marketing Manager"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Employee registered successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Employee registered successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "employee": {
-                            "$ref": "#/components/schemas/Employee"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/login": {
-        "post": {
-          "summary": "User login",
-          "description": "Login with phone number and password",
-          "operationId": "login",
-          "tags": ["auth"],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LoginRequest"
-                },
-                "example": {
-                  "phone_number": "0912345678",
-                  "password": "securepassword123"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Login successful",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Login successful"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "token": {
-                            "type": "string",
-                            "description": "JWT access token"
-                          },
-                          "user": {
-                            "oneOf": [
-                              { "$ref": "#/components/schemas/Employee" },
-                              { "$ref": "#/components/schemas/Customer" }
-                            ]
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": ["admin", "staff", "customer"]
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": {
-              "description": "Invalid credentials",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/ErrorResponse"
-                  },
-                  "example": {
-                    "status": "fail",
-                    "message": "Invalid credentials"
-                  }
-                }
-              }
-            },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/google": {
-        "get": {
-          "summary": "Redirect to Google OAuth",
-          "description": "Redirects user to Google OAuth authorization page (cannot be tested in Swagger UI)",
-          "operationId": "redirectToGoogleAuth",
-          "tags": ["auth"],
-          "responses": {
-            "302": {
-              "description": "Redirect to Google OAuth page",
-              "headers": {
-                "Location": {
-                  "description": "Google OAuth authorization URL",
-                  "schema": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                }
-              }
-            },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/employees": {
-        "get": {
-          "summary": "Get all employees",
-          "description": "Get all employees (Admin only)",
-          "operationId": "getAllEmployees",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of employees",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "employees": {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/components/schemas/Employee"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/customers": {
-        "get": {
-          "summary": "Get all customers",
-          "description": "Get all customers (Admin/Staff only)",
-          "operationId": "getAllCustomers",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of customers",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "customers": {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/components/schemas/Customer"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/customers/{id}": {
-        "get": {
-          "summary": "Get customer by ID",
-          "description": "Get detailed information about a specific customer (Admin/Staff only)",
-          "operationId": "getCustomerById",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Customer details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "customer": {
-                            "$ref": "#/components/schemas/Customer"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "put": {
-          "summary": "Update customer by ID",
-          "description": "Update customer information. Admin/Staff can update any customer. Customers can only update their own profile.",
-          "operationId": "updateCustomer",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": ["input"],
-                  "properties": {
-                    "input": {
-                      "$ref": "#/components/schemas/UpdateCustomerRequest"
-                    }
-                  }
-                },
-                "example": {
-                  "input": {
-                    "full_name": "Trần Thị Bảo",
-                    "phone_number": "0987654321",
-                    "address": "456 Đường XYZ, Quận 3, TP.HCM",
-                    "date_of_birth": "1995-12-20",
-                    "gender": "female"
                   }
                 }
               }
             }
           },
-          "responses": {
-            "200": {
-              "description": "Customer updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Customer updated successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "customer": {
-                            "$ref": "#/components/schemas/Customer"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/auth/employees/{id}": {
-        "get": {
-          "summary": "Get employee by ID",
-          "description": "Get detailed information about a specific employee (Admin only)",
-          "operationId": "getEmployeeById",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Employee details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "employee": {
-                            "$ref": "#/components/schemas/Employee"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "put": {
-          "summary": "Update employee by ID",
-          "description": "Update employee information (Admin only)",
-          "operationId": "updateEmployee",
-          "tags": ["auth"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": ["input"],
-                  "properties": {
-                    "input": {
-                      "$ref": "#/components/schemas/UpdateEmployeeRequest"
-                    }
-                  }
-                },
-                "example": {
-                  "input": {
-                    "full_name": "Nguyễn Văn An",
-                    "email": "nguyenvanan@company.com",
-                    "phone_number": "0123456789",
-                    "date_of_birth": "1990-05-15",
-                    "address": "123 Đường ABC, Quận 1, TP.HCM",
-                    "position": "Senior Developer"
-                  }
-                }
-              }
-            }
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
-          "responses": {
-            "200": {
-              "description": "Employee updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Employee updated successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                          "employee": {
-                            "$ref": "#/components/schemas/Employee"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/bookings": {
-        "post": {
-          "summary": "Create a new booking",
-          "description": "Create a new booking with tickets and food orders",
-          "operationId": "createBooking",
-          "tags": ["bookings"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateBookingRequest"
-                },
-                "example": {
-                  "showtime_id": 100,
-                  "seats": [1, 2, 3],
-                  "food_items": [
-                    {
-                      "food_id": 1,
-                      "quantity": 2
-                    },
-                    {
-                      "food_id": 2,
-                      "quantity": 1
-                    }
-                  ],
-                  "customer_phone": "0987954320"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Booking created successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Tạo booking thành công"
-                      },
-                      "data": {
-                        "$ref": "#/components/schemas/BookingDetail"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "get": {
-          "summary": "Get all bookings",
-          "description": "Get all bookings with pagination and filtering. Customers can only see their own bookings.",
-          "operationId": "getAllBookings",
-          "tags": ["bookings"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "name": "status",
-              "in": "query",
-              "description": "Filter by booking status",
-              "schema": {
-                "type": "string",
-                "enum": ["pending", "confirmed", "cancelled", "completed"]
-              }
-            },
-            {
-              "name": "customer_id",
-              "in": "query",
-              "description": "Filter by customer ID (Admin/Staff only)",
-              "schema": {
-                "type": "integer",
-                "minimum": 1
-              }
-            },
-            {
-              "name": "showtime_id",
-              "in": "query",
-              "description": "Filter by showtime ID",
-              "schema": {
-                "type": "integer",
-                "minimum": 1
-              }
-            },
-            {
-              "name": "booking_date",
-              "in": "query",
-              "description": "Filter by booking date (YYYY-MM-DD)",
-              "schema": {
-                "type": "string",
-                "format": "date"
-              }
-            },
-            {
-              "$ref": "#/components/parameters/pageParam"
-            },
-            {
-              "$ref": "#/components/parameters/limitParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of bookings",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Lấy danh sách booking thành công"
-                      },
-                      "data": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/BookingSummary"
-                        }
-                      },
-                      "metadata": {
-                        "$ref": "#/components/schemas/PaginationMetadata"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/bookings/{id}": {
-        "get": {
-          "summary": "Get booking by ID",
-          "description": "Get detailed information about a specific booking",
-          "operationId": "getBookingById",
-          "tags": ["bookings"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Booking details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Lấy thông tin booking thành công"
-                      },
-                      "data": {
-                        "$ref": "#/components/schemas/BookingDetail"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "put": {
-          "summary": "Update booking",
-          "description": "Update booking status and payment information",
-          "operationId": "updateBooking",
-          "tags": ["bookings"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateBookingRequest"
-                },
-                "example": {
-                  "status": "confirmed",
-                  "payment_method": "credit_card",
-                  "payment_status": "paid"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Booking updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Cập nhật booking thành công"
-                      },
-                      "data": {
-                        "$ref": "#/components/schemas/BookingDetail"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        },
-        "delete": {
-          "summary": "Delete booking",
-          "description": "Delete a booking (Admin only)",
-          "operationId": "deleteBooking",
-          "tags": ["bookings"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Booking deleted successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Xóa booking thành công"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "403": { "$ref": "#/components/responses/Forbidden" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
-          }
-        }
-      },
-      "/api/bookings/{id}/confirm": {
-        "post": {
-          "summary": "Confirm booking and payment",
-          "description": "Confirm a booking and process payment",
-          "operationId": "confirmBooking",
-          "tags": ["bookings"],
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/idParam"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConfirmBookingRequest"
-                },
-                "example": {
-                  "payment_method": "credit_card",
-                  "payment_details": {
-                    "payment_gateway": "cash"
-                  }
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Booking confirmed successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": ["success"]
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Xác nhận booking thành công"
-                      },
-                      "data": {
-                        "$ref": "#/components/schemas/BookingDetail"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": { "$ref": "#/components/responses/BadRequest" },
-            "401": { "$ref": "#/components/responses/Unauthorized" },
-            "404": { "$ref": "#/components/responses/NotFound" },
-            "500": { "$ref": "#/components/responses/InternalServerError" }
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
           }
         }
       }
     },
-    "components": {
-      "securitySchemes": {
-        "bearerAuth": {
-          "type": "http",
-          "scheme": "bearer",
-          "bearerFormat": "JWT",
-          "description": "JWT token for authentication. Get token from /api/auth/login or Google OAuth. Required roles: Admin (full access), Staff (movies/showtimes/customers), Customer (profile only)"
-        }
-      },
-      "schemas": {
-        "SuccessResponse": {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "enum": ["success"]
-            },
-            "data": {
-              "type": "object"
-            },
-            "message": {
-              "type": "string"
-            }
-          }
-        },
-        "ErrorResponse": {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "enum": ["fail", "error"]
-            },
-            "message": {
-              "type": "string"
-            }
-          }
-        },
-        "PaginationMetadata": {
-          "type": "object",
-          "properties": {
-            "totalRecords": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Total number of records"
-            },
-            "firstPage": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "First page number"
-            },
-            "lastPage": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Last page number"
-            },
-            "page": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Current page number"
-            },
-            "limit": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Number of records per page"
-            }
-          }
-        },
-        "CinemaRoom": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "readOnly": true,
-              "description": "Cinema room ID"
-            },
-            "name": {
-              "type": "string",
-              "description": "Cinema room name"
-            },
-            "capacity": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "description": "Cinema room capacity"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["active", "inactive", "maintenance"],
-              "description": "Cinema room status"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
-            }
-          }
-        },
-        "Movie": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "readOnly": true,
-              "description": "Movie ID"
-            },
-            "title": {
-              "type": "string",
-              "description": "Movie title"
-            },
-            "description": {
-              "type": "string",
-              "description": "Movie description"
-            },
-            "duration_min": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 600,
-              "description": "Movie duration in minutes"
-            },
-            "release_date": {
-              "type": "string",
-              "format": "date",
-              "description": "Movie release date"
-            },
-            "end_date": {
-              "type": "string",
-              "format": "date",
-              "description": "Movie end date"
-            },
-            "genre": {
-              "type": "string",
-              "description": "Movie genre"
-            },
-            "director": {
-              "type": "string",
-              "description": "Movie director"
-            },
-            "cast": {
-              "type": "string",
-              "description": "Movie cast"
-            },
-            "country": {
-              "type": "string",
-              "description": "Movie country"
-            },
-            "age_rating": {
-              "type": "string",
-              "enum": ["G", "PG", "PG-13", "R", "NC-17", "T13", "T16", "T18", "C"],
-              "description": "Movie age rating"
-            },
-            "poster_url": {
-              "type": "string",
-              "readOnly": true,
-              "description": "Movie poster URL"
-            },
-            "trailer_url": {
-              "type": "string",
-              "description": "Movie trailer URL"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["active", "inactive"],
-              "description": "Movie status"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
-            }
-          }
-        },
-        "CreateMovieRequest": {
-          "type": "object",
-          "required": ["title", "description", "duration", "release_date", "genre", "director", "cast", "country", "rating"],
-          "properties": {
-            "title": {
-              "type": "string",
-              "maxLength": 255,
-              "description": "Movie title"
-            },
-            "description": {
-              "type": "string",
-              "maxLength": 2000,
-              "description": "Movie description"
-            },
-            "duration": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 600,
-              "description": "Movie duration in minutes"
-            },
-            "release_date": {
-              "type": "string",
-              "format": "date",
-              "description": "Movie release date (YYYY-MM-DD)"
-            },
-            "end_date": {
-              "type": "string",
-              "format": "date",
-              "description": "Movie end date (YYYY-MM-DD)"
-            },
-            "genre": {
-              "type": "string",
-              "maxLength": 100,
-              "description": "Movie genre"
-            },
-            "director": {
-              "type": "string",
-              "maxLength": 255,
-              "description": "Movie director"
-            },
-            "cast": {
-              "type": "string",
-              "maxLength": 1000,
-              "description": "Movie cast"
-            },
-            "country": {
-              "type": "string",
-              "maxLength": 100,
-              "description": "Movie country"
-            },
-            "rating": {
-              "type": "string",
-              "enum": ["G", "PG", "PG-13", "R", "NC-17", "T13", "T16", "T18", "C"],
-              "description": "Movie age rating"
-            },
-            "trailer_url": {
-              "type": "string",
-              "format": "uri",
-              "description": "Movie trailer URL"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["active", "inactive"],
-              "default": "active",
-              "description": "Movie status"
-            },
-            "posterFile": {
-              "type": "string",
-              "format": "binary",
-              "description": "Movie poster file (JPG, JPEG, PNG)"
-            }
-          }
-        },
-        "UpdateMovieRequest": {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string",
-              "maxLength": 255,
-              "description": "Movie title"
-            },
-            "description": {
-              "type": "string",
-              "maxLength": 2000,
-              "description": "Movie description"
-            },
-            "duration": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 600,
-              "description": "Movie duration in minutes"
-            },
-            "release_date": {
-              "type": "string",
-              "format": "date",
-              "description": "Movie release date (YYYY-MM-DD)"
-            },
-            "end_date": {
-              "type": "string",
-              "format": "date",
-              "description": "Movie end date (YYYY-MM-DD)"
-            },
-            "genre": {
-              "type": "string",
-              "maxLength": 100,
-              "description": "Movie genre"
-            },
-            "director": {
-              "type": "string",
-              "maxLength": 255,
-              "description": "Movie director"
-            },
-            "cast": {
-              "type": "string",
-              "maxLength": 1000,
-              "description": "Movie cast"
-            },
-            "country": {
-              "type": "string",
-              "maxLength": 100,
-              "description": "Movie country"
-            },
-            "rating": {
-              "type": "string",
-              "enum": ["G", "PG", "PG-13", "R", "NC-17", "T13", "T16", "T18", "C"],
-              "description": "Movie age rating"
-            },
-            "trailer_url": {
-              "type": "string",
-              "format": "uri",
-              "description": "Movie trailer URL"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["active", "inactive"],
-              "description": "Movie status"
-            },
-            "posterFile": {
-              "type": "string",
-              "format": "binary",
-              "description": "Movie poster file (JPG, JPEG, PNG)"
-            }
-          }
-        },
-        "Showtime": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "readOnly": true,
-              "description": "Showtime ID"
-            },
-            "movie_id": {
-              "type": "integer",
-              "description": "Movie ID"
-            },
-            "cinema_room_id": {
-              "type": "integer",
-              "description": "Cinema room ID"
-            },
-            "start_time": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Showtime start time"
-            },
-            "end_time": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Showtime end time"
-            },
-            "price": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1000000,
-              "description": "Ticket price in VND"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["scheduled", "canceled", "completed"],
-              "description": "Showtime status"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
-            }
-          }
-        },
-        "ShowtimeWithDetails": {
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/Showtime"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "movie_title": {
-                  "type": "string",
-                  "description": "Movie title"
-                },
-                "movie_duration": {
-                  "type": "integer",
-                  "description": "Movie duration in minutes"
-                },
-                "movie_genre": {
-                  "type": "string",
-                  "description": "Movie genre"
-                },
-                "room_name": {
-                  "type": "string",
-                  "description": "Cinema room name"
-                },
-                "room_capacity": {
-                  "type": "integer",
-                  "description": "Cinema room capacity"
+    "/api/rooms/{id}": {
+      "get": {
+        "summary": "Get cinema room by ID",
+        "description": "Get a specific cinema room by its ID",
+        "operationId": "getRoomById",
+        "tags": ["cinema-rooms"],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Cinema room details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "room": {
+                          "$ref": "#/components/schemas/CinemaRoom"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
-          ]
-        },
-        "CreateShowtimeRequest": {
-          "type": "object",
-          "required": ["movie_id", "cinema_room_id", "start_time", "end_time", "price"],
-          "properties": {
-            "movie_id": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Movie ID"
-            },
-            "cinema_room_id": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Cinema room ID"
-            },
-            "start_time": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Showtime start time"
-            },
-            "end_time": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Showtime end time"
-            },
-            "price": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1000000,
-              "description": "Ticket price in VND"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["scheduled", "canceled", "completed"],
-              "default": "scheduled",
-              "description": "Showtime status"
-            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
           }
-        },
-        "UpdateShowtimeRequest": {
-          "type": "object",
-          "properties": {
-            "movie_id": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Movie ID"
-            },
-            "cinema_room_id": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Cinema room ID"
-            },
-            "start_time": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Showtime start time"
-            },
-            "end_time": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Showtime end time"
-            },
-            "price": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1000000,
-              "description": "Ticket price in VND"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["scheduled", "canceled", "completed"],
-              "description": "Showtime status"
+        }
+      }
+    },
+    "/api/movies": {
+      "get": {
+        "summary": "Get all movies",
+        "description": "Get all movies with pagination and filtering",
+        "operationId": "getAllMovies",
+        "tags": ["movies"],
+        "parameters": [{
+            "name": "title",
+            "in": "query",
+            "description": "Filter by movie title (partial match)",
+            "schema": {
+              "type": "string"
             }
-          }
-        },
-        "Employee": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "readOnly": true,
-              "description": "Employee ID"
-            },
-            "account_id": {
-              "type": "integer",
-              "readOnly": true,
-              "description": "Account ID"
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "Employee email"
-            },
-            "full_name": {
-              "type": "string",
-              "description": "Employee full name"
-            },
-            "phone_number": {
-              "type": "string",
-              "description": "Employee phone number"
-            },
-            "address": {
-              "type": "string",
-              "description": "Employee address"
-            },
-            "gender": {
-              "type": "string",
-              "enum": ["male", "female", "other"],
-              "description": "Employee gender"
-            },
-            "date_of_birth": {
-              "type": "string",
-              "format": "date",
-              "description": "Employee date of birth"
-            },
-            "position": {
-              "type": "string",
-              "description": "Employee position"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
+          },
+          {
+            "name": "genre",
+            "in": "query",
+            "description": "Filter by movie genre (partial match)",
+            "schema": {
+              "type": "string"
             }
-          }
-        },
-        "Customer": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "readOnly": true,
-              "description": "Customer ID"
-            },
-            "account_id": {
-              "type": "integer",
-              "readOnly": true,
-              "description": "Account ID"
-            },
-            "full_name": {
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by movie status",
+            "schema": {
               "type": "string",
-              "description": "Customer full name"
-            },
-            "phone_number": {
-              "type": "string",
-              "description": "Customer phone number"
-            },
-            "address": {
-              "type": "string",
-              "description": "Customer address"
-            },
-            "gender": {
-              "type": "string",
-              "enum": ["male", "female", "other"],
-              "description": "Customer gender"
-            },
-            "date_of_birth": {
-              "type": "string",
-              "format": "date",
-              "description": "Customer date of birth"
-            },
-            "loyalty_points": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Customer loyalty points"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time",
-              "readOnly": true
+              "enum": ["active", "inactive"]
             }
-          }
-        },
-        "RegisterEmployeeRequest": {
-          "type": "object",
-          "required": ["full_name", "email", "phone_number", "password", "password_confirm"],
-          "properties": {
-            "full_name": {
-              "type": "string",
-              "minLength": 2,
-              "maxLength": 100,
-              "description": "Employee full name"
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "Employee email (must be unique)"
-            },
-            "phone_number": {
-              "type": "string",
-              "minLength": 10,
-              "maxLength": 15,
-              "description": "Employee phone number (must be unique)"
-            },
-            "password": {
-              "type": "string",
-              "minLength": 6,
-              "maxLength": 50,
-              "description": "Employee password"
-            },
-            "password_confirm": {
-              "type": "string",
-              "description": "Password confirmation (must match password)"
-            },
-            "date_of_birth": {
-              "type": "string",
-              "format": "date",
-              "description": "Employee date of birth"
-            },
-            "address": {
-              "type": "string",
-              "description": "Employee address"
-            },
-            "position": {
-              "type": "string",
-              "description": "Employee position"
+          },
+          {
+            "name": "director",
+            "in": "query",
+            "description": "Filter by director name (partial match)",
+            "schema": {
+              "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/pageParam"
+          },
+          {
+            "$ref": "#/components/parameters/limitParam"
           }
-        },
-        "UpdateEmployeeRequest": {
-          "type": "object",
-          "properties": {
-            "full_name": {
-              "type": "string",
-              "minLength": 2,
-              "maxLength": 100,
-              "description": "Employee full name"
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "maxLength": 255,
-              "description": "Employee email"
-            },
-            "phone_number": {
-              "type": "string",
-              "minLength": 10,
-              "maxLength": 15,
-              "description": "Employee phone number"
-            },
-            "date_of_birth": {
-              "type": "string",
-              "format": "date",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "description": "Employee date of birth (YYYY-MM-DD format)"
-            },
-            "address": {
-              "type": "string",
-              "maxLength": 500,
-              "description": "Employee address"
-            },
-            "position": {
-              "type": "string",
-              "maxLength": 100,
-              "description": "Employee position"
-            }
-          }
-        },
-        "UpdateCustomerRequest": {
-          "type": "object",
-          "properties": {
-            "full_name": {
-              "type": "string",
-              "minLength": 2,
-              "maxLength": 255,
-              "description": "Customer full name"
-            },
-            "phone_number": {
-              "type": "string",
-              "minLength": 10,
-              "maxLength": 15,
-              "description": "Customer phone number"
-            },
-            "address": {
-              "type": "string",
-              "maxLength": 500,
-              "description": "Customer address"
-            },
-            "date_of_birth": {
-              "type": "string",
-              "format": "date",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "description": "Customer date of birth (YYYY-MM-DD format)"
-            },
-            "gender": {
-              "type": "string",
-              "enum": ["male", "female", "other"],
-              "description": "Customer gender"
-            }
-          }
-        },
-        "LoginRequest": {
-          "type": "object",
-          "required": ["phone_number", "password"],
-          "properties": {
-            "phone_number": {
-              "type": "string",
-              "minLength": 10,
-              "maxLength": 15,
-              "description": "User phone number"
-            },
-            "password": {
-              "type": "string",
-              "minLength": 6,
-              "description": "User password"
-            }
-          }
-        },
-        "BookingSummary": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "description": "Booking ID"
-            },
-            "customer_id": {
-              "type": "integer",
-              "description": "Customer ID"
-            },
-            "showtime_id": {
-              "type": "integer",
-              "description": "Showtime ID"
-            },
-            "booking_date": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Booking date"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["pending", "confirmed", "cancelled", "completed"],
-              "description": "Booking status"
-            },
-            "customer_name": {
-              "type": "string",
-              "description": "Customer full name"
-            },
-            "customer_phone": {
-              "type": "string",
-              "description": "Customer phone number"
-            },
-            "movie_title": {
-              "type": "string",
-              "description": "Movie title"
-            },
-            "room_name": {
-              "type": "string",
-              "description": "Cinema room name"
-            },
-            "start_time": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Showtime start time"
-            },
-            "end_time": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Showtime end time"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        },
-        "BookingDetail": {
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/BookingSummary"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "movie_duration": {
-                  "type": "integer",
-                  "description": "Movie duration in minutes"
-                },
-                "movie_rating": {
-                  "type": "string",
-                  "description": "Movie age rating"
-                },
-                "base_price": {
-                  "type": "number",
-                  "description": "Base ticket price"
-                },
-                "tickets": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/BookingTicket"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of movies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movies": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Movie"
+                          }
+                        },
+                        "metadata": {
+                          "$ref": "#/components/schemas/PaginationMetadata"
+                        }
+                      }
+                    }
                   }
-                },
-                "food_orders": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/BookingFoodOrder"
-                  }
-                },
-                "invoice": {
-                  "$ref": "#/components/schemas/BookingInvoice"
                 }
               }
             }
-          ]
-        },
-        "BookingTicket": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "description": "Ticket ID"
-            },
-            "seat_id": {
-              "type": "integer",
-              "description": "Seat ID"
-            },
-            "price": {
-              "type": "number",
-              "description": "Ticket price"
-            },
-            "row": {
-              "type": "string",
-              "description": "Seat row"
-            },
-            "column": {
-              "type": "integer",
-              "description": "Seat column"
-            },
-            "seat_name": {
-              "type": "string",
-              "description": "Seat name (e.g., A1)"
-            },
-            "seat_type_name": {
-              "type": "string",
-              "description": "Seat type name"
-            },
-            "seat_type_price": {
-              "type": "number",
-              "description": "Seat type price"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        },
-        "BookingFoodOrder": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "description": "Food order ID"
-            },
-            "food_id": {
-              "type": "integer",
-              "description": "Food ID"
-            },
-            "quantity": {
-              "type": "integer",
-              "description": "Food quantity"
-            },
-            "price": {
-              "type": "number",
-              "description": "Total price for this food item"
-            },
-            "food_name": {
-              "type": "string",
-              "description": "Food name"
-            },
-            "food_unit_price": {
-              "type": "number",
-              "description": "Food unit price"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        },
-        "BookingInvoice": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer",
-              "description": "Invoice ID"
-            },
-            "payment_method": {
-              "type": "string",
-              "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
-              "description": "Payment method"
-            },
-            "payment_status": {
-              "type": "string",
-              "enum": ["pending", "paid", "failed"],
-              "description": "Payment status"
-            },
-            "amount": {
-              "type": "number",
-              "description": "Total amount"
-            },
-            "payment_date": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Payment date"
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        },
-        "CreateBookingRequest": {
-          "type": "object",
-          "required": ["showtime_id", "seats"],
-          "properties": {
-            "showtime_id": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Showtime ID"
-            },
-            "seats": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "minItems": 1,
-              "maxItems": 8,
-              "description": "Array of seat IDs to book"
-            },
-            "food_items": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/BookingFoodItem"
-              },
-              "description": "Optional food items to order"
-            },
-            "customer_phone": {
-              "type": "string",
-              "minLength": 10,
-              "maxLength": 15,
-              "description": "Customer phone number (for staff booking on behalf)"
-            }
-          }
-        },
-        "BookingFoodItem": {
-          "type": "object",
-          "required": ["food_id", "quantity"],
-          "properties": {
-            "food_id": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Food ID"
-            },
-            "quantity": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 20,
-              "description": "Food quantity"
-            }
-          }
-        },
-        "UpdateBookingRequest": {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "enum": ["pending", "confirmed", "cancelled", "completed"],
-              "description": "Booking status"
-            },
-            "payment_method": {
-              "type": "string",
-              "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
-              "description": "Payment method"
-            },
-            "payment_status": {
-              "type": "string",
-              "enum": ["pending", "paid", "failed"],
-              "description": "Payment status"
-            }
-          }
-        },
-        "ConfirmBookingRequest": {
-          "type": "object",
-          "required": ["payment_method"],
-          "properties": {
-            "payment_method": {
-              "type": "string",
-              "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
-              "description": "Payment method"
-            },
-            "payment_details": {
-              "type": "object",
-              "properties": {
-                "amount": {
-                  "type": "number",
-                  "minimum": 0,
-                  "description": "Payment amount"
-                },
-                "transaction_id": {
-                  "type": "string",
-                  "description": "Transaction ID from payment gateway"
-                },
-                "payment_gateway": {
-                  "type": "string",
-                  "description": "Payment gateway used"
-                }
-              },
-              "description": "Optional payment details"
-            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
           }
         }
       },
-      "responses": {
-        "SuccessNoData": {
-          "description": "Success response without data",
+      "post": {
+        "summary": "Create a new movie",
+        "description": "Create a new movie with poster upload",
+        "operationId": "createMovie",
+        "tags": ["movies"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMovieRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Movie created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Movie created successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movie": {
+                          "$ref": "#/components/schemas/Movie"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete all movies",
+        "description": "Delete all movies (Admin only)",
+        "operationId": "deleteAllMovies",
+        "tags": ["movies"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "description": "All movies deleted successfully",
+            "$ref": "#/components/responses/SuccessNoData"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/movies/{id}": {
+      "get": {
+        "summary": "Get movie by ID",
+        "description": "Get a specific movie by its ID",
+        "operationId": "getMovieById",
+        "tags": ["movies"],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Movie details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movie": {
+                          "$ref": "#/components/schemas/Movie"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update movie by ID",
+        "description": "Update a movie by its ID",
+        "operationId": "updateMovie",
+        "tags": ["movies"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMovieRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Movie updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movie": {
+                          "$ref": "#/components/schemas/Movie"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete movie by ID",
+        "description": "Delete a movie by its ID",
+        "operationId": "deleteMovie",
+        "tags": ["movies"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Movie deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Movie deleted successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movie": {
+                          "$ref": "#/components/schemas/Movie"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/showtimes": {
+      "get": {
+        "summary": "Get all showtimes",
+        "description": "Get all showtimes with pagination and filtering",
+        "operationId": "getAllShowtimes",
+        "tags": ["showtimes"],
+        "parameters": [{
+            "name": "movie_id",
+            "in": "query",
+            "description": "Filter by movie ID",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "cinema_room_id",
+            "in": "query",
+            "description": "Filter by cinema room ID",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by showtime status",
+            "schema": {
+              "type": "string",
+              "enum": ["scheduled", "canceled", "completed"]
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "description": "Filter by showtime date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/pageParam"
+          },
+          {
+            "$ref": "#/components/parameters/limitParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of showtimes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "showtimes": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/ShowtimeWithDetails"
+                          }
+                        },
+                        "metadata": {
+                          "$ref": "#/components/schemas/PaginationMetadata"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new showtime",
+        "description": "Create a new showtime",
+        "operationId": "createShowtime",
+        "tags": ["showtimes"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShowtimeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Showtime created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Showtime created successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "showtime": {
+                          "$ref": "#/components/schemas/Showtime"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete all showtimes",
+        "description": "Delete all showtimes (Admin only)",
+        "operationId": "deleteAllShowtimes",
+        "tags": ["showtimes"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "description": "All showtimes deleted successfully",
+            "$ref": "#/components/responses/SuccessNoData"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/showtimes/{id}": {
+      "get": {
+        "summary": "Get showtime by ID",
+        "description": "Get a specific showtime by its ID",
+        "operationId": "getShowtimeById",
+        "tags": ["showtimes"],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Showtime details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "showtime": {
+                          "$ref": "#/components/schemas/ShowtimeWithDetails"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update showtime by ID",
+        "description": "Update a showtime by its ID",
+        "operationId": "updateShowtime",
+        "tags": ["showtimes"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShowtimeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Showtime updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Showtime updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "showtime": {
+                          "$ref": "#/components/schemas/Showtime"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete showtime by ID",
+        "description": "Delete a showtime by its ID",
+        "operationId": "deleteShowtime",
+        "tags": ["showtimes"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Showtime deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Showtime deleted successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "showtime": {
+                          "$ref": "#/components/schemas/Showtime"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/employee/register": {
+      "post": {
+        "summary": "Register new employee",
+        "description": "Register a new employee account (Admin only)",
+        "operationId": "registerEmployee",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterEmployeeRequest"
+              },
+              "example": {
+                "full_name": "Lê Văn Minh",
+                "email": "levanminh@company.com",
+                "phone_number": "0912345678",
+                "password": "securepassword123",
+                "password_confirm": "securepassword123",
+                "date_of_birth": "1988-03-10",
+                "address": "789 Đường DEF, Quận Bình Thạnh, TP.HCM",
+                "position": "Marketing Manager"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Employee registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Employee registered successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "employee": {
+                          "$ref": "#/components/schemas/Employee"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "User login",
+        "description": "Login with phone number and password",
+        "operationId": "login",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": {
+                "phone_number": "0912345678",
+                "password": "securepassword123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login successful"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string",
+                          "description": "JWT access token"
+                        },
+                        "user": {
+                          "oneOf": [{
+                              "$ref": "#/components/schemas/Employee"
+                            },
+                            {
+                              "$ref": "#/components/schemas/Customer"
+                            }
+                          ]
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": ["admin", "staff", "customer"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "status": "fail",
+                  "message": "Invalid credentials"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/google": {
+      "get": {
+        "summary": "Redirect to Google OAuth",
+        "description": "Redirects user to Google OAuth authorization page (cannot be tested in Swagger UI)",
+        "operationId": "redirectToGoogleAuth",
+        "tags": ["auth"],
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth page",
+            "headers": {
+              "Location": {
+                "description": "Google OAuth authorization URL",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/employees": {
+      "get": {
+        "summary": "Get all employees",
+        "description": "Get all employees (Admin only)",
+        "operationId": "getAllEmployees",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "description": "List of employees",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "employees": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Employee"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/customers": {
+      "get": {
+        "summary": "Get all customers",
+        "description": "Get all customers (Admin/Staff only)",
+        "operationId": "getAllCustomers",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "description": "List of customers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "customers": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Customer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/customers/{id}": {
+      "get": {
+        "summary": "Get customer by ID",
+        "description": "Get detailed information about a specific customer (Admin/Staff only)",
+        "operationId": "getCustomerById",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Customer details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "customer": {
+                          "$ref": "#/components/schemas/Customer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update customer by ID",
+        "description": "Update customer information. Admin/Staff can update any customer. Customers can only update their own profile.",
+        "operationId": "updateCustomer",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["input"],
                 "properties": {
-                  "status": {
-                    "type": "string",
-                    "enum": ["success"]
+                  "input": {
+                    "$ref": "#/components/schemas/UpdateCustomerRequest"
+                  }
+                }
+              },
+              "example": {
+                "input": {
+                  "full_name": "Trần Thị Bảo",
+                  "phone_number": "0987654321",
+                  "address": "456 Đường XYZ, Quận 3, TP.HCM",
+                  "date_of_birth": "1995-12-20",
+                  "gender": "female"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Customer updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Customer updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "customer": {
+                          "$ref": "#/components/schemas/Customer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/employees/{id}": {
+      "get": {
+        "summary": "Get employee by ID",
+        "description": "Get detailed information about a specific employee (Admin only)",
+        "operationId": "getEmployeeById",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Employee details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "employee": {
+                          "$ref": "#/components/schemas/Employee"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update employee by ID",
+        "description": "Update employee information (Admin only)",
+        "operationId": "updateEmployee",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["input"],
+                "properties": {
+                  "input": {
+                    "$ref": "#/components/schemas/UpdateEmployeeRequest"
+                  }
+                }
+              },
+              "example": {
+                "input": {
+                  "full_name": "Nguyễn Văn An",
+                  "email": "nguyenvanan@company.com",
+                  "phone_number": "0123456789",
+                  "date_of_birth": "1990-05-15",
+                  "address": "123 Đường ABC, Quận 1, TP.HCM",
+                  "position": "Senior Developer"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Employee updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Employee updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "employee": {
+                          "$ref": "#/components/schemas/Employee"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/bookings": {
+      "post": {
+        "summary": "Create a new booking",
+        "description": "Create a new booking with tickets and food orders",
+        "operationId": "createBooking",
+        "tags": ["bookings"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookingRequest"
+              },
+              "example": {
+                "showtime_id": 100,
+                "seats": [1, 2, 3],
+                "food_items": [{
+                    "food_id": 1,
+                    "quantity": 2
                   },
-                  "message": {
-                    "type": "string"
-                  },
-                  "data": {
-                    "type": "null"
+                  {
+                    "food_id": 2,
+                    "quantity": 1
                   }
+                ],
+                "customer_phone": "0987954320"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Tạo booking thành công"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BookingDetail"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all bookings",
+        "description": "Get all bookings with pagination and filtering. Customers can only see their own bookings.",
+        "operationId": "getAllBookings",
+        "tags": ["bookings"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+            "name": "status",
+            "in": "query",
+            "description": "Filter by booking status",
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "confirmed", "cancelled", "completed"]
+            }
+          },
+          {
+            "name": "customer_id",
+            "in": "query",
+            "description": "Filter by customer ID (Admin/Staff only)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "showtime_id",
+            "in": "query",
+            "description": "Filter by showtime ID",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "booking_date",
+            "in": "query",
+            "description": "Filter by booking date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/pageParam"
+          },
+          {
+            "$ref": "#/components/parameters/limitParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Lấy danh sách booking thành công"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BookingSummary"
+                      }
+                    },
+                    "metadata": {
+                      "$ref": "#/components/schemas/PaginationMetadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/bookings/{id}": {
+      "get": {
+        "summary": "Get booking by ID",
+        "description": "Get detailed information about a specific booking",
+        "operationId": "getBookingById",
+        "tags": ["bookings"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Booking details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Lấy thông tin booking thành công"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BookingDetail"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update booking",
+        "description": "Update booking status and payment information",
+        "operationId": "updateBooking",
+        "tags": ["bookings"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingRequest"
+              },
+              "example": {
+                "status": "confirmed",
+                "payment_method": "credit_card",
+                "payment_status": "paid"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Booking updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cập nhật booking thành công"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BookingDetail"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete booking",
+        "description": "Delete a booking (Admin only)",
+        "operationId": "deleteBooking",
+        "tags": ["bookings"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Booking deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Xóa booking thành công"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/bookings/{id}/confirm": {
+      "post": {
+        "summary": "Confirm booking and payment",
+        "description": "Confirm a booking and process payment",
+        "operationId": "confirmBooking",
+        "tags": ["bookings"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmBookingRequest"
+              },
+              "example": {
+                "payment_method": "credit_card",
+                "payment_details": {
+                  "payment_gateway": "cash"
                 }
               }
             }
           }
         },
-        "BadRequest": {
-          "description": "Bad request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "validation_error": {
-                  "value": {
-                    "status": "fail",
-                    "message": "input.movie_id: Movie ID phải là số dương"
-                  }
-                },
-                "invalid_format": {
-                  "value": {
-                    "status": "fail",
-                    "message": "Invalid ID format"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "Unauthorized": {
-          "description": "Unauthorized",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "example": {
-                "status": "fail",
-                "message": "Access token is required"
-              }
-            }
-          }
-        },
-        "Forbidden": {
-          "description": "Forbidden",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "example": {
-                "status": "fail",
-                "message": "Insufficient permissions"
-              }
-            }
-          }
-        },
-        "NotFound": {
-          "description": "Resource not found",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "movie_not_found": {
-                  "value": {
-                    "status": "fail",
-                    "message": "Movie not found"
-                  }
-                },
-                "room_not_found": {
-                  "value": {
-                    "status": "fail",
-                    "message": "Room not found"
-                  }
-                },
-                "showtime_not_found": {
-                  "value": {
-                    "status": "fail",
-                    "message": "Showtime not found"
-                  }
-                },
-                "employee_not_found": {
-                  "value": {
-                    "status": "fail",
-                    "message": "Employee not found"
-                  }
-                },
-                "customer_not_found": {
-                  "value": {
-                    "status": "fail",
-                    "message": "Customer not found"
-                  }
-                },
-                "booking_not_found": {
-                  "value": {
-                    "status": "fail",
-                    "message": "Booking not found"
+        "responses": {
+          "200": {
+            "description": "Booking confirmed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Xác nhận booking thành công"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BookingDetail"
+                    }
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
           }
-        },
-        "InternalServerError": {
-          "description": "Internal server error",
+        }
+      }
+    },
+    "/api/foods": {
+      "get": {
+        "summary": "Get all foods",
+        "description": "Get all food items with pagination and filtering",
+        "operationId": "getAllFoods",
+        "tags": ["food"],
+        "parameters": [{
+            "name": "name",
+            "in": "query",
+            "description": "Filter by food name (partial match)",
+            "schema": {
+              "type": "string",
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter by food category (partial match)",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "is_available",
+            "in": "query",
+            "description": "Filter by availability status",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "description": "Filter by minimum price",
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "description": "Filter by maximum price",
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          {
+            "$ref": "#/components/parameters/pageParam"
+          },
+          {
+            "$ref": "#/components/parameters/limitParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of food items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "foods": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Food"
+                          }
+                        },
+                        "metadata": {
+                          "$ref": "#/components/schemas/PaginationMetadata"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new food item",
+        "description": "Create a new food item (Admin only)",
+        "operationId": "createFood",
+        "tags": ["food"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
+                "$ref": "#/components/schemas/CreateFoodRequest"
               },
               "example": {
-                "status": "error",
-                "message": "Internal Server Error"
+                "name": "Popcorn lớn",
+                "description": "Hộp bắp rang lớn, phù hợp cho 2-3 người",
+                "price": 65000,
+                "image_url": "/public/images/foods/popcorn-large.jpg",
+                "category": "Popcorn",
+                "is_available": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Food item created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Food created successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "food": {
+                          "$ref": "#/components/schemas/Food"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete all food items",
+        "description": "Delete all food items (Admin only)",
+        "operationId": "deleteAllFoods",
+        "tags": ["food"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "description": "All food items deleted successfully",
+            "$ref": "#/components/responses/SuccessNoData"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/foods/{id}": {
+      "get": {
+        "summary": "Get food item by ID",
+        "description": "Get a specific food item by its ID",
+        "operationId": "getFoodById",
+        "tags": ["food"],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Food item details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "food": {
+                          "$ref": "#/components/schemas/Food"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update food item by ID",
+        "description": "Update a food item by its ID (Admin only)",
+        "operationId": "updateFood",
+        "tags": ["food"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFoodRequest"
+              },
+              "example": {
+                "name": "Popcorn lớn (cập nhật)",
+                "price": 70000,
+                "is_available": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Food item updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Food updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "food": {
+                          "$ref": "#/components/schemas/Food"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete food item by ID",
+        "description": "Delete a food item by its ID (Admin only)",
+        "operationId": "deleteFood",
+        "tags": ["food"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Food item deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Food deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token for authentication. Get token from /api/auth/login or Google OAuth. Required roles: Admin (full access), Staff (movies/showtimes/customers), Customer (profile only)"
+      }
+    },
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success"]
+          },
+          "data": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["fail", "error"]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PaginationMetadata": {
+        "type": "object",
+        "properties": {
+          "totalRecords": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of records"
+          },
+          "firstPage": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "First page number"
+          },
+          "lastPage": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Last page number"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current page number"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of records per page"
+          }
+        }
+      },
+      "CinemaRoom": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "Cinema room ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Cinema room name"
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "description": "Cinema room capacity"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive", "maintenance"],
+            "description": "Cinema room status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "Movie": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "Movie ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Movie title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Movie description"
+          },
+          "duration_min": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 600,
+            "description": "Movie duration in minutes"
+          },
+          "release_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Movie release date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Movie end date"
+          },
+          "genre": {
+            "type": "string",
+            "description": "Movie genre"
+          },
+          "director": {
+            "type": "string",
+            "description": "Movie director"
+          },
+          "cast": {
+            "type": "string",
+            "description": "Movie cast"
+          },
+          "country": {
+            "type": "string",
+            "description": "Movie country"
+          },
+          "age_rating": {
+            "type": "string",
+            "enum": ["G", "PG", "PG-13", "R", "NC-17", "T13", "T16", "T18", "C"],
+            "description": "Movie age rating"
+          },
+          "poster_url": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Movie poster URL"
+          },
+          "trailer_url": {
+            "type": "string",
+            "description": "Movie trailer URL"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "description": "Movie status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "CreateMovieRequest": {
+        "type": "object",
+        "required": ["title", "description", "duration", "release_date", "genre", "director", "cast", "country", "rating"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Movie title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Movie description"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 600,
+            "description": "Movie duration in minutes"
+          },
+          "release_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Movie release date (YYYY-MM-DD)"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Movie end date (YYYY-MM-DD)"
+          },
+          "genre": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Movie genre"
+          },
+          "director": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Movie director"
+          },
+          "cast": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Movie cast"
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Movie country"
+          },
+          "rating": {
+            "type": "string",
+            "enum": ["G", "PG", "PG-13", "R", "NC-17", "T13", "T16", "T18", "C"],
+            "description": "Movie age rating"
+          },
+          "trailer_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Movie trailer URL"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "default": "active",
+            "description": "Movie status"
+          },
+          "posterFile": {
+            "type": "string",
+            "format": "binary",
+            "description": "Movie poster file (JPG, JPEG, PNG)"
+          }
+        }
+      },
+      "UpdateMovieRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Movie title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Movie description"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 600,
+            "description": "Movie duration in minutes"
+          },
+          "release_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Movie release date (YYYY-MM-DD)"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Movie end date (YYYY-MM-DD)"
+          },
+          "genre": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Movie genre"
+          },
+          "director": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Movie director"
+          },
+          "cast": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Movie cast"
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Movie country"
+          },
+          "rating": {
+            "type": "string",
+            "enum": ["G", "PG", "PG-13", "R", "NC-17", "T13", "T16", "T18", "C"],
+            "description": "Movie age rating"
+          },
+          "trailer_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Movie trailer URL"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "description": "Movie status"
+          },
+          "posterFile": {
+            "type": "string",
+            "format": "binary",
+            "description": "Movie poster file (JPG, JPEG, PNG)"
+          }
+        }
+      },
+      "Showtime": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "Showtime ID"
+          },
+          "movie_id": {
+            "type": "integer",
+            "description": "Movie ID"
+          },
+          "cinema_room_id": {
+            "type": "integer",
+            "description": "Cinema room ID"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Showtime start time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Showtime end time"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Ticket price in VND"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["scheduled", "canceled", "completed"],
+            "description": "Showtime status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "ShowtimeWithDetails": {
+        "allOf": [{
+            "$ref": "#/components/schemas/Showtime"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "movie_title": {
+                "type": "string",
+                "description": "Movie title"
+              },
+              "movie_duration": {
+                "type": "integer",
+                "description": "Movie duration in minutes"
+              },
+              "movie_genre": {
+                "type": "string",
+                "description": "Movie genre"
+              },
+              "room_name": {
+                "type": "string",
+                "description": "Cinema room name"
+              },
+              "room_capacity": {
+                "type": "integer",
+                "description": "Cinema room capacity"
+              }
+            }
+          }
+        ]
+      },
+      "CreateShowtimeRequest": {
+        "type": "object",
+        "required": ["movie_id", "cinema_room_id", "start_time", "end_time", "price"],
+        "properties": {
+          "movie_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Movie ID"
+          },
+          "cinema_room_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Cinema room ID"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Showtime start time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Showtime end time"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Ticket price in VND"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["scheduled", "canceled", "completed"],
+            "default": "scheduled",
+            "description": "Showtime status"
+          }
+        }
+      },
+      "UpdateShowtimeRequest": {
+        "type": "object",
+        "properties": {
+          "movie_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Movie ID"
+          },
+          "cinema_room_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Cinema room ID"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Showtime start time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Showtime end time"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Ticket price in VND"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["scheduled", "canceled", "completed"],
+            "description": "Showtime status"
+          }
+        }
+      },
+      "Employee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "Employee ID"
+          },
+          "account_id": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "Account ID"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Employee email"
+          },
+          "full_name": {
+            "type": "string",
+            "description": "Employee full name"
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Employee phone number"
+          },
+          "address": {
+            "type": "string",
+            "description": "Employee address"
+          },
+          "gender": {
+            "type": "string",
+            "enum": ["male", "female", "other"],
+            "description": "Employee gender"
+          },
+          "date_of_birth": {
+            "type": "string",
+            "format": "date",
+            "description": "Employee date of birth"
+          },
+          "position": {
+            "type": "string",
+            "description": "Employee position"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "Customer ID"
+          },
+          "account_id": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "Account ID"
+          },
+          "full_name": {
+            "type": "string",
+            "description": "Customer full name"
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Customer phone number"
+          },
+          "address": {
+            "type": "string",
+            "description": "Customer address"
+          },
+          "gender": {
+            "type": "string",
+            "enum": ["male", "female", "other"],
+            "description": "Customer gender"
+          },
+          "date_of_birth": {
+            "type": "string",
+            "format": "date",
+            "description": "Customer date of birth"
+          },
+          "loyalty_points": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Customer loyalty points"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "RegisterEmployeeRequest": {
+        "type": "object",
+        "required": ["full_name", "email", "phone_number", "password", "password_confirm"],
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "description": "Employee full name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Employee email (must be unique)"
+          },
+          "phone_number": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 15,
+            "description": "Employee phone number (must be unique)"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 50,
+            "description": "Employee password"
+          },
+          "password_confirm": {
+            "type": "string",
+            "description": "Password confirmation (must match password)"
+          },
+          "date_of_birth": {
+            "type": "string",
+            "format": "date",
+            "description": "Employee date of birth"
+          },
+          "address": {
+            "type": "string",
+            "description": "Employee address"
+          },
+          "position": {
+            "type": "string",
+            "description": "Employee position"
+          }
+        }
+      },
+      "UpdateEmployeeRequest": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "description": "Employee full name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255,
+            "description": "Employee email"
+          },
+          "phone_number": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 15,
+            "description": "Employee phone number"
+          },
+          "date_of_birth": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Employee date of birth (YYYY-MM-DD format)"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Employee address"
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Employee position"
+          }
+        }
+      },
+      "UpdateCustomerRequest": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 255,
+            "description": "Customer full name"
+          },
+          "phone_number": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 15,
+            "description": "Customer phone number"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Customer address"
+          },
+          "date_of_birth": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Customer date of birth (YYYY-MM-DD format)"
+          },
+          "gender": {
+            "type": "string",
+            "enum": ["male", "female", "other"],
+            "description": "Customer gender"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["phone_number", "password"],
+        "properties": {
+          "phone_number": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 15,
+            "description": "User phone number"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "description": "User password"
+          }
+        }
+      },
+      "BookingSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Booking ID"
+          },
+          "customer_id": {
+            "type": "integer",
+            "description": "Customer ID"
+          },
+          "showtime_id": {
+            "type": "integer",
+            "description": "Showtime ID"
+          },
+          "booking_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Booking date"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "confirmed", "cancelled", "completed"],
+            "description": "Booking status"
+          },
+          "customer_name": {
+            "type": "string",
+            "description": "Customer full name"
+          },
+          "customer_phone": {
+            "type": "string",
+            "description": "Customer phone number"
+          },
+          "movie_title": {
+            "type": "string",
+            "description": "Movie title"
+          },
+          "room_name": {
+            "type": "string",
+            "description": "Cinema room name"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Showtime start time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Showtime end time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BookingDetail": {
+        "allOf": [{
+            "$ref": "#/components/schemas/BookingSummary"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "movie_duration": {
+                "type": "integer",
+                "description": "Movie duration in minutes"
+              },
+              "movie_rating": {
+                "type": "string",
+                "description": "Movie age rating"
+              },
+              "base_price": {
+                "type": "number",
+                "description": "Base ticket price"
+              },
+              "tickets": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BookingTicket"
+                }
+              },
+              "food_orders": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BookingFoodOrder"
+                }
+              },
+              "invoice": {
+                "$ref": "#/components/schemas/BookingInvoice"
+              }
+            }
+          }
+        ]
+      },
+      "BookingTicket": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Ticket ID"
+          },
+          "seat_id": {
+            "type": "integer",
+            "description": "Seat ID"
+          },
+          "price": {
+            "type": "number",
+            "description": "Ticket price"
+          },
+          "row": {
+            "type": "string",
+            "description": "Seat row"
+          },
+          "column": {
+            "type": "integer",
+            "description": "Seat column"
+          },
+          "seat_name": {
+            "type": "string",
+            "description": "Seat name (e.g., A1)"
+          },
+          "seat_type_name": {
+            "type": "string",
+            "description": "Seat type name"
+          },
+          "seat_type_price": {
+            "type": "number",
+            "description": "Seat type price"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BookingFoodOrder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Food order ID"
+          },
+          "food_id": {
+            "type": "integer",
+            "description": "Food ID"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Food quantity"
+          },
+          "price": {
+            "type": "number",
+            "description": "Total price for this food item"
+          },
+          "food_name": {
+            "type": "string",
+            "description": "Food name"
+          },
+          "food_unit_price": {
+            "type": "number",
+            "description": "Food unit price"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BookingInvoice": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Invoice ID"
+          },
+          "payment_method": {
+            "type": "string",
+            "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
+            "description": "Payment method"
+          },
+          "payment_status": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed"],
+            "description": "Payment status"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Total amount"
+          },
+          "payment_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Payment date"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateBookingRequest": {
+        "type": "object",
+        "required": ["showtime_id", "seats"],
+        "properties": {
+          "showtime_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Showtime ID"
+          },
+          "seats": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minItems": 1,
+            "maxItems": 8,
+            "description": "Array of seat IDs to book"
+          },
+          "food_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingFoodItem"
+            },
+            "description": "Optional food items to order"
+          },
+          "customer_phone": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 15,
+            "description": "Customer phone number (for staff booking on behalf)"
+          }
+        }
+      },
+      "BookingFoodItem": {
+        "type": "object",
+        "required": ["food_id", "quantity"],
+        "properties": {
+          "food_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Food ID"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Food quantity"
+          }
+        }
+      },
+      "UpdateBookingRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["pending", "confirmed", "cancelled", "completed"],
+            "description": "Booking status"
+          },
+          "payment_method": {
+            "type": "string",
+            "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
+            "description": "Payment method"
+          },
+          "payment_status": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed"],
+            "description": "Payment status"
+          }
+        }
+      },
+      "ConfirmBookingRequest": {
+        "type": "object",
+        "required": ["payment_method"],
+        "properties": {
+          "payment_method": {
+            "type": "string",
+            "enum": ["cash", "credit_card", "momo", "zalopay", "banking"],
+            "description": "Payment method"
+          },
+          "payment_details": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Payment amount"
+              },
+              "transaction_id": {
+                "type": "string",
+                "description": "Transaction ID from payment gateway"
+              },
+              "payment_gateway": {
+                "type": "string",
+                "description": "Payment gateway used"
+              }
+            },
+            "description": "Optional payment details"
+          }
+        }
+      },
+      "Food": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "Food item ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Food item name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Food item description"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000000,
+            "description": "Food item price in VND"
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Food item image URL"
+          },
+          "category": {
+            "type": "string",
+            "description": "Food item category"
+          },
+          "is_available": {
+            "type": "boolean",
+            "description": "Food item availability status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "CreateFoodRequest": {
+        "type": "object",
+        "required": ["name", "description", "price", "category"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Food item name"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Food item description"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000,
+            "description": "Food item price in VND"
+          },
+          "image_url": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Food item image URL"
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Food item category (e.g., Popcorn, Nước uống, Snack, Combo)"
+          },
+          "is_available": {
+            "type": "boolean",
+            "default": true,
+            "description": "Food item availability status"
+          }
+        }
+      },
+      "UpdateFoodRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Food item name"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Food item description"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000,
+            "description": "Food item price in VND"
+          },
+          "image_url": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Food item image URL"
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Food item category"
+          },
+          "is_available": {
+            "type": "boolean",
+            "description": "Food item availability status"
+          }
+        }
+      }
+    },
+    "responses": {
+      "SuccessNoData": {
+        "description": "Success response without data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["success"]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "null"
+                }
               }
             }
           }
         }
       },
-      "parameters": {
-        "idParam": {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "Resource ID",
-          "schema": {
-            "type": "integer",
-            "minimum": 1
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "validation_error": {
+                "value": {
+                  "status": "fail",
+                  "message": "input.movie_id: Movie ID phải là số dương"
+                }
+              },
+              "invalid_format": {
+                "value": {
+                  "status": "fail",
+                  "message": "Invalid ID format"
+                }
+              }
+            }
           }
-        },
-        "pageParam": {
-          "name": "page",
-          "in": "query",
-          "description": "Page number",
-          "schema": {
-            "type": "integer",
-            "minimum": 1,
-            "default": 1
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Access token is required"
+            }
           }
-        },
-        "limitParam": {
-          "name": "limit",
-          "in": "query",
-          "description": "Number of records per page",
-          "schema": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100,
-            "default": 10
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Insufficient permissions"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "movie_not_found": {
+                "value": {
+                  "status": "fail",
+                  "message": "Movie not found"
+                }
+              },
+              "room_not_found": {
+                "value": {
+                  "status": "fail",
+                  "message": "Room not found"
+                }
+              },
+              "showtime_not_found": {
+                "value": {
+                  "status": "fail",
+                  "message": "Showtime not found"
+                }
+              },
+              "employee_not_found": {
+                "value": {
+                  "status": "fail",
+                  "message": "Employee not found"
+                }
+              },
+              "customer_not_found": {
+                "value": {
+                  "status": "fail",
+                  "message": "Customer not found"
+                }
+              },
+              "booking_not_found": {
+                "value": {
+                  "status": "fail",
+                  "message": "Booking not found"
+                }
+              },
+              "food_not_found": {
+                "value": {
+                  "status": "fail",
+                  "message": "Food not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "status": "error",
+              "message": "Internal Server Error"
+            }
           }
         }
       }
+    },
+    "parameters": {
+      "idParam": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource ID",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "pageParam": {
+        "name": "page",
+        "in": "query",
+        "description": "Page number",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "limitParam": {
+        "name": "limit",
+        "in": "query",
+        "description": "Number of records per page",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10
+        }
+      }
     }
-  } 
+  }
+}

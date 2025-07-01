@@ -8,6 +8,7 @@ const cinemaRouter = require("./routes/cinema.router");
 const movieRouter = require("./routes/movie.router");
 const showtimeRouter = require("./routes/showtime.router");
 const bookingRouter = require("./routes/booking.router");
+const foodRouter = require("./routes/food.router");
 const {
   resourceNotFound,
   handleError,
@@ -25,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-    return res.json(JSend.success({ message: 'Cinema Management API' }));
+  return res.json(JSend.success({ message: 'Cinema Management API' }));
 });
 
 
@@ -41,6 +42,7 @@ cinemaRouter.setup(app);
 movieRouter.setup(app);
 showtimeRouter.setup(app);
 bookingRouter.setup(app);
+foodRouter.setup(app);
 
 // 404 handler - must be after all routes
 app.use(resourceNotFound);
