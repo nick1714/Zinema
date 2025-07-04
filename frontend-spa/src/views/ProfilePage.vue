@@ -1,15 +1,40 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useAuth, useCustomers, usePasswordChange } from '@/composables/useAuth'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuth, usePasswordChange } from '@/composables/useAuth'
 import CustomerForm from '@/components/CustomerForm.vue'
 import ChangePasswordForm from '@/components/ChangePasswordForm.vue'
 
+const route = useRoute()
+const router = useRouter()
 const { currentUser, userRole, isCustomer, isEmployee, isAdmin, setCurrentUser } = useAuth()
-const { updateCustomer } = useCustomers()
 const { changePassword, isChangingPassword: isPasswordLoading } = usePasswordChange()
+
+// Only import updateCustomer mutation, not the whole useCustomers (which calls getAllCustomers)
+import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import authService from '@/services/auth.service'
+
+const queryClient = useQueryClient()
+const updateCustomerMutation = useMutation({
+  mutationFn: ({ id, data }) => authService.updateCustomer(id, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['auth'] })
+  },
+})
 
 const isEditingProfile = ref(false)
 const isChangingPassword = ref(false)
+const isFirstTimeUser = ref(false)
+
+// Check if this is a first-time user from Google registration
+onMounted(() => {
+  if (route.query.firstTime === 'true') {
+    isFirstTimeUser.value = true
+    isEditingProfile.value = true // Automatically enable edit mode
+    // Clear the query parameter from URL
+    router.replace({ path: route.path })
+  }
+})
 
 const isGoogleAccount = computed(() => !!currentUser.value?.google_id)
 
@@ -26,7 +51,7 @@ const customerInitialValues = computed(() => {
 async function handleUpdateProfile(values) {
   try {
     const userId = currentUser.value.id
-    const resp = await updateCustomer.mutateAsync({
+    const resp = await updateCustomerMutation.mutateAsync({
       id: userId,
       data: values,
     })
@@ -36,7 +61,13 @@ async function handleUpdateProfile(values) {
     setCurrentUser(newProfile)
 
     isEditingProfile.value = false
-    alert('Cập nhật thông tin thành công!')
+
+    if (isFirstTimeUser.value) {
+      alert('Chào mừng bạn đến với Cinema! Thông tin của bạn đã được cập nhật thành công.')
+      isFirstTimeUser.value = false
+    } else {
+      alert('Cập nhật thông tin thành công!')
+    }
   } catch (error) {
     console.error('Update profile error:', error)
     alert('Có lỗi xảy ra khi cập nhật thông tin!')
@@ -72,6 +103,20 @@ function formatGender(gender) {
   }
   return genderMap[gender] || gender
 }
+
+// Go back function based on user role
+function goBack() {
+  if (isAdmin.value || isEmployee.value) {
+    // Admin and Employee go to dashboard    Employee go to dashboard( no implement)
+    router.push('/admin')
+  } else if (isCustomer.value) {
+    // Customer goes to movies
+    router.push('/movies')
+  } else {
+    // Fallback to login page
+    router.push('/login')
+  }
+}
 </script>
 
 <template>
@@ -88,6 +133,13 @@ function formatGender(gender) {
             </div>
 
             <div class="card-body" v-if="currentUser">
+              <!-- Welcome message for first-time users -->
+              <div v-if="isFirstTimeUser" class="alert alert-info mb-4" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Chào mừng bạn đến với Cinema!</strong>
+                Vui lòng cập nhật đầy đủ thông tin cá nhân để có trải nghiệm tốt nhất.
+              </div>
+
               <!-- User Avatar & Role -->
               <div class="text-center mb-4">
                 <i class="fas fa-user-circle fa-5x text-muted mb-3"></i>
@@ -139,7 +191,7 @@ function formatGender(gender) {
                 <CustomerForm
                   v-if="isEditingProfile"
                   :initial-values="customerInitialValues"
-                  :is-loading="updateCustomer.isLoading"
+                  :is-loading="updateCustomerMutation.isLoading"
                   @submit="handleUpdateProfile"
                   @cancel="isEditingProfile = false"
                 />
@@ -228,6 +280,13 @@ function formatGender(gender) {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-secondary" @click="goBack">
+                  <i class="fas fa-arrow-left me-2"></i>
+                  Quay lại
+                </button>
               </div>
             </div>
 

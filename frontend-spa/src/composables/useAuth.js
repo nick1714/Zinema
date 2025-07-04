@@ -74,8 +74,14 @@ export function useAuth() {
             isAuthenticated.value = true;
             currentUser.value = data.user;
             
-            // Customer từ Google luôn redirect đến movies
-            router.push('/movies');
+            // Check if this is first time registration
+            if (data.isFirstTime) {
+                // Redirect to profile page for first-time users to complete their info
+                router.push('/profile?firstTime=true');
+            } else {
+                // Existing users go to movies page
+                router.push('/movies');
+            }
             queryClient.invalidateQueries({ queryKey: [AUTH_QUERY_KEY] });
         },
         onError: (error) => {
