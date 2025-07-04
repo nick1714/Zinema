@@ -191,8 +191,8 @@ async function googleCallback(req, res) {
     }
 
     try {
-        const { user, token } = await authService.handleGoogleCallback(code);
-        res.status(200).json(JSend.success({ user, token }));
+        const { user, token, isFirstTime } = await authService.handleGoogleCallback(code);
+        res.status(200).json(JSend.success({ user, token, isFirstTime }));
     } catch (error) {
         console.error('Google callback error:', error);
         res.status(500).json(JSend.error({ message: 'Google authentication failed.' }));

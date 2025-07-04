@@ -571,7 +571,7 @@ async function getGoogleAuthUrl() {
     const authorizeUrl = client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
-        prompt: 'consent',
+        prompt: 'select_account consent', // Force account selection and consent
         redirect_uri: process.env.GOOGLE_REDIRECT_URI, // Ensure this is set in .env
     });
     
@@ -626,8 +626,10 @@ async function handleGoogleCallback(code) {
         let account = await accountRepository().where({ google_id: googleId }).first();
         let user;
         let roleName;
+        let isFirstTime = false; // Flag để indicate đây có phải lần đầu đăng ký không
         
         if (!account) {
+            isFirstTime = true; // Đây là lần đầu đăng ký
             const customerRole = await getRoleByName(ROLES.CUSTOMER);
             await knex.transaction(async (trx) => {
                 const [newAccountId] = await trx('accounts').insert({
@@ -662,6 +664,7 @@ async function handleGoogleCallback(code) {
         return {
             user: { ...user, role: roleName },
             token: accessTokenJWT,
+            isFirstTime, // Thêm flag này vào response
         };
     } catch (error) {
         console.error('Google callback handling error:', error);
