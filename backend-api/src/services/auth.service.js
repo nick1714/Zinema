@@ -38,14 +38,15 @@ function employeeRepository() {
  * @returns {Object} - Filtered data object cho database operations
  */
 function readEmployeeData(payload) {
-    return {
-        ...(payload.email && { email: payload.email }),
-        ...(payload.full_name && { full_name: payload.full_name }),
-        ...(payload.phone_number && { phone_number: payload.phone_number }),
-        ...(payload.date_of_birth && { date_of_birth: payload.date_of_birth }),
-        ...(payload.address && { address: payload.address }),
-        ...(payload.position && { position: payload.position }),
-    };
+    const employeeData = {};
+    if (payload.hasOwnProperty('email')) employeeData.email = payload.email;
+    if (payload.hasOwnProperty('full_name')) employeeData.full_name = payload.full_name;
+    if (payload.hasOwnProperty('phone_number')) employeeData.phone_number = payload.phone_number;
+    if (payload.hasOwnProperty('date_of_birth')) employeeData.date_of_birth = payload.date_of_birth;
+    if (payload.hasOwnProperty('address')) employeeData.address = payload.address;
+    if (payload.hasOwnProperty('gender')) employeeData.gender = payload.gender;
+    if (payload.hasOwnProperty('position')) employeeData.position = payload.position;
+    return employeeData;
 }
 
 /**
@@ -56,17 +57,30 @@ function readEmployeeData(payload) {
  */
 async function getUserInfoByAccountId(accountId, role) {
     try {
-        let userInfo = null;
+        let userQuery;
+
         if (role === ROLES.CUSTOMER) {
-            userInfo = await customerRepository()
-                .where('account_id', accountId)
-                .first();
+            userQuery = customerRepository()
+                .where('customers.account_id', accountId);
         } else if (role === ROLES.STAFF || role === ROLES.ADMIN) {
-            userInfo = await employeeRepository()
-                .where('account_id', accountId)
-                .first();
+            userQuery = employeeRepository()
+                .where('employees.account_id', accountId);
+        } else {
+            return null; // Role không hợp lệ
         }
-        return userInfo;
+
+        // Join với bảng accounts để lấy thông tin đầy đủ
+        const userProfile = await userQuery
+            .join('accounts', `${role === ROLES.CUSTOMER ? 'customers' : 'employees'}.account_id`, 'accounts.id')
+            .select(
+                `${role === ROLES.CUSTOMER ? 'customers' : 'employees'}.*`, // Lấy tất cả các trường từ bảng customer/employee
+                'accounts.email',
+                'accounts.google_id'
+            )
+            .first();
+            
+        return userProfile;
+
     } catch (error) {
         console.error(`Get user info by account id error:`, error);
         throw error;
@@ -125,15 +139,15 @@ async function registerEmployee(payload) {
                 .returning('id');
             
             // Lấy thông tin nhân viên vừa tạo
-            const employee = await employeeRepository()
-                .transacting(trx)
-                .where('id', employeeId.id)
-                .first();
+            // const employee = await employeeRepository()
+            //     .transacting(trx)
+            //     .where('id', employeeId.id)
+            //     .first();
             
-            return {
-                ...employee,
-                account_id: accountId.id
-            };
+            // return {
+            //     ...employee,
+            //     account_id: accountId.id
+            // };
         });
         
         return result;
@@ -291,11 +305,22 @@ async function getAllEmployees() {
  */
 async function getAllCustomers() {
     try {
+        
         const customers = await customerRepository()
             .select('*')
             .orderBy('created_at', 'desc');
-        
-        return customers;
+        const accounts = await accountRepository()
+            .select('*')
+            .orderBy('created_at', 'desc');
+        //const roles = await roleRepository()
+        //    .select('*')
+        //    .orderBy('created_at', 'desc');
+        const customersWithAccount = customers.map(customer => ({
+            ...customer,
+            email: accounts.find(account => account.id === customer.account_id).email,
+            //role: roles.find(role => role.id === customer.role_id)
+        }));
+        return customersWithAccount;
     } catch (error) {
         console.error('Get all customers error:', error);
         throw error;
@@ -312,8 +337,14 @@ async function getCustomerById(id) {
         const customer = await customerRepository()
             .where('id', id)
             .first();
-        
-        return customer;
+        const account = await accountRepository()
+            .where('id', customer.account_id)
+            .first();
+        const customerWithAccount = {
+            ...customer,
+            email: account.email,
+        };
+        return customerWithAccount;
     } catch (error) {
         console.error('Get customer by ID error:', error);
         throw error;
@@ -354,37 +385,67 @@ async function updateCustomer(id, updateData) {
             return null;
         }
 
-        // Lọc ra các trường hợp lệ và có giá trị từ updateData
-        const allowedFields = ['full_name', 'phone_number', 'address', 'gender', 'date_of_birth'];
-        const customerDataToUpdate = {};
+        // Use a transaction to ensure atomicity
+        const updatedCustomerWithAccount = await knex.transaction(async (trx) => {
+            const customerPayload = {};
+            const accountPayload = {};
 
-        if (updateData) { // Đảm bảo updateData không phải là undefined/null
-            allowedFields.forEach(field => {
-                if (updateData[field] !== undefined) {
-                    customerDataToUpdate[field] = updateData[field];
-                }
-            });
-        }
-        
-        // Chỉ cập nhật nếu có dữ liệu thay đổi
-        if (Object.keys(customerDataToUpdate).length > 0) {
-            await customerRepository()
-                .where('id', id)
-                .update({
-                    ...customerDataToUpdate,
-                    updated_at: new Date()
-                });
-        }
-        
-        // Lấy lại dữ liệu mới từ database sau khi cập nhật
-        const updatedCustomer = await customerRepository()
-            .where('id', id)
-            .first();
+            // Separate payload for each table
+            if (updateData.hasOwnProperty('full_name')) customerPayload.full_name = updateData.full_name;
+            if (updateData.hasOwnProperty('address')) customerPayload.address = updateData.address;
+            if (updateData.hasOwnProperty('date_of_birth')) customerPayload.date_of_birth = updateData.date_of_birth || null;
+            if (updateData.hasOwnProperty('gender')) customerPayload.gender = updateData.gender;
             
-        return updatedCustomer;
+            // Phone number goes to both tables for now due to messy schema
+            if (updateData.hasOwnProperty('phone_number')) {
+                // Check uniqueness in accounts table first
+                const existingAccount = await trx('accounts')
+                    .where('phone_number', updateData.phone_number)
+                    .whereNot('id', customer.account_id)
+                    .first();
+                if (existingAccount) {
+                    throw new Error('Phone number already exists');
+                }
+                customerPayload.phone_number = updateData.phone_number;
+                accountPayload.phone_number = updateData.phone_number;
+            }
+
+            // Update customers table if there's data for it
+            if (Object.keys(customerPayload).length > 0) {
+                await trx('customers')
+                    .where({ id })
+                    .update({
+                        ...customerPayload,
+                        updated_at: new Date()
+                    });
+            }
+            
+            // Update accounts table if there's data for it
+            if (Object.keys(accountPayload).length > 0) {
+                 await trx('accounts')
+                    .where({ id: customer.account_id })
+                    .update(accountPayload);
+            }
+
+            // Refetch the updated customer data
+            const freshCustomer = await trx('customers').where({ id }).first();
+            const freshAccount = await trx('accounts').where({ id: freshCustomer.account_id }).first();
+
+            return {
+                ...freshCustomer,
+                email: freshAccount.email, // Keep email from account
+                phone_number: freshAccount.phone_number // Use phone from account as source of truth
+            };
+        });
+            
+        return updatedCustomerWithAccount;
     } catch (error) {
         console.error('Update customer error:', error);
-        throw error;
+        // Re-throw specific errors to be handled by controller
+        if (error.message === 'Phone number already exists') {
+            throw error;
+        }
+        throw new Error('Failed to update customer information.');
     }
 }
 
@@ -426,7 +487,9 @@ async function updateEmployee(id, updateData) {
         if (updateData.hasOwnProperty('position')) {
             employeeData.position = updateData.position;
         }
-        
+        if (updateData.hasOwnProperty('gender')) {
+            employeeData.gender = updateData.gender;
+        }
         // Chỉ cập nhật nếu có dữ liệu thay đổi
         if (Object.keys(employeeData).length > 0) {
             await employeeRepository()
@@ -448,6 +511,49 @@ async function updateEmployee(id, updateData) {
         return employee;
     } catch (error) {
         console.error('Update employee error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Đổi mật khẩu cho tài khoản hiện tại
+ * @param {Number} accountId - ID của tài khoản
+ * @param {String} currentPassword - Mật khẩu hiện tại
+ * @param {String} newPassword - Mật khẩu mới
+ * @returns {Promise<Boolean>} - Kết quả đổi mật khẩu
+ */
+async function changePassword(accountId, currentPassword, newPassword) {
+    try {
+        // Lấy thông tin tài khoản
+        const account = await accountRepository()
+            .where('id', accountId)
+            .first();
+        
+        if (!account) {
+            throw new Error('Account not found');
+        }
+        
+        // Kiểm tra mật khẩu hiện tại
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, account.password);
+        
+        if (!isCurrentPasswordValid) {
+            throw new Error('Current password is incorrect');
+        }
+        
+        // Hash mật khẩu mới
+        const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+        
+        // Cập nhật mật khẩu
+        await accountRepository()
+            .where('id', accountId)
+            .update({
+                password: hashedNewPassword,
+                updated_at: new Date()
+            });
+        
+        return true;
+    } catch (error) {
+        console.error('Change password error:', error);
         throw error;
     }
 }
@@ -577,5 +683,6 @@ module.exports = {
     updateEmployee,
     getUserInfoByAccountId,
     getGoogleAuthUrl,
-    handleGoogleCallback
+    handleGoogleCallback,
+    changePassword
 }; 

@@ -322,17 +322,51 @@ async function updateEmployee(req, res, next) {
   }
 }
 
+/**
+ * Đổi mật khẩu cho tài khoản hiện tại
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function changePassword(req, res, next) {
+  try {
+    const { current_password, new_password } = req.body.input;
+    const accountId = req.user.id; // Lấy từ JWT token
+    
+    await authService.changePassword(accountId, current_password, new_password);
+    
+    return res.json(
+      JSend.success({
+        message: 'Password changed successfully'
+      })
+    );
+  } catch (error) {
+    console.error('Change password error:', error);
+    
+    if (error.message === 'Account not found') {
+      return next(new ApiError(404, 'Account not found'));
+    }
+    
+    if (error.message === 'Current password is incorrect') {
+      return next(new ApiError(400, 'Current password is incorrect'));
+    }
+    
+    return next(new ApiError(500, 'Internal Server Error'));
+  }
+}
+
 module.exports = {
   registerEmployee,
   login,
   getEmployees,
   getCustomers,
+  getCurrentUser,
+  getRoles,
+  getGoogleAuthUrl,
+  googleCallback,
   getCustomerById,
   getEmployeeById,
   updateCustomer,
   updateEmployee,
-  getCurrentUser,
-  getRoles,
-  getGoogleAuthUrl,
-  googleCallback
+  changePassword
 }; 
