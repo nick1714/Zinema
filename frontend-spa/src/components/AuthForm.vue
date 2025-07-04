@@ -57,7 +57,7 @@ function handleGoogleLogin() {
         <i class="fas fa-film"></i>
       </div>
       <h2 class="text-center">Đăng nhập</h2>
-      <p class="text-center text-muted">Chào mừng trở lại với CINEMAX</p>
+      <p class="text-center">Chào mừng trở lại với ZINEMA</p>
     </div>
 
     <!-- Form body -->

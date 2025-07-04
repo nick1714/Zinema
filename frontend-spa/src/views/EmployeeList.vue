@@ -14,8 +14,8 @@ const searchText = ref('')
 // Search functionality
 const searchableEmployees = computed(() =>
   employees.value.map((employee) => {
-    const { full_name, id, account_id, phone_number, email, gender, position } = employee
-    return [full_name, id, account_id, phone_number, email, gender, position].join('').toLowerCase()
+    const { name, employee_code, phone_number, email } = employee
+    return [name, employee_code, phone_number, email].join('').toLowerCase()
   }),
 )
 
@@ -34,13 +34,6 @@ function goToAddEmployee() {
 function goToEmployeeDetail(employee) {
   router.push({
     name: 'employee.detail',
-    params: { id: employee.id },
-  })
-}
-
-function editEmployee(employee) {
-  router.push({
-    name: 'employee.edit',
     params: { id: employee.id },
   })
 }
@@ -102,20 +95,15 @@ function editEmployee(employee) {
             :show-actions="true"
             :can-edit="canManageEmployees"
             @view-details="goToEmployeeDetail"
-            @edit="editEmployee"
           />
         </div>
       </div>
 
       <!-- Empty State -->
-      <div v-else class="text-center py-5">
-        <i class="fas fa-users fa-3x text-muted mb-3"></i>
-        <h5>Không tìm thấy nhân viên nào</h5>
-        <p class="text-muted">
-          {{
-            searchText ? 'Thử thay đổi từ khóa tìm kiếm' : 'Chưa có nhân viên nào trong hệ thống'
-          }}
-        </p>
+      <div v-else class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Không tìm thấy nhân viên nào.
+        <span v-if="searchText"> Thử tìm kiếm với từ khóa khác.</span>
       </div>
     </div>
   </div>

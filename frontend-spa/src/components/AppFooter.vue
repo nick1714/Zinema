@@ -17,7 +17,7 @@ const currentYear = new Date().getFullYear()
         <div class="col-lg-4 mb-4 mb-lg-0">
           <div class="footer-brand">
             <i class="fas fa-film"></i>
-            <span>CINEMAX</span>
+            <span>ZINEMA</span>
           </div>
           
           <p class="footer-desc">
@@ -80,7 +80,7 @@ const currentYear = new Date().getFullYear()
       <!-- Copyright -->
       <div class="footer-bottom">
         <div class="copyright">
-          &copy; {{ currentYear }} CINEMAX. Tất cả quyền được bảo lưu.
+          &copy; {{ currentYear }} ZINEMA. Tất cả quyền được bảo lưu.
         </div>
         <div class="developer">
           Phát triển bởi Nhóm NhutDat

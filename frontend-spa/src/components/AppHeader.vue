@@ -55,7 +55,7 @@ onMounted(() => {
         <router-link to="/" class="navbar-brand" @click="closeMenu">
           <div class="brand-logo">
             <i class="fas fa-film"></i>
-            <span>CINEMAX</span>
+            <span>ZINEMA</span>
           </div>
         </router-link>
 

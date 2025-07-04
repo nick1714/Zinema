@@ -50,17 +50,6 @@ function goToCustomerDetail(customer) {
     params: { id: customer.id },
   })
 }
-
-/**
- * Chuyển đến trang chỉnh sửa khách hàng
- * @param {Object} customer - Thông tin khách hàng
- */
-function editCustomer(customer) {
-  router.push({
-    name: 'customer.edit',
-    params: { id: customer.id },
-  })
-}
 </script>
 
 <template>
@@ -122,7 +111,6 @@ function editCustomer(customer) {
             :show-actions="true"
             :can-edit="canManageCustomers"
             @view-details="goToCustomerDetail"
-            @edit="editCustomer"
           />
         </div>
 
