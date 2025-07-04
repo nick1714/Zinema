@@ -19,6 +19,6 @@ export const THEME = {
 // User Roles (public constants)
 export const USER_ROLES = {
     ADMIN: 'admin',
-    EMPLOYEE: 'employee', 
+    EMPLOYEE: 'staff', 
     CUSTOMER: 'customer'
 };

@@ -3,12 +3,12 @@ import { useAuth } from '@/composables/useAuth';
 
 // Lazy loading cho performance
 const LoginPage = () => import('@/views/LoginPage.vue');
-//const ProfilePage = () => import('@/views/ProfilePage.vue');
+const ProfilePage = () => import('@/views/ProfilePage.vue');
 const EmployeeList = () => import('@/views/EmployeeList.vue');
-//const EmployeeAdd = () => import('@/views/EmployeeAdd.vue');
-//const EmployeeEdit = () => import('@/views/EmployeeEdit.vue');
+const EmployeeAdd = () => import('@/views/EmployeeAdd.vue');
+const EmployeeEdit = () => import('@/views/EmployeeEdit.vue');
 const CustomerList = () => import('@/views/CustomerList.vue');
-//const CustomerEdit = () => import('@/views/CustomerEdit.vue');
+const CustomerEdit = () => import('@/views/CustomerEdit.vue');
 const NotFound = () => import('@/views/NotFound.vue');
 const ForbiddenPage = () => import('@/views/ForbiddenPage.vue');
 const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue');
@@ -35,12 +35,12 @@ const routes = [
     path: '/',
     redirect: '/login'
   },
-  // {
-  //   path: '/profile',
-  //   name: 'profile',
-  //   component: ProfilePage,
-  //   meta: { requiresAuth: true }
-  // },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: ProfilePage,
+    meta: { requiresAuth: true }
+  },
   
   
   // Admin Dashboard (Admin/Employee main page)
@@ -58,19 +58,19 @@ const routes = [
     component: EmployeeList,
     meta: { requiresAuth: true, roles: ['admin'] }
   },
-//   {
-//     path: '/employees/add',
-//     name: 'employee.add',
-//     component: EmployeeAdd,
-//     meta: { requiresAuth: true, roles: ['admin'] }
-//   },
-//   {
-//     path: '/employees/:id',
-//     name: 'employee.detail',
-//     component: EmployeeEdit,
-//     meta: { requiresAuth: true, roles: ['admin'] },
-//     props: (route) => ({ employeeId: route.params.id })
-//   },
+  {
+    path: '/employees/add',
+    name: 'employee.add',
+    component: EmployeeAdd,
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+  {
+    path: '/employees/:id',
+    name: 'employee.detail',
+    component: EmployeeEdit,
+    meta: { requiresAuth: true, roles: ['admin'] },
+    props: (route) => ({ employeeId: route.params.id })
+  },
   
   // Customer Management (Admin + Employee)
   {
@@ -79,13 +79,13 @@ const routes = [
     component: CustomerList,
     meta: { requiresAuth: true, roles: ['admin', 'employee'] }
   },
-//   {
-//     path: '/customers/:id',
-//     name: 'customer.detail',
-//     component: CustomerEdit,
-//     meta: { requiresAuth: true },
-//     props: (route) => ({ customerId: route.params.id })
-//   },
+  {
+    path: '/customers/:id',
+    name: 'customer.detail',
+    component: CustomerEdit,
+    meta: { requiresAuth: true },
+    props: (route) => ({ customerId: route.params.id })
+  },
   
   // Error pages
   {

@@ -103,6 +103,10 @@ export function useAuth() {
     const canManageEmployees = computed(() => isAdmin.value);
     const canManageCustomers = computed(() => isAdmin.value || isEmployee.value);
 
+    function setCurrentUser(data) {
+        currentUser.value = { ...currentUser.value, ...data };
+    }
+
     return {
         // State
         isAuthenticated,
@@ -123,6 +127,7 @@ export function useAuth() {
         googleLogin: authService.googleLogin,
         handleGoogleCallback: googleCallbackMutation.mutate,
         logout,
+        setCurrentUser,
         suspense,
 
         // Mutation states
@@ -194,6 +199,7 @@ export function useCustomers() {
         mutationFn: ({ id, data }) => authService.updateCustomer(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [CUSTOMERS_QUERY_KEY] });
+            queryClient.invalidateQueries({ queryKey: [AUTH_QUERY_KEY, 'currentUser'] });
         }
     });
 
@@ -213,4 +219,24 @@ export function useCustomer(customerId) {
         queryFn: () => authService.getCustomerById(customerId.value),
         enabled: computed(() => !!customerId.value)
     });
+}
+
+/**
+ * Composable cho đổi mật khẩu
+ */
+export function usePasswordChange() {
+    const queryClient = useQueryClient();
+
+    const changePasswordMutation = useMutation({
+        mutationFn: authService.changePassword,
+        onSuccess: () => {
+            // Có thể invalidate auth queries nếu cần
+            queryClient.invalidateQueries({ queryKey: [AUTH_QUERY_KEY] });
+        }
+    });
+
+    return {
+        changePassword: changePasswordMutation,
+        isChangingPassword: changePasswordMutation.isLoading
+    };
 } 

@@ -14,8 +14,8 @@ const searchText = ref('')
 // Search functionality
 const searchableEmployees = computed(() =>
   employees.value.map((employee) => {
-    const { name, employee_code, phone_number, email } = employee
-    return [name, employee_code, phone_number, email].join('').toLowerCase()
+    const { full_name, id, account_id, phone_number, email, gender, position } = employee
+    return [full_name, id, account_id, phone_number, email, gender, position].join('').toLowerCase()
   }),
 )
 

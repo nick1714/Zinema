@@ -76,7 +76,7 @@ function makeAuthService() {
     // === EMPLOYEE MANAGEMENT ===
     async function registerEmployee(employeeData) {
         const token = localStorage.getItem('cinema_token');
-        return efetch(`${baseUrl}/register-employee`, {
+        return efetch(`${baseUrl}/employee/register`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -147,6 +147,19 @@ function makeAuthService() {
         });
     }
 
+    // === PASSWORD CHANGE ===
+    async function changePassword(passwordData) {
+        const token = localStorage.getItem('cinema_token');
+        return efetch(`${baseUrl}/change-password`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ input: passwordData }),
+        });
+    }
+
     return {
         // Auth
         login,
@@ -166,7 +179,10 @@ function makeAuthService() {
         updateCustomer,
         
         // Roles
-        getRoles
+        getRoles,
+        
+        // Password
+        changePassword
     };
 }
 

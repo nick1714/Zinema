@@ -15,24 +15,6 @@ const props = defineProps({
 })
 
 const $emit = defineEmits(['edit', 'view-details'])
-
-function formatRole(role) {
-  const roleMap = {
-    admin: 'Quản trị viên',
-    employee: 'Nhân viên',
-    customer: 'Khách hàng',
-  }
-  return roleMap[role] || role
-}
-
-function getRoleClass(role) {
-  const classMap = {
-    admin: 'text-bg-danger',
-    employee: 'text-bg-warning',
-    customer: 'text-bg-info',
-  }
-  return classMap[role] || 'text-bg-secondary'
-}
 </script>
 
 <template>
@@ -44,10 +26,7 @@ function getRoleClass(role) {
         </div>
 
         <div class="flex-grow-1">
-          <h5 class="card-title mb-1">{{ props.user.name || props.user.full_name }}</h5>
-          <span class="badge mb-2" :class="getRoleClass(props.user.role)">
-            {{ formatRole(props.user.role) }}
-          </span>
+          <h5 class="card-title mb-1">{{ props.user.full_name }}</h5>
 
           <div class="user-info">
             <p class="mb-1">
@@ -62,6 +41,14 @@ function getRoleClass(role) {
               <i class="fas fa-map-marker-alt me-2"></i>
               {{ props.user.address }}
             </p>
+            <p class="mb-0" v-if="props.user.gender">
+              <i class="fas fa-venus-mars me-2"></i>
+              {{ props.user.gender }}
+            </p>
+            <p class="mb-0" v-if="props.user.position">
+              <i class="fas fa-briefcase me-2"></i>
+              {{ props.user.position }}
+            </p>
           </div>
         </div>
       </div>
@@ -73,14 +60,6 @@ function getRoleClass(role) {
         >
           <i class="fas fa-eye me-1"></i>
           Chi tiết
-        </button>
-        <button
-          v-if="props.canEdit"
-          class="btn btn-sm btn-outline-warning"
-          @click="$emit('edit', props.user)"
-        >
-          <i class="fas fa-edit me-1"></i>
-          Sửa
         </button>
       </div>
     </div>
