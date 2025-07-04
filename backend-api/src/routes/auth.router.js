@@ -8,7 +8,8 @@ const {
   loginRequestSchema, 
   googleCompleteRequestSchema,
   updateCustomerRequestSchema,
-  updateEmployeeRequestSchema
+  updateEmployeeRequestSchema,
+  changePasswordRequestSchema
 } = require("../schemas/auth.schemas");
 const { ROLES } = require("../constants");
 
@@ -44,6 +45,17 @@ module.exports.setup = (app) => {
     authController.getCurrentUser
   );
   router.all("/me", methodNotAllowed);
+  
+  // Đổi mật khẩu (tất cả user đã đăng nhập)
+  router.put(
+    "/change-password",
+    [
+      authenticateToken,
+      validateRequest(changePasswordRequestSchema),
+    ],
+    authController.changePassword
+  );
+  router.all("/change-password", methodNotAllowed);
   
   // Lấy danh sách vai trò
   router.get(

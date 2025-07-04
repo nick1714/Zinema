@@ -17,9 +17,14 @@ const employeeRegisterSchema = z.object({
   full_name: z.string()
     .min(2, { message: 'Họ tên phải có ít nhất 2 ký tự' })
     .max(100, { message: 'Họ tên không được quá 100 ký tự' }),
+  gender: z.enum(['male', 'female', 'other'], {
+    errorMap: () => ({ message: 'Giới tính phải là male, female hoặc other' })
+  }).optional(),
   date_of_birth: z.string().optional(),
   address: z.string().optional(),
-  position: z.string().optional(),
+  position: z.enum(['Nhân viên bán vé', 'Nhân viên vệ sinh'], {
+    errorMap: () => ({ message: 'Vị trí phải là Nhân viên bán vé, Nhân viên vệ sinh' })
+  }).optional(),
 }).strict().refine(data => data.password === data.password_confirm, {
   message: 'Mật khẩu xác nhận không khớp',
   path: ['password_confirm']
@@ -91,14 +96,31 @@ const updateEmployeeSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Ngày sinh phải có định dạng YYYY-MM-DD' })
     .optional(),
   
+  gender: z.enum(['male', 'female', 'other'], {
+    errorMap: () => ({ message: 'Giới tính phải là male, female hoặc other' })
+  }).optional(),
+  
   address: z.string()
     .max(500, { message: 'Địa chỉ không được quá 500 ký tự' })
     .optional(),
   
-  position: z.string()
-    .max(100, { message: 'Chức vụ không được quá 100 ký tự' })
-    .optional(),
+  position: z.enum(['Nhân viên bán vé', 'Nhân viên vệ sinh'], {
+    errorMap: () => ({ message: 'Vị trí phải là Nhân viên bán vé, Nhân viên vệ sinh' })
+  }).optional(),
 }).strict();
+
+// Schema cho đổi mật khẩu
+const changePasswordSchema = z.object({
+  current_password: z.string()
+    .min(6, { message: 'Mật khẩu hiện tại phải có ít nhất 6 ký tự' }),
+  new_password: z.string()
+    .min(6, { message: 'Mật khẩu mới phải có ít nhất 6 ký tự' })
+    .max(50, { message: 'Mật khẩu mới không được quá 50 ký tự' }),
+  confirm_password: z.string()
+}).strict().refine(data => data.new_password === data.confirm_password, {
+  message: 'Mật khẩu xác nhận không khớp',
+  path: ['confirm_password']
+});
 
 // Schemas để validate toàn bộ request body
 const employeeRegisterRequestSchema = employeeRegisterSchema;
@@ -119,10 +141,15 @@ const updateEmployeeRequestSchema = z.object({
   id: z.string().optional(), // Cho phép id từ req.params
 });
 
+const changePasswordRequestSchema = z.object({
+  input: changePasswordSchema,
+});
+
 module.exports = {
   employeeRegisterRequestSchema,
   loginRequestSchema,
   googleCompleteRequestSchema,
   updateCustomerRequestSchema,
-  updateEmployeeRequestSchema
+  updateEmployeeRequestSchema,
+  changePasswordRequestSchema
 }; 
