@@ -35,7 +35,7 @@ function closeMenu() {
  */
 onMounted(() => {
   const header = document.querySelector('.cinema-header')
-  
+
   window.addEventListener('scroll', () => {
     if (window.scrollY > 50) {
       header?.classList.add('scrolled')
@@ -75,7 +75,7 @@ onMounted(() => {
         <div class="collapse navbar-collapse" :class="{ show: isMenuOpen }">
           <!-- Menu bên trái -->
           <ul class="navbar-nav me-auto">
-            <li class="nav-item" v-if="isAdmin || isEmployee">
+            <li class="nav-item" v-if="isAdmin">
               <router-link to="/admin" class="nav-link" @click="closeMenu">
                 <i class="fas fa-tachometer-alt me-2"></i>
                 <span>Dashboard</span>
@@ -302,20 +302,20 @@ onMounted(() => {
     margin-top: 1rem;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
   }
-  
+
   .nav-item {
     margin: 0.5rem 0;
   }
-  
+
   .user-menu {
     justify-content: center;
     padding: 0.5rem;
   }
-  
+
   .nav-link::after {
     display: none;
   }
-  
+
   .nav-link:hover,
   .nav-link.router-link-active {
     background-color: rgba(247, 197, 72, 0.1);

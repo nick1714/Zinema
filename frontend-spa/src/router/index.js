@@ -12,9 +12,9 @@ const CustomerEdit = () => import('@/views/CustomerEdit.vue');
 const NotFound = () => import('@/views/NotFound.vue');
 const ForbiddenPage = () => import('@/views/ForbiddenPage.vue');
 const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue');
+const AdminDashboard = () => import('@/views/AdminDashboard.vue');
+const StaffDashboard = () => import('@/views/StaffDashboard.vue');
 
-// Temporary placeholders - sẽ implement sau
-const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 
 const routes = [
   // Public routes
@@ -43,12 +43,20 @@ const routes = [
   },
   
   
-  // Admin Dashboard (Admin/Employee main page)
+  // Admin Dashboard (Admin only)
   {
     path: '/admin',
     name: 'admin.dashboard',
     component: AdminDashboard,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, roles: ['admin'] },
+  },
+
+  // Staff Dashboard (Staff only)
+  {
+    path: '/staff',
+    name: 'staff.dashboard',
+    component: StaffDashboard,
+    meta: { requiresAuth: true, roles: ['staff'] },
   },
 
   // Employee Management (Admin only)
@@ -140,7 +148,14 @@ router.beforeEach(async (to, from, next) => {
   // KIỂM TRA 2: Route chỉ dành cho khách (chưa đăng nhập)
   if (to.meta.requiresGuest && loggedIn) {
     // Nếu đã đăng nhập rồi thì không cho vào trang login nữa
-    return next(role === 'customer' ? '/movies' : '/admin')
+    if (role === 'customer') {
+      return next('/movies');
+    } else if (role === 'admin') {
+      return next('/admin');
+    } else if (role === 'staff') {
+      return next('/staff');
+    }
+    return next('/'); // Fallback
   }
 
   // Nếu tất cả kiểm tra đều qua, cho phép truy cập

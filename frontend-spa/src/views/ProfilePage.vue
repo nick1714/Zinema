@@ -106,9 +106,10 @@ function formatGender(gender) {
 
 // Go back function based on user role
 function goBack() {
-  if (isAdmin.value || isEmployee.value) {
-    // Admin and Employee go to dashboard    Employee go to dashboard( no implement)
+  if (isAdmin.value) {
     router.push('/admin')
+  } else if (isEmployee.value) {
+    router.push('/staff')
   } else if (isCustomer.value) {
     // Customer goes to movies
     router.push('/movies')

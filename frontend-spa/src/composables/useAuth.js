@@ -54,8 +54,12 @@ export function useAuth() {
             // Redirect dựa trên role
             if (currentUser.value.role === USER_ROLES.CUSTOMER) {
                 router.push('/movies');
-            } else {
+            } else if (currentUser.value.role === USER_ROLES.ADMIN) {
                 router.push('/admin');
+            } else if (currentUser.value.role === USER_ROLES.EMPLOYEE) {
+                router.push('/staff');
+            } else {
+                router.push('/login'); // Fallback
             }
             
             queryClient.invalidateQueries({ queryKey: [AUTH_QUERY_KEY] });

@@ -1,7 +1,7 @@
 <script setup>
 import { useAuth } from '@/composables/useAuth'
 
-const { currentUser, logout, isAdmin } = useAuth()
+const { isAdmin } = useAuth()
 </script>
 
 <template>
@@ -15,7 +15,7 @@ const { currentUser, logout, isAdmin } = useAuth()
         <p class="dashboard-subtitle">Quản lý rạp chiếu phim</p>
       </div>
     </div>
-    
+
     <div class="container py-5">
       <!-- Thống kê tổng quan -->
       <div class="stats-row mb-5">
@@ -28,7 +28,7 @@ const { currentUser, logout, isAdmin } = useAuth()
             <p>Vé đã bán hôm nay</p>
           </div>
         </div>
-        
+
         <div class="stat-card">
           <div class="stat-icon">
             <i class="fas fa-film"></i>
@@ -38,7 +38,7 @@ const { currentUser, logout, isAdmin } = useAuth()
             <p>Phim đang chiếu</p>
           </div>
         </div>
-        
+
         <div class="stat-card">
           <div class="stat-icon">
             <i class="fas fa-users"></i>
@@ -48,7 +48,7 @@ const { currentUser, logout, isAdmin } = useAuth()
             <p>Khách hàng đăng ký</p>
           </div>
         </div>
-        
+
         <div class="stat-card">
           <div class="stat-icon">
             <i class="fas fa-dollar-sign"></i>
@@ -59,7 +59,7 @@ const { currentUser, logout, isAdmin } = useAuth()
           </div>
         </div>
       </div>
-      
+
       <h2 class="section-title mb-4">
         <i class="fas fa-th-large me-2"></i>
         Quản Lý Nhanh
@@ -107,7 +107,7 @@ const { currentUser, logout, isAdmin } = useAuth()
             </button>
           </div>
         </div>
-        
+
         <div class="management-card">
           <div class="card-icon">
             <i class="fas fa-couch"></i>
@@ -320,11 +320,11 @@ const { currentUser, logout, isAdmin } = useAuth()
   .management-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .dashboard-header {
     padding: 1.5rem 0;
   }
-  
+
   .dashboard-title {
     font-size: 2rem;
   }
