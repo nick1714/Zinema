@@ -48,7 +48,7 @@ function handleGoogleLogin() {
             <!-- Logo -->
             <div class="cinema-logo mb-5">
               <i class="fas fa-film"></i>
-              <span>CINEMAX</span>
+              <span>ZINEMA</span>
             </div>
             
             <!-- Tiêu đề và slogan -->
@@ -105,7 +105,7 @@ function handleGoogleLogin() {
             />
             
             <div class="text-center mt-4 login-footer">
-              <p>© {{ new Date().getFullYear() }} CINEMAX. Tất cả quyền được bảo lưu.</p>
+              <p>© {{ new Date().getFullYear() }} ZINEMA. Tất cả quyền được bảo lưu.</p>
             </div>
           </div>
         </div>

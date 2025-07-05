@@ -84,7 +84,7 @@ const { isAdmin } = useAuth()
         <div class="management-card">
           <div class="card-icon">
             <i class="fas fa-user-friends"></i>
-          </div>
+            </div>
           <div class="card-content">
             <h3>Quản lý khách hàng</h3>
             <p>Xem và cập nhật thông tin khách hàng</p>
@@ -98,20 +98,21 @@ const { isAdmin } = useAuth()
         <div class="management-card">
           <div class="card-icon">
             <i class="fas fa-film"></i>
-          </div>
+            </div>
           <div class="card-content">
             <h3>Quản lý phim</h3>
             <p>Thêm, xóa, sửa thông tin phim chiếu</p>
-            <button class="dashboard-btn disabled">
-              <span>Đang phát triển</span>
-            </button>
+            <router-link to="/admin/movies" class="dashboard-btn">
+              <span>Truy cập</span>
+              <i class="fas fa-arrow-right"></i>
+            </router-link>
           </div>
         </div>
 
         <div class="management-card">
           <div class="card-icon">
             <i class="fas fa-couch"></i>
-          </div>
+            </div>
           <div class="card-content">
             <h3>Quản lý phòng chiếu</h3>
             <p>Quản lý suất chiếu và sắp xếp phòng</p>

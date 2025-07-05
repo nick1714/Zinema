@@ -17,7 +17,7 @@ const props = defineProps({
   },
 })
 
-const $emit = defineEmits(['edit', 'view-details'])
+const $emit = defineEmits(['view-details'])
 
 /**
  * Chuyển đổi role thành tên hiển thị
@@ -67,7 +67,7 @@ function getInitials() {
     <div class="user-content">
       <div class="user-avatar" :class="getRoleClass(props.user.role)">
         {{ getInitials() }}
-      </div>
+        </div>
 
       <div class="user-info">
         <h3 class="user-name">
@@ -92,21 +92,16 @@ function getInitials() {
             <i class="fas fa-map-marker-alt"></i>
             <span>{{ props.user.address }}</span>
           </div>
+          </div>
         </div>
       </div>
-    </div>
 
     <!-- Các nút hành động -->
     <div v-if="props.showActions" class="user-actions">
       <button class="action-btn view-btn" @click="$emit('view-details', props.user)">
         <i class="fas fa-eye"></i>
         <span>Chi tiết</span>
-      </button>
-
-      <button v-if="props.canEdit" class="action-btn edit-btn" @click="$emit('edit', props.user)">
-        <i class="fas fa-edit"></i>
-        <span>Sửa</span>
-      </button>
+        </button>
     </div>
   </div>
 </template>
@@ -275,17 +270,6 @@ function getInitials() {
 
 .view-btn:hover {
   filter: brightness(1.05);
-  transform: translateY(-2px);
-}
-
-.edit-btn {
-  background: rgba(247, 197, 72, 0.1);
-  color: var(--cinema-primary);
-  border: 1px solid rgba(247, 197, 72, 0.3);
-}
-
-.edit-btn:hover {
-  background: rgba(247, 197, 72, 0.2);
   transform: translateY(-2px);
 }
 </style>

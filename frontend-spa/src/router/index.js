@@ -2,6 +2,7 @@ import { createWebHistory, createRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 // Lazy loading cho performance
+<<<<<<< HEAD
 const LoginPage = () => import('@/views/LoginPage.vue');
 const ProfilePage = () => import('@/views/ProfilePage.vue');
 const EmployeeList = () => import('@/views/EmployeeList.vue');
@@ -15,7 +16,25 @@ const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue');
 const AdminDashboard = () => import('@/views/AdminDashboard.vue');
 const StaffDashboard = () => import('@/views/StaffDashboard.vue');
 //const BookingPage = () => import('@/views/BookingPage.vue');
+=======
+const LoginPage = () => import('@/views/LoginPage.vue')
+const ProfilePage = () => import('@/views/ProfilePage.vue')
+const EmployeeList = () => import('@/views/EmployeeList.vue')
+const EmployeeAdd = () => import('@/views/EmployeeAdd.vue')
+const EmployeeEdit = () => import('@/views/EmployeeEdit.vue')
+const CustomerList = () => import('@/views/CustomerList.vue')
+const CustomerEdit = () => import('@/views/CustomerEdit.vue')
+const NotFound = () => import('@/views/NotFound.vue')
+const ForbiddenPage = () => import('@/views/ForbiddenPage.vue')
+const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue')
+const AdminDashboard = () => import('@/views/AdminDashboard.vue')
+const StaffDashboard = () => import('@/views/StaffDashboard.vue')
+>>>>>>> bc0670b85a5e7616578a7426b370d55face31393
 
+// Movie Management
+const AdminMovieList = () => import('@/views/AdminMovieList.vue')
+const MovieAddPage = () => import('@/views/MovieAddPage.vue')
+const MovieDetailPage = () => import('@/views/MovieDetailPage.vue')
 
 const routes = [
   // Public routes
@@ -49,16 +68,15 @@ const routes = [
     path: '/profile',
     name: 'profile',
     component: ProfilePage,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  
-  
-  // Admin Dashboard (Admin only)
+
+  // Admin Dashboard (Admin/Employee main page)
   {
     path: '/admin',
     name: 'admin.dashboard',
     component: AdminDashboard,
-    meta: { requiresAuth: true, roles: ['admin'] },
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
 
   // Staff Dashboard (Staff only)
@@ -74,22 +92,22 @@ const routes = [
     path: '/employees',
     name: 'employee.list',
     component: EmployeeList,
-    meta: { requiresAuth: true, roles: ['admin'] }
+    meta: { requiresAuth: true, roles: ['admin'] },
   },
   {
     path: '/employees/add',
     name: 'employee.add',
     component: EmployeeAdd,
-    meta: { requiresAuth: true, roles: ['admin'] }
+    meta: { requiresAuth: true, roles: ['admin'] },
   },
   {
     path: '/employees/:id',
     name: 'employee.detail',
     component: EmployeeEdit,
     meta: { requiresAuth: true, roles: ['admin'] },
-    props: (route) => ({ employeeId: route.params.id })
+    props: (route) => ({ employeeId: route.params.id }),
   },
-  
+
   // Customer Management (Admin + Employee)
   {
     path: '/customers',
@@ -102,9 +120,30 @@ const routes = [
     name: 'customer.detail',
     component: CustomerEdit,
     meta: { requiresAuth: true },
-    props: (route) => ({ customerId: route.params.id })
+    props: (route) => ({ customerId: route.params.id }),
   },
-  
+
+  // Movie Management (Admin + Employee)
+  {
+    path: '/admin/movies',
+    name: 'admin.movies',
+    component: AdminMovieList,
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+  },
+  {
+    path: '/admin/movies/add',
+    name: 'admin.movies.add',
+    component: MovieAddPage,
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+  },
+  {
+    path: '/admin/movies/:id',
+    name: 'admin.movies.detail',
+    component: MovieDetailPage,
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    props: (route) => ({ movieId: route.params.id }),
+  },
+
   // Error pages
   {
     path: '/403',
@@ -159,13 +198,13 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresGuest && loggedIn) {
     // Nếu đã đăng nhập rồi thì không cho vào trang login nữa
     if (role === 'customer') {
-      return next('/movies');
+      return next('/movies')
     } else if (role === 'admin') {
-      return next('/admin');
+      return next('/admin')
     } else if (role === 'staff') {
-      return next('/staff');
+      return next('/staff')
     }
-    return next('/'); // Fallback
+    return next('/') // Fallback
   }
 
   // Nếu tất cả kiểm tra đều qua, cho phép truy cập

@@ -50,74 +50,171 @@ function handleCancel() {
 
 <template>
   <VeeForm
+    as="div"
+    class="customer-form"
     :validation-schema="validationSchema"
     :initial-values="initialValues"
     @submit="handleSubmit"
   >
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Tên <span class="text-danger">*</span></label>
-        <VeeField name="full_name" v-slot="{ field }">
-          <input type="text" class="form-control" v-bind="field" />
-        </VeeField>
-        <ErrorMessage name="full_name" class="error-feedback" />
+    <div class="form-row">
+      <div class="form-group">
+        <label for="full_name">Tên <span class="required">*</span></label>
+        <VeeField name="full_name" id="full_name" type="text" placeholder="Nhập họ và tên" />
+        <ErrorMessage name="full_name" class="error-message" />
       </div>
 
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-        <VeeField name="phone_number" v-slot="{ field }">
-          <input type="text" class="form-control" v-bind="field" />
-        </VeeField>
-        <ErrorMessage name="phone_number" class="error-feedback" />
-      </div>
-
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Ngày sinh</label>
-        <VeeField name="date_of_birth" v-slot="{ field }">
-          <input type="date" class="form-control" v-bind="field" />
-        </VeeField>
-        <ErrorMessage name="date_of_birth" class="error-feedback" />
-      </div>
-
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Giới tính</label>
-        <VeeField name="gender" v-slot="{ field }">
-          <select class="form-select" v-bind="field">
-            <option value="" disabled>Chọn giới tính</option>
-            <option value="male">Nam</option>
-            <option value="female">Nữ</option>
-            <option value="other">Khác</option>
-          </select>
-        </VeeField>
-        <ErrorMessage name="gender" class="error-feedback" />
-      </div>
-
-      <div class="col-12 mb-3">
-        <label class="form-label">Địa chỉ</label>
-        <VeeField name="address" v-slot="{ field }">
-          <textarea class="form-control" rows="3" v-bind="field"></textarea>
-        </VeeField>
-        <ErrorMessage name="address" class="error-feedback" />
+      <div class="form-group">
+        <label for="phone_number">Số điện thoại <span class="required">*</span></label>
+        <VeeField name="phone_number" id="phone_number" type="text" placeholder="Nhập số điện thoại" />
+        <ErrorMessage name="phone_number" class="error-message" />
       </div>
     </div>
 
-    <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-success" :disabled="isLoading">
-        <i class="fas fa-save me-2"></i>
-        {{ isLoading ? 'Đang lưu...' : 'Lưu thay đổi' }}
+    <div class="form-row">
+      <div class="form-group">
+        <label for="date_of_birth">Ngày sinh</label>
+        <VeeField name="date_of_birth" id="date_of_birth" type="date" />
+        <ErrorMessage name="date_of_birth" class="error-message" />
+      </div>
+
+      <div class="form-group">
+        <label for="gender">Giới tính</label>
+        <VeeField name="gender" id="gender" as="select">
+          <option value="" disabled>Chọn giới tính</option>
+          <option value="male">Nam</option>
+          <option value="female">Nữ</option>
+          <option value="other">Khác</option>
+        </VeeField>
+        <ErrorMessage name="gender" class="error-message" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="address">Địa chỉ</label>
+      <VeeField name="address" id="address" as="textarea" rows="3" placeholder="Nhập địa chỉ" />
+      <ErrorMessage name="address" class="error-message" />
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-save" :disabled="isLoading">
+        <i class="fas fa-save"></i>
+        <span>{{ isLoading ? 'Đang lưu...' : 'Lưu thay đổi' }}</span>
       </button>
-      <button type="button" class="btn btn-secondary" @click="handleCancel">
-        <i class="fas fa-times me-2"></i>
-        Hủy
+      <button type="button" class="btn-cancel" @click="handleCancel">
+        <i class="fas fa-times"></i>
+        <span>Hủy</span>
       </button>
     </div>
   </VeeForm>
 </template>
 
 <style scoped>
-.error-feedback {
-  color: #dc3545;
-  font-size: 0.875rem;
+/* Scoped styles based on MovieDetailPage */
+.customer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--cinema-text);
+  font-size: 0.9rem;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+/* Vee-Validate fields will automatically inherit these styles */
+:deep(input),
+:deep(select),
+:deep(textarea) {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--cinema-text);
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+:deep(textarea) {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.8rem;
   margin-top: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-save {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  background: var(--cinema-gradient-gold);
+  color: var(--cinema-darker);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-save:hover {
+  filter: brightness(1.1);
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--cinema-text);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
