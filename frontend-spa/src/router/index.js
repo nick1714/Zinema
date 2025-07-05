@@ -47,7 +47,9 @@ const routes = [
   // Protected routes
   {
     path: '/',
-    redirect: '/login',
+    name: 'home',
+    component: () => import('@/views/HomePage.vue'),
+    meta: { requiresAuth: true, roles: ['customer'] },
   },
   {
     path: '/profile',
@@ -61,7 +63,7 @@ const routes = [
     path: '/admin',
     name: 'admin.dashboard',
     component: AdminDashboard,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, roles: ['admin'] },
   },
 
   // Staff Dashboard (Staff only)

@@ -50,7 +50,7 @@ function handleCancel() {
 
 <template>
   <VeeForm
-    as="div"
+    as="form"
     class="customer-form"
     :validation-schema="validationSchema"
     :initial-values="initialValues"

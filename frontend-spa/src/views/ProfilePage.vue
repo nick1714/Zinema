@@ -63,8 +63,9 @@ async function handleUpdateProfile(values) {
     isEditingProfile.value = false
 
     if (isFirstTimeUser.value) {
-      alert('Chào mừng bạn đến với Cinema! Thông tin của bạn đã được cập nhật thành công.')
+      alert('Chào mừng bạn đến với Zinema! Thông tin của bạn đã được cập nhật thành công.')
       isFirstTimeUser.value = false
+      router.push('/')
     } else {
       alert('Cập nhật thông tin thành công!')
     }
@@ -150,7 +151,7 @@ function goBack() {
         <!-- Welcome message for first-time users -->
         <div v-if="isFirstTimeUser" class="welcome-alert" role="alert">
           <i class="fas fa-info-circle me-2"></i>
-          <strong>Chào mừng bạn đến với Cinema!</strong>
+          <strong>Chào mừng bạn đến với Zinema!</strong>
           <p class="mb-0 mt-2">Vui lòng cập nhật đầy đủ thông tin cá nhân để có trải nghiệm tốt nhất.</p>
         </div>
 
@@ -207,7 +208,7 @@ function goBack() {
               <CustomerForm
                 v-if="isEditingProfile"
                 :initial-values="customerInitialValues"
-                :is-loading="updateCustomerMutation.isPending"
+                :is-loading="updateCustomerMutation.isLoading"
                 @submit="handleUpdateProfile"
                 @cancel="isEditingProfile = false"
               />
