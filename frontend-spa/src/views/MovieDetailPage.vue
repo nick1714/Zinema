@@ -391,11 +391,19 @@ async function handleSubmit() {
   isSubmitting.value = true;
   
   try {
-    await updateMovie(movieId.value, form, selectedPoster.value);
+    const formData = new FormData();
+    Object.keys(form).forEach(key => {
+      formData.append(key, form[key]);
+    });
+    
+    if (selectedPoster.value) {
+      formData.append('posterFile', selectedPoster.value);
+    }
+    
+    await updateMovie(movieId.value, formData);
     isEditing.value = false;
     selectedPoster.value = null;
     selectedPosterPreview.value = '';
-    // Hiển thị thông báo thành công
     alert('Cập nhật phim thành công!');
   } catch (err) {
     console.error('Lỗi khi cập nhật phim:', err);

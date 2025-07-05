@@ -370,7 +370,16 @@ async function handleSubmit() {
   isSubmitting.value = true;
   
   try {
-    const movie = await createMovie(form, posterFile.value);
+    const formData = new FormData();
+    Object.keys(form).forEach(key => {
+      formData.append(key, form[key]);
+    });
+    
+    if (posterFile.value) {
+      formData.append('posterFile', posterFile.value);
+    }
+    
+    const movie = await createMovie(formData);
     alert('Tạo phim mới thành công');
     router.push(`/admin/movies/${movie.id}`);
   } catch (err) {
