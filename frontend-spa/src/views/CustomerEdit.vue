@@ -92,8 +92,8 @@ function formatGender(gender) {
           </div>
         </div>
       </div>
-    </div>
-    
+          </div>
+
     <!-- Page content -->
     <div class="page-content">
       <div class="container">
@@ -103,7 +103,7 @@ function formatGender(gender) {
             <i class="fas fa-circle-notch fa-spin"></i>
           </div>
           <p>Đang tải thông tin khách hàng...</p>
-        </div>
+            </div>
 
         <!-- Error state -->
         <div v-else-if="isError" class="error-state">
@@ -116,21 +116,21 @@ function formatGender(gender) {
             <i class="fas fa-arrow-left"></i>
             Quay lại
           </button>
-        </div>
+              </div>
 
         <!-- Customer Info -->
         <div v-else-if="customerData?.customer" class="detail-card">
-          <!-- Edit Form -->
-          <CustomerForm
-            v-if="isEditing && canEdit"
-            :initial-values="initialValues"
-            :is-loading="updateCustomer.isLoading"
-            @submit="handleUpdateCustomer"
-            @cancel="isEditing = false"
-          />
+              <!-- Edit Form -->
+              <CustomerForm
+                v-if="isEditing && canEdit"
+                :initial-values="initialValues"
+                :is-loading="updateCustomer.isLoading"
+                @submit="handleUpdateCustomer"
+                @cancel="isEditing = false"
+              />
 
-          <!-- View Mode -->
-          <div v-else class="customer-view">
+              <!-- View Mode -->
+              <div v-else class="customer-view">
             <!-- Customer header -->
             <div class="customer-header">
               <div class="customer-avatar badge-customer">
@@ -190,7 +190,7 @@ function formatGender(gender) {
                   </div>
                   <div class="detail-value">{{ customerData.customer.address || 'Chưa cập nhật' }}</div>
                 </div>
-                
+
                 <div class="detail-item">
                   <div class="detail-label">
                     <i class="fas fa-star"></i>

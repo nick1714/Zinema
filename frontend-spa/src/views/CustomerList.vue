@@ -62,22 +62,22 @@ function goToCustomerDetail(customer) {
             <h1><i class="fas fa-users"></i> Quản Lý Khách Hàng</h1>
             <p>Quản lý danh sách khách hàng của rạp phim</p>
           </div>
-          
+
           <div class="header-actions">
             <button class="refresh-btn" @click="refetch" :disabled="isLoading">
               <i class="fas fa-sync-alt" :class="{'fa-spin': isLoading}"></i>
               <span>{{ isLoading ? 'Đang tải...' : 'Làm mới' }}</span>
-            </button>
+        </button>
           </div>
-        </div>
-        
+      </div>
+
         <!-- Search bar -->
         <div class="search-container">
           <InputSearch v-model="searchText" placeholder="Tìm kiếm khách hàng theo tên, email, số điện thoại..." />
         </div>
+        </div>
       </div>
-    </div>
-    
+
     <!-- Page content -->
     <div class="page-content">
       <div class="container">
@@ -93,14 +93,14 @@ function goToCustomerDetail(customer) {
         <div v-else-if="isError" class="error-state">
           <div class="error-icon">
             <i class="fas fa-exclamation-triangle"></i>
-          </div>
+      </div>
           <h3>Đã xảy ra lỗi!</h3>
           <p>Không thể tải danh sách khách hàng. Vui lòng thử lại.</p>
           <button class="btn-cinema" @click="refetch">
             <i class="fas fa-redo"></i>
             Thử lại
           </button>
-        </div>
+      </div>
 
         <!-- Customer list -->
         <div v-else-if="filteredCustomers.length > 0" class="customer-grid">
@@ -118,7 +118,7 @@ function goToCustomerDetail(customer) {
         <div v-else class="empty-state">
           <div class="empty-icon">
             <i class="fas fa-users"></i>
-          </div>
+      </div>
           <h3>Không tìm thấy khách hàng</h3>
           <p v-if="searchText">
             Không có khách hàng nào khớp với từ khóa "{{ searchText }}".

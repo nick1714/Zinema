@@ -18,7 +18,7 @@ const currentYear = new Date().getFullYear()
           <div class="footer-brand">
             <i class="fas fa-film"></i>
             <span>ZINEMA</span>
-          </div>
+        </div>
           
           <p class="footer-desc">
             Hệ thống quản lý rạp chiếu phim hiện đại và chuyên nghiệp. 

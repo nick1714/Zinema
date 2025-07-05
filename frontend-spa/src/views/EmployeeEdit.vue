@@ -98,9 +98,9 @@ function getRoleClass(role) {
             <p>Xem và cập nhật thông tin nhân viên</p>
           </div>
         </div>
-      </div>
-    </div>
-    
+            </div>
+          </div>
+
     <!-- Page content -->
     <div class="page-content">
       <div class="container">
@@ -110,7 +110,7 @@ function getRoleClass(role) {
             <i class="fas fa-circle-notch fa-spin"></i>
           </div>
           <p>Đang tải thông tin nhân viên...</p>
-        </div>
+            </div>
 
         <!-- Error state -->
         <div v-else-if="isError" class="error-state">
@@ -123,22 +123,22 @@ function getRoleClass(role) {
             <i class="fas fa-arrow-left"></i>
             Quay lại
           </button>
-        </div>
+              </div>
 
         <!-- Employee Info -->
         <div v-else-if="employeeData?.employee" class="detail-card">
-          <!-- Edit Form -->
-          <EmployeeForm
-            v-if="isEditing"
-            is-edit-mode
-            :initial-values="initialValues"
-            :is-loading="updateEmployee.isLoading"
-            @submit="handleUpdateEmployee"
-            @cancel="isEditing = false"
-          />
+              <!-- Edit Form -->
+              <EmployeeForm
+                v-if="isEditing"
+                is-edit-mode
+                :initial-values="initialValues"
+                :is-loading="updateEmployee.isLoading"
+                @submit="handleUpdateEmployee"
+                @cancel="isEditing = false"
+              />
 
-          <!-- View Mode -->
-          <div v-else class="employee-view">
+              <!-- View Mode -->
+              <div v-else class="employee-view">
             <!-- Employee header -->
             <div class="employee-header">
               <div class="employee-avatar" :class="getRoleClass(employeeData.employee.role)">
@@ -210,7 +210,7 @@ function getRoleClass(role) {
                     {{ employeeData.employee.position || 'Chưa cập nhật' }}
                   </div>
                 </div>
-                
+
                 <div class="detail-item full-width">
                   <div class="detail-label">
                     <i class="fas fa-map-marker-alt"></i>

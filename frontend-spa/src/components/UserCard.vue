@@ -67,7 +67,7 @@ function getInitials() {
     <div class="user-content">
       <div class="user-avatar" :class="getRoleClass(props.user.role)">
         {{ getInitials() }}
-      </div>
+        </div>
 
       <div class="user-info">
         <h3 class="user-name">
@@ -92,16 +92,16 @@ function getInitials() {
             <i class="fas fa-map-marker-alt"></i>
             <span>{{ props.user.address }}</span>
           </div>
+          </div>
         </div>
       </div>
-    </div>
 
     <!-- Các nút hành động -->
     <div v-if="props.showActions" class="user-actions">
       <button class="action-btn view-btn" @click="$emit('view-details', props.user)">
         <i class="fas fa-eye"></i>
         <span>Chi tiết</span>
-      </button>
+        </button>
     </div>
   </div>
 </template>
