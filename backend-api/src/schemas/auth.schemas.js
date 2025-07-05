@@ -64,15 +64,18 @@ const updateCustomerSchema = z.object({
   
   address: z.string()
     .max(500, { message: 'Địa chỉ không được quá 500 ký tự' })
-    .optional(),
+    .optional()
+    .nullable(),
   
   gender: z.enum(['male', 'female', 'other'], {
     errorMap: () => ({ message: 'Giới tính phải là male, female hoặc other' })
-  }).optional(),
+  }).optional()
+    .nullable(),
   
   date_of_birth: z.string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Ngày sinh phải có định dạng YYYY-MM-DD' })
-    .optional(),
+    .optional()
+    .nullable(),
 }).strict();
 
 // Schema cho cập nhật thông tin nhân viên
@@ -94,15 +97,18 @@ const updateEmployeeSchema = z.object({
   
   date_of_birth: z.string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Ngày sinh phải có định dạng YYYY-MM-DD' })
-    .optional(),
+    .optional()
+    .nullable(),
   
   gender: z.enum(['male', 'female', 'other'], {
     errorMap: () => ({ message: 'Giới tính phải là male, female hoặc other' })
-  }).optional(),
+  }).optional()
+    .nullable(),
   
   address: z.string()
     .max(500, { message: 'Địa chỉ không được quá 500 ký tự' })
-    .optional(),
+    .optional()
+    .nullable(),
   
   position: z.enum(['Nhân viên bán vé', 'Nhân viên vệ sinh'], {
     errorMap: () => ({ message: 'Vị trí phải là Nhân viên bán vé, Nhân viên vệ sinh' })
