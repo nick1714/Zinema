@@ -171,11 +171,32 @@ async function deleteAllShowtimes(req, res, next) {
     }
 }
 
+/**
+ * Lấy danh sách ghế và trạng thái cho một suất chiếu
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function getSeatsForShowtime(req, res, next) {
+    const { id } = req.params;
+    try {
+        const result = await showtimeService.getSeatsForShowtime(id);
+        if (!result) {
+            return next(new ApiError(404, 'Showtime not found or has no seat map.'));
+        }
+        return res.json(JSend.success(result));
+    } catch (error) {
+        console.error("Error in getSeatsForShowtime controller:", error);
+        return next(new ApiError(500, 'Internal Server Error'));
+    }
+}
+
 module.exports = {
     getAllShowtimes,
     getShowtimeById,
     createShowtime,
     updateShowtime,
     deleteShowtime,
-    deleteAllShowtimes
+    deleteAllShowtimes,
+    getSeatsForShowtime
 }; 

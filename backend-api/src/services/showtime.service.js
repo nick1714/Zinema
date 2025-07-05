@@ -224,11 +224,75 @@ async function deleteAllShowtimes() {
   await showtimeRepository().update({ status: 'canceled' });
 }
 
+/**
+ * Lấy danh sách ghế và trạng thái của chúng cho một suất chiếu cụ thể
+ * @param {number} showtimeId - ID của suất chiếu
+ * @returns {Promise<Object>} - Object chứa thông tin phòng và danh sách ghế
+ */
+async function getSeatsForShowtime(showtimeId) {
+    // 1. Lấy thông tin suất chiếu và phòng chiếu
+    const showtime = await showtimeRepository()
+        .leftJoin('cinema_rooms', 'showtimes.cinema_room_id', 'cinema_rooms.id')
+        .where('showtimes.id', showtimeId)
+        .select(
+            'showtimes.cinema_room_id',
+            'cinema_rooms.name as room_name',
+            'cinema_rooms.rows as room_rows',
+            'cinema_rooms.columns as room_columns'
+        )
+        .first();
+
+    if (!showtime) {
+        return null; // Suất chiếu không tồn tại
+    }
+
+    const { cinema_room_id, room_name, room_rows, room_columns } = showtime;
+
+    // 2. Lấy tất cả ghế trong phòng
+    const allSeats = await knex('seats')
+        .leftJoin('seat_types', 'seats.seat_type_id', 'seat_types.id')
+        .where({ cinema_room_id })
+        .select(
+            'seats.id', 
+            'seats.name', 
+            'seats.row', 
+            'seats.column',
+            'seat_types.name as type',
+            'seat_types.surcharge'
+        )
+        .orderBy(['seats.row', 'seats.column']);
+
+    // 3. Lấy ID của các ghế đã được đặt cho suất chiếu này
+    const bookedSeatIds = await knex('tickets')
+        .join('ticket_bookings', 'tickets.ticket_booking_id', 'ticket_bookings.id')
+        .where('ticket_bookings.showtime_id', showtimeId)
+        // Chỉ tính những booking đã xác nhận hoặc hoàn thành
+        .whereIn('ticket_bookings.status', ['confirmed', 'completed'])
+        .pluck('tickets.seat_id');
+
+    // 4. Map trạng thái (booked/available) vào danh sách ghế
+    const seatsWithStatus = allSeats.map(seat => ({
+        ...seat,
+        status: bookedSeatIds.includes(seat.id) ? 'booked' : 'available'
+    }));
+
+    return {
+      room: {
+        id: cinema_room_id,
+        name: room_name,
+        rows: room_rows,
+        columns: room_columns,
+      },
+      seats: seatsWithStatus,
+    };
+}
+
 module.exports = {
     createShowtime,
     getAllShowtimes,
     getShowtimeById,
     updateShowtime,
     deleteShowtime,
-    deleteAllShowtimes
+    deleteAllShowtimes,
+    getSeatsForShowtime
 }; 

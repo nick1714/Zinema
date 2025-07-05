@@ -62,6 +62,13 @@ module.exports.setup = (app) => {
     showtimeController.getShowtimeById
   );
 
+  // GET /api/showtimes/:id/seats - Lấy sơ đồ ghế và trạng thái cho suất chiếu
+  router.get(
+    '/:id/seats',
+    // Bất kỳ ai cũng có thể xem ghế
+    showtimeController.getSeatsForShowtime
+  );
+
   // PUT /api/showtimes/:id - Cập nhật suất chiếu (Admin/Staff only)
   router.put(
     '/:id',
