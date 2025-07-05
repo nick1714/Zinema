@@ -1,16 +1,27 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useCustomer, useCustomers, useAuth } from '@/composables/useAuth'
+import { useQuery } from '@tanstack/vue-query'
+import { useCustomers, useAuth } from '@/composables/useAuth'
 import CustomerForm from '@/components/CustomerForm.vue'
+import authService from '@/services/auth.service'
 
 const router = useRouter()
 const route = useRoute()
 const customerId = computed(() => route.params.id)
 
 const { currentUser, canManageCustomers, isCustomer } = useAuth()
-const { data: customerData, isLoading, isError } = useCustomer(customerId)
 const { updateCustomer } = useCustomers()
+
+const { 
+  data: customerData, 
+  isLoading, 
+  isError 
+} = useQuery({
+  queryKey: ['customers', { id: customerId.value }],
+  queryFn: () => authService.getCustomerById(customerId.value),
+  enabled: !!customerId.value,
+});
 
 const isEditing = ref(false)
 
@@ -24,9 +35,11 @@ const canEdit = computed(() => {
 })
 
 // Redirect if not authorized
-if (!canEdit.value && !isLoading.value) {
-  router.push('/403')
-}
+onMounted(() => {
+  if (!canEdit.value && !isLoading.value) {
+    router.push('/403')
+  }
+})
 
 // Form initial values
 const initialValues = computed(() => {
@@ -46,7 +59,7 @@ const initialValues = computed(() => {
 
 async function handleUpdateCustomer(values) {
   try {
-    await updateCustomer.mutate({
+    updateCustomer.mutate({
       id: parseInt(customerId.value),
       data: values,
     })

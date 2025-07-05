@@ -44,7 +44,12 @@ export function useMovies() {
     error.value = null
 
     try {
-      const result = await movieService.getMovies(filters)
+      // Loại bỏ các tham số rỗng khỏi bộ lọc
+      const cleanFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value !== '' && value !== null),
+      )
+
+      const result = await movieService.getMovies(cleanFilters)
       movies.value = result.movies
 
       // Cập nhật metadata
@@ -69,7 +74,7 @@ export function useMovies() {
       currentMovie.value = await movieService.getMovieById(id)
     } catch (err) {
       console.error('Lỗi khi lấy thông tin phim:', err)
-      
+
       // Xử lý thông báo lỗi chi tiết hơn
       if (err.response) {
         // Lỗi từ server với response
@@ -229,4 +234,3 @@ export function useMovies() {
     resetFilters,
   }
 }
- 

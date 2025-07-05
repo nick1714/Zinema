@@ -1,39 +1,84 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import AuthForm from '@/components/AuthForm.vue'
+import authService from '@/services/auth.service'
 import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
 const router = useRouter()
-const { login, googleLogin, handleGoogleCallback, isLoggingIn, isAuthenticated } = useAuth()
+const { isAuthenticated, currentUser, setCurrentUser } = useAuth()
+const queryClient = useQueryClient()
+
+const loginMutation = useMutation({
+  mutationFn: ({ phoneNumber, password }) => authService.login(phoneNumber, password),
+  onSuccess: (data) => {
+    if (!data.token) {
+      console.error('Login success but no token received from backend!')
+      alert('Lỗi: Không nhận được token xác thực từ máy chủ.')
+      return
+    }
+
+    localStorage.setItem('cinema_token', data.token)
+    setCurrentUser({ ...data.user, role: data.account?.role })
+    isAuthenticated.value = true
+    
+    // Redirect dựa trên role
+    if (currentUser.value.role === 'customer') {
+      router.push('/movies')
+    } else {
+      router.push('/admin')
+    }
+    
+    queryClient.invalidateQueries({ queryKey: ['auth'] })
+  },
+  onError: (error) => {
+    console.error('Login error:', error)
+    alert('Đăng nhập thất bại: ' + error.message)
+  }
+})
+
+const googleCallbackMutation = useMutation({
+  mutationFn: (code) => authService.handleGoogleCallback(code),
+  onSuccess: (data) => {
+    localStorage.setItem('cinema_token', data.token)
+    setCurrentUser(data.user)
+    isAuthenticated.value = true
+    
+    if (data.isFirstTime) {
+      router.push('/profile?firstTime=true')
+    } else {
+      router.push('/movies')
+    }
+    queryClient.invalidateQueries({ queryKey: ['auth'] })
+  },
+  onError: (error) => {
+    console.error('Google callback error:', error)
+    alert('Xác thực với Google thất bại. Vui lòng thử lại từ trang đăng nhập.')
+    router.push('/login')
+  }
+})
 
 // Handle Google OAuth callback
 onMounted(() => {
   const code = route.query.code
   if (code) {
-    handleGoogleCallback(code)
+    googleCallbackMutation.mutate(code)
   }
 
   // If already authenticated, redirect
   if (isAuthenticated.value) {
-    router.push('/profile')
+    router.push(currentUser.value.role === 'customer' ? '/movies' : '/admin')
   }
 })
 
-/**
- * Xử lý đăng nhập thông thường
- * @param {Object} data - Dữ liệu đăng nhập (số điện thoại và mật khẩu)
- */
 function handleLogin({ phoneNumber, password }) {
-  login({ phoneNumber, password })
+  loginMutation.mutate({ phoneNumber, password })
 }
 
-/**
- * Xử lý đăng nhập bằng Google
- */
 function handleGoogleLogin() {
-  googleLogin()
+  authService.googleLogin()
 }
 </script>
 
@@ -98,7 +143,7 @@ function handleGoogleLogin() {
         <div class="col-lg-5 d-flex align-items-center justify-content-center login-form-container">
           <div class="w-100 fade-in" style="max-width: 450px">
             <AuthForm
-              :is-loading="isLoggingIn"
+              :is-loading="loginMutation.isLoading || googleCallbackMutation.isLoading"
               :show-google-login="true"
               @login="handleLogin"
               @google-login="handleGoogleLogin"

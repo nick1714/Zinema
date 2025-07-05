@@ -1,13 +1,25 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuery } from '@tanstack/vue-query'
 import UserCard from '@/components/UserCard.vue'
 import InputSearch from '@/components/InputSearch.vue'
-import { useEmployees, useAuth } from '@/composables/useAuth'
+import { useAuth } from '@/composables/useAuth'
+import authService from '@/services/auth.service'
 
 const router = useRouter()
-const { employees, isLoading, isError, refetch } = useEmployees()
 const { canManageEmployees } = useAuth()
+
+const { 
+  data: employeesData, 
+  isLoading, 
+  isError, 
+  refetch 
+} = useQuery({
+  queryKey: ['employees'],
+  queryFn: authService.getAllEmployees,
+});
+const employees = computed(() => employeesData.value?.employees || []);
 
 const searchText = ref('')
 
@@ -54,31 +66,31 @@ function goToEmployeeDetail(employee) {
             <button class="action-btn" @click="refetch" :disabled="isLoading">
               <i class="fas fa-sync-alt" :class="{'fa-spin': isLoading}"></i>
               <span>Làm mới</span>
-            </button>
+          </button>
             <button v-if="canManageEmployees" class="action-btn-primary" @click="goToAddEmployee">
               <i class="fas fa-plus"></i>
               <span>Thêm nhân viên</span>
-            </button>
-          </div>
+          </button>
         </div>
+      </div>
 
         <!-- Search bar -->
         <div class="search-container">
           <InputSearch v-model="searchText" placeholder="Tìm kiếm nhân viên theo tên, mã, email, số điện thoại..." />
         </div>
+        </div>
       </div>
-    </div>
 
     <!-- Page content -->
     <div class="page-content">
       <div class="container">
-        <!-- Loading State -->
+      <!-- Loading State -->
         <div v-if="isLoading" class="loading-state">
           <div class="loader"><i class="fas fa-circle-notch fa-spin"></i></div>
           <p>Đang tải danh sách nhân viên...</p>
-        </div>
+      </div>
 
-        <!-- Error State -->
+      <!-- Error State -->
         <div v-else-if="isError" class="error-state">
           <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
           <h3>Đã xảy ra lỗi!</h3>
@@ -86,9 +98,9 @@ function goToEmployeeDetail(employee) {
           <button class="action-btn-primary" @click="refetch">
             <i class="fas fa-redo"></i> Thử lại
           </button>
-        </div>
+      </div>
 
-        <!-- Employee List -->
+      <!-- Employee List -->
         <div v-else-if="filteredEmployees.length > 0" class="employee-grid">
           <UserCard
             v-for="employee in filteredEmployees"
@@ -98,9 +110,9 @@ function goToEmployeeDetail(employee) {
             :can-edit="canManageEmployees"
             @view-details="goToEmployeeDetail"
           />
-        </div>
+      </div>
 
-        <!-- Empty State -->
+      <!-- Empty State -->
         <div v-else class="empty-state">
           <div class="empty-icon"><i class="fas fa-users-cog"></i></div>
           <h3>Không tìm thấy nhân viên</h3>

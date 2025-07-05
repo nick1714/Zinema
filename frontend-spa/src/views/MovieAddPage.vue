@@ -4,10 +4,6 @@
     <div class="page-header">
       <div class="container">
         <div class="header-content">
-          <button class="btn-back" @click="goBack">
-            <i class="fas fa-arrow-left"></i>
-            Quay lại
-          </button>
           <h1 class="page-title">
             <i class="fas fa-plus-circle me-2"></i>
             Thêm phim mới

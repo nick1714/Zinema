@@ -1,6 +1,6 @@
 <script setup>
-import { useAuth } from '@/composables/useAuth'
 import { ref, onMounted } from 'vue'
+import { useAuth } from '@/composables/useAuth'
 
 const { currentUser, logout, isAdmin, isEmployee } = useAuth()
 
