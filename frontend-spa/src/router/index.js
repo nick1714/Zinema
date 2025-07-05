@@ -14,6 +14,7 @@ const ForbiddenPage = () => import('@/views/ForbiddenPage.vue');
 const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue');
 const AdminDashboard = () => import('@/views/AdminDashboard.vue');
 const StaffDashboard = () => import('@/views/StaffDashboard.vue');
+//const BookingPage = () => import('@/views/BookingPage.vue');
 
 
 const routes = [
@@ -28,6 +29,15 @@ const routes = [
     path: '/auth/google/callback',
     name: 'google.callback',
     component: GoogleCallbackPage,
+  },
+
+  // Booking Page (Customer/Staff/Admin)
+  {
+    path: '/movies/:movieId/book',
+    name: 'movie.book',
+    component: BookingPage,
+    meta: { requiresAuth: true, roles: ['admin', 'staff', 'customer'] },
+    props: true
   },
 
   // Protected routes
