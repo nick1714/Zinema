@@ -47,7 +47,9 @@ const routes = [
   // Protected routes
   {
     path: '/',
-    redirect: '/login',
+    name: 'home',
+    component: () => import('@/views/HomePage.vue'),
+    meta: { requiresAuth: true, roles: ['customer'] },
   },
   {
     path: '/profile',
@@ -61,7 +63,7 @@ const routes = [
     path: '/admin',
     name: 'admin.dashboard',
     component: AdminDashboard,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, roles: ['admin'] },
   },
 
   // Staff Dashboard (Staff only)
@@ -148,52 +150,37 @@ const router = createRouter({
 })
 
 // Navigation guards
-router.beforeEach(async (to, from, next) => {
-  const { isAuthenticated, currentUser, userRole, suspense } = useAuth()
+router.beforeEach((to, from, next) => {
+  const { isAuthenticated, userRole } = useAuth()
 
-  // KHI REFRESH TRANG: Nếu có token, LUÔN ĐỢI lấy xong user data.
-  // Đây là bước quan trọng nhất để chống race condition.
-  if (isAuthenticated.value && !currentUser.value) {
-    try {
-      await suspense() // Đợi Promise của query `getCurrentUser` hoàn thành
-    } catch (error) {
-      // Nếu query lỗi (token hết hạn), logout() đã tự chạy trong onError của useAuth,
-      // isAuthenticated sẽ tự chuyển thành false. Flow sẽ được xử lý đúng ở các bước sau.
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const requiresGuest = to.matched.some((record) => record.meta.requiresGuest)
+
+  if (requiresAuth && !isAuthenticated.value) {
+    // Người dùng chưa đăng nhập, chuyển hướng đến trang login
+    return next({ name: 'login', query: { redirect: to.fullPath } })
+  }
+
+  if (requiresGuest && isAuthenticated.value) {
+    // Người dùng đã đăng nhập, không cho vào trang login/register
+    if (userRole.value === 'admin') return next({ name: 'admin.dashboard' })
+    if (userRole.value === 'staff') return next({ name: 'staff.dashboard' })
+    return next('/') // Mặc định cho customer
+  }
+
+  // Kiểm tra quyền truy cập dựa trên vai trò
+  if (requiresAuth && isAuthenticated.value) {
+    const requiredRoles = to.meta.roles
+    if (requiredRoles && requiredRoles.length > 0) {
+      if (!requiredRoles.includes(userRole.value)) {
+        // Vai trò không phù hợp, chuyển hướng đến trang cấm
+        return next({ name: 'forbidden' })
+      }
     }
   }
 
-  // Lấy lại trạng thái sau khi đã đợi (nếu có)
-  const loggedIn = isAuthenticated.value
-  const role = userRole.value
-
-  // KIỂM TRA 1: Route yêu cầu đăng nhập
-  if (to.meta.requiresAuth) {
-    if (!loggedIn) {
-      // Nếu chưa đăng nhập, chuyển về trang login
-      return next({ name: 'login', query: { redirect: to.fullPath } })
-    }
-    // Nếu đã đăng nhập, kiểm tra quyền
-    if (to.meta.roles && !to.meta.roles.includes(role)) {
-      // Nếu không có quyền, báo lỗi
-      return next({ name: 'forbidden' })
-    }
-  }
-
-  // KIỂM TRA 2: Route chỉ dành cho khách (chưa đăng nhập)
-  if (to.meta.requiresGuest && loggedIn) {
-    // Nếu đã đăng nhập rồi thì không cho vào trang login nữa
-    if (role === 'customer') {
-      return next('/movies')
-    } else if (role === 'admin') {
-      return next('/admin')
-    } else if (role === 'staff') {
-      return next('/staff')
-    }
-    return next('/') // Fallback
-  }
-
-  // Nếu tất cả kiểm tra đều qua, cho phép truy cập
-  return next()
+  // Nếu tất cả điều kiện đều ổn, cho phép truy cập
+  next()
 })
 
 export default router

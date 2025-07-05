@@ -1,43 +1,53 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import authService from '@/services/auth.service'
 import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
-const { handleGoogleCallback, isLoading, error } = useAuth()
+const router = useRouter()
+const { isAuthenticated, setCurrentUser } = useAuth()
+const queryClient = useQueryClient()
 
-// Biến cờ để đảm bảo hàm chỉ được gọi một lần
-let hasBeenCalled = false
+const googleCallbackMutation = useMutation({
+  mutationFn: (code) => authService.handleGoogleCallback(code),
+  onSuccess: (data) => {
+    localStorage.setItem('cinema_token', data.token)
+    setCurrentUser(data.user)
+    isAuthenticated.value = true
+
+    queryClient.invalidateQueries({ queryKey: ['auth'] }).then(() => {
+      if (data.isFirstTime) {
+        router.push({ path: '/profile', query: { firstTime: 'true' } })
+      } else {
+        router.push('/')
+      }
+    })
+  },
+  onError: (error) => {
+    console.error('Google callback error:', error)
+    alert('Xác thực với Google thất bại. Vui lòng thử lại từ trang đăng nhập.')
+    router.push('/login')
+  },
+})
 
 onMounted(() => {
-  if (hasBeenCalled) {
-    return
-  }
-
   const code = route.query.code
-
   if (code) {
-    hasBeenCalled = true // Đặt cờ ngay lập tức
-    // Nếu có code, gọi mutation để gửi lên backend
-    handleGoogleCallback(code)
+    googleCallbackMutation.mutate(code)
   } else {
-    // Nếu không có code, có thể là lỗi từ Google
-    console.error("Google callback didn't provide a code.")
-    // Có thể redirect về trang login với thông báo lỗi
+    // Nếu không có code, có thể người dùng vào trang này nhầm
+    router.push('/login')
   }
 })
 </script>
 
 <template>
   <div class="callback-page">
-    <div v-if="isLoading" class="loading-container">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-3">Đang xác thực với Google, vui lòng đợi...</p>
-    </div>
-    <div v-if="error" class="error-container">
-      <h4>Xác thực thất bại</h4>
-      <p class="text-danger">{{ error.message }}</p>
-      <router-link to="/login" class="btn btn-primary">Quay về trang đăng nhập</router-link>
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Đang xác thực với Google, vui lòng đợi...</p>
     </div>
   </div>
 </template>
@@ -45,9 +55,30 @@ onMounted(() => {
 <style scoped>
 .callback-page {
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 80vh;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--cinema-darker);
+}
+
+.loading-container {
   text-align: center;
+  color: var(--cinema-text);
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(247, 197, 72, 0.2);
+  border-left-color: var(--cinema-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

@@ -1,4 +1,4 @@
-import { API_BASE_URL, DEFAULT_IMAGE } from '@/constants'
+import { API_BASE_URL, DEFAULT_IMAGE, STATIC_BASE_URL } from '@/constants'
 
 /**
  * Custom fetch wrapper với error handling
@@ -27,6 +27,13 @@ async function efetch(url, options = {}) {
 function makeMovieService() {
   const baseUrl = `${API_BASE_URL}/movies`
 
+  function getFullPosterUrl(posterPath) {
+    if (posterPath) {
+      return `${STATIC_BASE_URL}${posterPath}`
+    }
+    return `${STATIC_BASE_URL}/public${DEFAULT_IMAGE}`
+  }
+
   function getAuthHeaders() {
     const token = localStorage.getItem('cinema_token')
     return token ? { Authorization: `Bearer ${token}` } : {}
@@ -40,7 +47,7 @@ function makeMovieService() {
     if (data.movies && Array.isArray(data.movies)) {
       data.movies = data.movies.map((movie) => ({
         ...movie,
-        poster_url: movie.poster_url || DEFAULT_IMAGE,
+        poster_url: getFullPosterUrl(movie.poster_url),
       }))
     }
 
@@ -51,7 +58,7 @@ function makeMovieService() {
     const { movie } = await efetch(`${baseUrl}/${id}`, { headers: getAuthHeaders() })
     return {
       ...movie,
-      poster_url: movie.poster_url || DEFAULT_IMAGE,
+      poster_url: getFullPosterUrl(movie.poster_url),
     }
   }
 

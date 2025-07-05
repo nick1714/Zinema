@@ -287,7 +287,7 @@ const isSubmitting = ref(false);
 const selectedPoster = ref(null);
 const selectedPosterPreview = ref('');
 const imageError = ref(false);
-const defaultPoster = '/public/images/default-movie-poster.png';
+const defaultPoster = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`;
 
 // Form data
 const form = reactive({
@@ -308,7 +308,7 @@ const form = reactive({
 // Computed
 const posterUrl = computed(() => {
   if (imageError.value) {
-    return `${STATIC_BASE_URL}${defaultPoster}`;
+    return defaultPoster;
   }
   
   if (selectedPosterPreview.value) {
@@ -316,7 +316,7 @@ const posterUrl = computed(() => {
   }
   
   // currentMovie.poster_url đã được xử lý thành URL đầy đủ trong service
-  return currentMovie.value?.poster_url || `${STATIC_BASE_URL}${defaultPoster}`;
+  return currentMovie.value?.poster_url || defaultPoster;
 });
 
 const statusClass = computed(() => {
