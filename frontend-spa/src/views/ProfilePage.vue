@@ -106,9 +106,10 @@ function formatGender(gender) {
 
 // Go back function based on user role
 function goBack() {
-  if (isAdmin.value || isEmployee.value) {
-    // Admin and Employee go to dashboard    Employee go to dashboard( no implement)
+  if (isAdmin.value) {
     router.push('/admin')
+  } else if (isEmployee.value) {
+    router.push('/staff')
   } else if (isCustomer.value) {
     // Customer goes to movies
     router.push('/movies')
@@ -175,14 +176,6 @@ function goBack() {
                     >
                       <i class="fas fa-edit me-2"></i>
                       Chỉnh sửa
-                    </button>
-                    <button
-                      v-if="!isGoogleAccount"
-                      class="btn btn-warning btn-sm"
-                      @click="isChangingPassword = true"
-                    >
-                      <i class="fas fa-key me-2"></i>
-                      Đổi mật khẩu
                     </button>
                   </div>
                 </div>
@@ -282,7 +275,7 @@ function goBack() {
                 </div>
               </div>
 
-              <div class="d-flex gap-2">
+              <div v-if="!isEditingProfile && !isChangingPassword" class="d-flex gap-2">
                 <button class="btn btn-secondary" @click="goBack">
                   <i class="fas fa-arrow-left me-2"></i>
                   Quay lại
