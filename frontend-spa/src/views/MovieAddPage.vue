@@ -4,10 +4,6 @@
     <div class="page-header">
       <div class="container">
         <div class="header-content">
-          <button class="btn-back" @click="goBack">
-            <i class="fas fa-arrow-left"></i>
-            Quay lại
-          </button>
           <h1 class="page-title">
             <i class="fas fa-plus-circle me-2"></i>
             Thêm phim mới
@@ -374,7 +370,16 @@ async function handleSubmit() {
   isSubmitting.value = true;
   
   try {
-    const movie = await createMovie(form, posterFile.value);
+    const formData = new FormData();
+    Object.keys(form).forEach(key => {
+      formData.append(key, form[key]);
+    });
+    
+    if (posterFile.value) {
+      formData.append('posterFile', posterFile.value);
+    }
+    
+    const movie = await createMovie(formData);
     alert('Tạo phim mới thành công');
     router.push(`/admin/movies/${movie.id}`);
   } catch (err) {

@@ -2,21 +2,6 @@ import { createWebHistory, createRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 // Lazy loading cho performance
-<<<<<<< HEAD
-const LoginPage = () => import('@/views/LoginPage.vue');
-const ProfilePage = () => import('@/views/ProfilePage.vue');
-const EmployeeList = () => import('@/views/EmployeeList.vue');
-const EmployeeAdd = () => import('@/views/EmployeeAdd.vue');
-const EmployeeEdit = () => import('@/views/EmployeeEdit.vue');
-const CustomerList = () => import('@/views/CustomerList.vue');
-const CustomerEdit = () => import('@/views/CustomerEdit.vue');
-const NotFound = () => import('@/views/NotFound.vue');
-const ForbiddenPage = () => import('@/views/ForbiddenPage.vue');
-const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue');
-const AdminDashboard = () => import('@/views/AdminDashboard.vue');
-const StaffDashboard = () => import('@/views/StaffDashboard.vue');
-//const BookingPage = () => import('@/views/BookingPage.vue');
-=======
 const LoginPage = () => import('@/views/LoginPage.vue')
 const ProfilePage = () => import('@/views/ProfilePage.vue')
 const EmployeeList = () => import('@/views/EmployeeList.vue')
@@ -29,7 +14,7 @@ const ForbiddenPage = () => import('@/views/ForbiddenPage.vue')
 const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue')
 const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 const StaffDashboard = () => import('@/views/StaffDashboard.vue')
->>>>>>> bc0670b85a5e7616578a7426b370d55face31393
+// const BookingPage = () => import('@/views/BookingPage.vue')
 
 // Movie Management
 const AdminMovieList = () => import('@/views/AdminMovieList.vue')
@@ -51,13 +36,13 @@ const routes = [
   },
 
   // Booking Page (Customer/Staff/Admin)
-  {
-    path: '/movies/:movieId/book',
-    name: 'movie.book',
-    component: BookingPage,
-    meta: { requiresAuth: true, roles: ['admin', 'staff', 'customer'] },
-    props: true
-  },
+  // {
+  //   path: '/movies/:movieId/book',
+  //   name: 'movie.book',
+  //   component: BookingPage,
+  //   meta: { requiresAuth: true, roles: ['admin', 'staff', 'customer'] },
+  //   props: true,
+  // },
 
   // Protected routes
   {

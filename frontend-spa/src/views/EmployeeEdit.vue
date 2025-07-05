@@ -1,16 +1,27 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useEmployee, useEmployees, useAuth } from '@/composables/useAuth'
+import { useQuery } from '@tanstack/vue-query'
+import { useEmployees, useAuth } from '@/composables/useAuth'
 import EmployeeForm from '@/components/EmployeeForm.vue'
+import authService from '@/services/auth.service'
 
 const router = useRouter()
 const route = useRoute()
 const employeeId = computed(() => route.params.id)
 
 const { canManageEmployees } = useAuth()
-const { data: employeeData, isLoading, isError } = useEmployee(employeeId)
 const { updateEmployee } = useEmployees()
+
+const { 
+  data: employeeData, 
+  isLoading, 
+  isError 
+} = useQuery({
+  queryKey: ['employees', { id: employeeId.value }],
+  queryFn: () => authService.getEmployeeById(employeeId.value),
+  enabled: !!employeeId.value,
+});
 
 const isEditing = ref(false)
 
@@ -37,7 +48,7 @@ const initialValues = computed(() => {
 
 async function handleUpdateEmployee(values) {
   try {
-    await updateEmployee.mutate({
+    updateEmployee.mutate({
       id: parseInt(employeeId.value),
       data: values,
     })

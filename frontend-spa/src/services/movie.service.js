@@ -1,149 +1,90 @@
-import axios from 'axios'
-import { API_BASE_URL, STATIC_BASE_URL } from '@/constants'
-
-const API_URL = API_BASE_URL
+import { API_BASE_URL, DEFAULT_IMAGE } from '@/constants'
 
 /**
- * Hàm lấy headers xác thực
- * @returns {Object} - Headers với token xác thực
+ * Custom fetch wrapper với error handling
+ * @param {string} url
+ * @param {RequestInit} options
+ * @returns {Promise<any>}
  */
-function getAuthHeaders() {
-  const token = localStorage.getItem('cinema_token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
+async function efetch(url, options = {}) {
+  let result = {}
+  let json = {}
+
+  try {
+    result = await fetch(url, options)
+    json = await result.json()
+  } catch (error) {
+    throw new Error(error.message)
+  }
+
+  if (!result.ok || json.status !== 'success') {
+    throw new Error(json.message || 'Request failed')
+  }
+
+  return json.data
 }
 
-/**
- * Hàm xử lý URL poster
- * @param {string} posterUrl - Đường dẫn poster từ API
- * @returns {string} - URL đầy đủ của poster
- */
-function processImageUrl(posterUrl) {
-  if (!posterUrl) return null
+function makeMovieService() {
+  const baseUrl = `${API_BASE_URL}/movies`
 
-  // Nếu là URL đầy đủ, trả về nguyên vẹn
-  if (posterUrl.startsWith('http')) {
-    return posterUrl
+  function getAuthHeaders() {
+    const token = localStorage.getItem('cinema_token')
+    return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
-  // Chỉ cần nối STATIC_BASE_URL vì backend trả về đường dẫn bắt đầu bằng /public
-  return `${STATIC_BASE_URL}${posterUrl}`
-}
+  async function getMovies(params = {}) {
+    const queryParams = new URLSearchParams(params).toString()
+    const url = `${baseUrl}?${queryParams}`
+    const data = await efetch(url, { headers: getAuthHeaders() })
 
-/**
- * Service xử lý các API liên quan đến phim
- */
-class MovieService {
-  /**
-   * Lấy danh sách phim với phân trang và lọc
-   * @param {Object} params - Các tham số query
-   * @returns {Promise<Object>} - Promise chứa danh sách phim và metadata
-   */
-  async getMovies(params = {}) {
-    const response = await axios.get(`${API_URL}/movies`, {
-      params,
+    if (data.movies && Array.isArray(data.movies)) {
+      data.movies = data.movies.map((movie) => ({
+        ...movie,
+        poster_url: movie.poster_url || DEFAULT_IMAGE,
+      }))
+    }
+
+    return data
+  }
+
+  async function getMovieById(id) {
+    const { movie } = await efetch(`${baseUrl}/${id}`, { headers: getAuthHeaders() })
+    return {
+      ...movie,
+      poster_url: movie.poster_url || DEFAULT_IMAGE,
+    }
+  }
+
+  async function createMovie(movieData) {
+    return efetch(baseUrl, {
+      method: 'POST',
+      headers: { ...getAuthHeaders() }, // Không cần Content-Type, browser tự xử lý cho FormData
+      body: movieData,
+    })
+  }
+
+  async function updateMovie(id, movieData) {
+    return efetch(`${baseUrl}/${id}`, {
+      method: 'PUT',
+      headers: { ...getAuthHeaders() }, // Không cần Content-Type
+      body: movieData,
+    })
+  }
+
+  async function deleteMovie(id) {
+    return efetch(`${baseUrl}/${id}`, {
+      method: 'DELETE',
       headers: getAuthHeaders(),
     })
-
-    // Xử lý URL poster cho từng phim
-    const movies = response.data.data.movies
-    if (movies && Array.isArray(movies)) {
-      movies.forEach((movie) => {
-        movie.poster_url = processImageUrl(movie.poster_url)
-      })
-    }
-
-    return response.data.data
   }
 
-  /**
-   * Lấy thông tin chi tiết của phim
-   * @param {number} id - ID của phim
-   * @returns {Promise<Object>} - Promise chứa thông tin phim
-   */
-  async getMovieById(id) {
-    const response = await axios.get(`${API_URL}/movies/${id}`, {
-      headers: getAuthHeaders(),
-    })
-
-    // Xử lý URL poster cho phim
-    const movie = response.data.data.movie
-    if (movie && movie.poster_url) {
-      movie.poster_url = processImageUrl(movie.poster_url)
-    }
-
-    return response.data.data.movie
-  }
-
-  /**
-   * Tạo phim mới
-   * @param {Object} movieData - Dữ liệu phim
-   * @param {File} posterFile - File poster của phim
-   * @returns {Promise<Object>} - Promise chứa thông tin phim vừa tạo
-   */
-  async createMovie(movieData, posterFile) {
-    const formData = new FormData()
-
-    // Thêm dữ liệu phim vào FormData
-    Object.keys(movieData).forEach((key) => {
-      formData.append(key, movieData[key])
-    })
-
-    // Thêm file poster nếu có
-    if (posterFile) {
-      formData.append('posterFile', posterFile)
-    }
-
-    const headers = {
-      'Content-Type': 'multipart/form-data',
-      ...getAuthHeaders(),
-    }
-
-    const response = await axios.post(`${API_URL}/movies`, formData, { headers })
-    return response.data.data.movie
-  }
-
-  /**
-   * Cập nhật thông tin phim
-   * @param {number} id - ID của phim
-   * @param {Object} movieData - Dữ liệu phim cần cập nhật
-   * @param {File} posterFile - File poster mới (nếu có)
-   * @returns {Promise<Object>} - Promise chứa thông tin phim sau khi cập nhật
-   */
-  async updateMovie(id, movieData, posterFile) {
-    const formData = new FormData()
-
-    // Thêm dữ liệu phim vào FormData
-    Object.keys(movieData).forEach((key) => {
-      if (movieData[key] !== undefined) {
-        formData.append(key, movieData[key])
-      }
-    })
-
-    // Thêm file poster nếu có
-    if (posterFile) {
-      formData.append('posterFile', posterFile)
-    }
-
-    const headers = {
-      'Content-Type': 'multipart/form-data',
-      ...getAuthHeaders(),
-    }
-
-    const response = await axios.put(`${API_URL}/movies/${id}`, formData, { headers })
-    return response.data.data.movie
-  }
-
-  /**
-   * Xóa phim (cập nhật trạng thái thành inactive)
-   * @param {number} id - ID của phim cần xóa
-   * @returns {Promise<Object>} - Promise chứa kết quả xóa
-   */
-  async deleteMovie(id) {
-    const response = await axios.delete(`${API_URL}/movies/${id}`, {
-      headers: getAuthHeaders(),
-    })
-    return response.data
+  return {
+    getMovies,
+    getMovieById,
+    createMovie,
+    updateMovie,
+    deleteMovie,
   }
 }
 
-export default new MovieService()
+export default makeMovieService()

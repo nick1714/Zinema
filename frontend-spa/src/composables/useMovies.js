@@ -44,7 +44,12 @@ export function useMovies() {
     error.value = null
 
     try {
-      const result = await movieService.getMovies(filters)
+      // Loại bỏ các tham số rỗng khỏi bộ lọc
+      const cleanFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value !== '' && value !== null),
+      )
+
+      const result = await movieService.getMovies(cleanFilters)
       movies.value = result.movies
 
       // Cập nhật metadata
@@ -69,7 +74,7 @@ export function useMovies() {
       currentMovie.value = await movieService.getMovieById(id)
     } catch (err) {
       console.error('Lỗi khi lấy thông tin phim:', err)
-      
+
       // Xử lý thông báo lỗi chi tiết hơn
       if (err.response) {
         // Lỗi từ server với response
@@ -95,15 +100,14 @@ export function useMovies() {
   /**
    * Tạo phim mới
    * @param {Object} movieData - Dữ liệu phim
-   * @param {File} posterFile - File poster
    */
-  async function createMovie(movieData, posterFile) {
+  async function createMovie(movieData) {
     isLoading.value = true
     error.value = null
 
     try {
-      const createdMovie = await movieService.createMovie(movieData, posterFile)
-      return createdMovie
+      const { movie } = await movieService.createMovie(movieData)
+      return movie
     } catch (err) {
       console.error('Lỗi khi tạo phim:', err)
       error.value = 'Không thể tạo phim. Vui lòng thử lại sau.'
@@ -117,16 +121,15 @@ export function useMovies() {
    * Cập nhật thông tin phim
    * @param {number} id - ID của phim
    * @param {Object} movieData - Dữ liệu phim cần cập nhật
-   * @param {File} posterFile - File poster mới (nếu có)
    */
-  async function updateMovie(id, movieData, posterFile) {
+  async function updateMovie(id, movieData) {
     isLoading.value = true
     error.value = null
 
     try {
-      const updatedMovie = await movieService.updateMovie(id, movieData, posterFile)
-      currentMovie.value = updatedMovie
-      return updatedMovie
+      const { movie } = await movieService.updateMovie(id, movieData)
+      currentMovie.value = movie
+      return movie
     } catch (err) {
       console.error('Lỗi khi cập nhật phim:', err)
 
@@ -229,4 +232,3 @@ export function useMovies() {
     resetFilters,
   }
 }
- 

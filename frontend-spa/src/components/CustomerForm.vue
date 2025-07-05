@@ -68,7 +68,7 @@ function handleCancel() {
         <VeeField name="phone_number" id="phone_number" type="text" placeholder="Nhập số điện thoại" />
         <ErrorMessage name="phone_number" class="error-message" />
       </div>
-    </div>
+      </div>
 
     <div class="form-row">
       <div class="form-group">
@@ -80,10 +80,10 @@ function handleCancel() {
       <div class="form-group">
         <label for="gender">Giới tính</label>
         <VeeField name="gender" id="gender" as="select">
-          <option value="" disabled>Chọn giới tính</option>
-          <option value="male">Nam</option>
-          <option value="female">Nữ</option>
-          <option value="other">Khác</option>
+            <option value="" disabled>Chọn giới tính</option>
+            <option value="male">Nam</option>
+            <option value="female">Nữ</option>
+            <option value="other">Khác</option>
         </VeeField>
         <ErrorMessage name="gender" class="error-message" />
       </div>

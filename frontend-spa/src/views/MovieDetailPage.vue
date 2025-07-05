@@ -3,18 +3,16 @@
     <!-- Header -->
     <div class="page-header">
       <div class="container">
-        <div class="header-content">
-          <h1 class="page-title">
-            <i class="fas fa-film me-2"></i>
-            {{ isEditing ? 'Chỉnh sửa phim' : 'Chi tiết phim' }}
-          </h1>
-        </div>
+        <h1 class="page-title">
+          <i class="fas fa-film me-2"></i>
+          {{ isEditing ? 'Chỉnh sửa phim' : 'Chi tiết phim' }}
+        </h1>
       </div>
     </div>
     
     <div class="container py-4">
       <!-- Loading state -->
-      <div v-if="isLoading" class="loading-container">
+      <div v-if="isLoading && !currentMovie" class="loading-container">
         <div class="spinner"></div>
         <p>Đang tải dữ liệu...</p>
       </div>
@@ -223,40 +221,38 @@
                   <option value="inactive">Ngừng chiếu</option>
                 </select>
               </div>
-              
-              <!-- Form actions -->
-              <div class="form-actions">
-                <button 
-                  v-if="isEditing" 
-                  type="submit" 
-                  class="btn-save"
-                  :disabled="isSubmitting"
-                >
-                  <i class="fas fa-save"></i>
-                  {{ isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi' }}
-                </button>
-                
-                <button 
-                  v-if="isEditing" 
-                  type="button" 
-                  class="btn-cancel"
-                  @click="cancelEdit"
-                >
-                  Hủy
-                </button>
-              </div>
             </form>
           </div>
         </div>
         
-        <!-- Bottom actions outside the form (Edit, Back) -->
-        <div v-if="!isEditing" class="bottom-actions">
-          <button class="btn-edit" @click="startEdit">
+        <!-- Bottom actions -->
+        <div class="bottom-actions">
+          <button v-if="!isEditing" class="btn-edit" @click="startEdit">
             <i class="fas fa-edit"></i>
             Chỉnh sửa thông tin
           </button>
           
-          <button class="btn-back" @click="goBack">
+          <div v-if="isEditing" class="editing-actions">
+            <button 
+              type="button" 
+              class="btn-save"
+              :disabled="isSubmitting"
+              @click="handleSubmit"
+            >
+              <i class="fas fa-save"></i>
+              {{ isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi' }}
+            </button>
+            
+            <button 
+              type="button" 
+              class="btn-cancel"
+              @click="cancelEdit"
+            >
+              Hủy
+            </button>
+          </div>
+          
+          <button v-if="!isEditing" class="btn-back" @click="goBack">
             <i class="fas fa-arrow-left"></i>
             Quay lại
           </button>
@@ -395,11 +391,19 @@ async function handleSubmit() {
   isSubmitting.value = true;
   
   try {
-    await updateMovie(movieId.value, form, selectedPoster.value);
+    const formData = new FormData();
+    Object.keys(form).forEach(key => {
+      formData.append(key, form[key]);
+    });
+    
+    if (selectedPoster.value) {
+      formData.append('posterFile', selectedPoster.value);
+    }
+    
+    await updateMovie(movieId.value, formData);
     isEditing.value = false;
     selectedPoster.value = null;
     selectedPosterPreview.value = '';
-    // Hiển thị thông báo thành công
     alert('Cập nhật phim thành công!');
   } catch (err) {
     console.error('Lỗi khi cập nhật phim:', err);
@@ -827,5 +831,11 @@ onMounted(() => {
   .form-actions button {
     width: 100%;
   }
+}
+
+.editing-actions {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
 }
 </style> 

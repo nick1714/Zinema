@@ -2,18 +2,28 @@
   <div class="movie-list-page">
     <div class="page-header">
       <div class="container">
-        <h1 class="page-title">
-          <i class="fas fa-film me-2"></i>
-          Quản lý phim
-        </h1>
-        <p class="page-subtitle">Thêm, sửa, xóa thông tin phim</p>
-      </div>
-    </div>
-    
-    <div class="container py-4">
-      <!-- Thanh công cụ -->
-      <div class="toolbar">
-        <div class="search-filters">
+        <div class="header-content">
+          <div class="header-title">
+            <h1 class="page-title">
+              <i class="fas fa-film me-2"></i>
+              Quản lý phim
+            </h1>
+            <p class="page-subtitle">Thêm, sửa, xóa thông tin phim</p>
+          </div>
+          <div class="header-actions">
+            <button class="action-btn" @click="resetFilters">
+              <i class="fas fa-sync-alt"></i>
+              <span>Làm mới</span>
+            </button>
+            <router-link to="/admin/movies/add" class="action-btn-primary">
+              <i class="fas fa-plus"></i>
+              <span>Thêm phim mới</span>
+            </router-link>
+          </div>
+        </div>
+        
+        <!-- Search and Filters -->
+        <div class="search-filters-bar">
           <div class="search-box">
             <input 
               type="text" 
@@ -31,17 +41,11 @@
               <option value="">Tất cả</option>
             </select>
           </div>
-          
-          <button class="btn-reset" @click="resetFilters">
-            <i class="fas fa-sync-alt"></i> Đặt lại
-          </button>
         </div>
-        
-        <router-link to="/admin/movies/add" class="btn-add">
-          <i class="fas fa-plus"></i> Thêm phim mới
-        </router-link>
       </div>
-      
+    </div>
+    
+    <div class="container py-4">
       <!-- Loading state -->
       <div v-if="isLoading" class="loading-container">
         <div class="spinner"></div>
@@ -213,21 +217,20 @@ onMounted(() => {
   font-size: 1.1rem;
 }
 
-/* Toolbar */
-.toolbar {
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.search-filters {
+.search-filters-bar {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
 }
 
 .search-box {
@@ -253,6 +256,11 @@ onMounted(() => {
   color: var(--cinema-text-muted);
 }
 
+.filter-group {
+  position: relative;
+  z-index: 1;
+}
+
 .filter-group select {
   padding: 0.75rem 1rem;
   border-radius: 8px;
@@ -263,40 +271,43 @@ onMounted(() => {
   min-width: 150px;
 }
 
-.btn-reset {
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(15, 23, 42, 0.6);
-  color: var(--cinema-text-muted);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  position: relative;
+  z-index: 2;
 }
 
-.btn-reset:hover {
-  background: rgba(15, 23, 42, 0.8);
-  color: var(--cinema-text);
-}
-
-.btn-add {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  background: var(--cinema-gradient-gold);
-  color: var(--cinema-darker);
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
+.action-btn, .action-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none; /* For router-link */
 }
 
-.btn-add:hover {
+.action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--cinema-text);
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.action-btn-primary {
+  background: var(--cinema-gradient-gold);
+  border: 1px solid rgba(247, 197, 72, 0.5);
+  color: var(--cinema-darker);
+}
+
+.action-btn-primary:hover {
   filter: brightness(1.1);
-  box-shadow: 0 4px 12px rgba(247, 197, 72, 0.3);
 }
 
 /* Movie grid */
@@ -453,12 +464,7 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .search-filters {
+  .search-filters-bar {
     flex-direction: column;
     align-items: stretch;
   }
