@@ -13,6 +13,28 @@ const isAuthenticated = ref(!!localStorage.getItem('cinema_token'))
 const currentUser = ref(null)
 
 /**
+ * Khởi tạo trạng thái xác thực khi ứng dụng tải
+ * Sẽ được gọi trong main.js TRƯỚC KHI mount app
+ */
+export async function initAuth() {
+  const token = localStorage.getItem('cinema_token')
+  if (token) {
+    try {
+      // Sử dụng phương thức `getCurrentUser` đã có
+      const userProfile = await authService.getCurrentUser()
+      currentUser.value = userProfile
+      isAuthenticated.value = true
+    } catch (error) {
+      console.error('Auth initialization failed:', error)
+      // Xóa token hỏng nếu có lỗi
+      localStorage.removeItem('cinema_token')
+      currentUser.value = null
+      isAuthenticated.value = false
+    }
+  }
+}
+
+/**
  * Composable cho authentication chính
  * Chỉ chứa các state và actions cơ bản, không tự gọi useQuery
  */

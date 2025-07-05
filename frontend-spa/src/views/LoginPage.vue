@@ -25,10 +25,12 @@ const loginMutation = useMutation({
     isAuthenticated.value = true
     
     // Redirect dựa trên role
-    if (currentUser.value.role === 'customer') {
-      router.push('/movies')
-    } else {
+    if (currentUser.value.role === 'admin') {
       router.push('/admin')
+    } else if (currentUser.value.role === 'staff') {
+      router.push('/staff')
+    } else {
+      router.push('/')
     }
     
     queryClient.invalidateQueries({ queryKey: ['auth'] })
@@ -69,7 +71,13 @@ onMounted(() => {
 
   // If already authenticated, redirect
   if (isAuthenticated.value) {
-    router.push(currentUser.value.role === 'customer' ? '/movies' : '/admin')
+    if (currentUser.value.role === 'admin') {
+      router.push('/admin')
+    } else if (currentUser.value.role === 'staff') {
+      router.push('/staff')
+    } else {
+      router.push('/')
+    }
   }
 })
 
