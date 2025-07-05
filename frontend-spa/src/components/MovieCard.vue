@@ -62,7 +62,7 @@ defineEmits(['delete']);
 
 // Xử lý ảnh lỗi
 const imageError = ref(false);
-const defaultPoster = '/public/images/default-movie-poster.png';
+const defaultPoster = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`;
 
 function handleImageError() {
   imageError.value = true;
@@ -70,11 +70,11 @@ function handleImageError() {
 
 const posterUrl = computed(() => {
   if (imageError.value) {
-    return `${STATIC_BASE_URL}${defaultPoster}`;
+    return defaultPoster;
   }
   
   // movie.poster_url đã được xử lý thành URL đầy đủ trong service
-  return props.movie.poster_url || `${STATIC_BASE_URL}${defaultPoster}`;
+  return props.movie.poster_url || defaultPoster;
 });
 
 // Hiển thị trạng thái
