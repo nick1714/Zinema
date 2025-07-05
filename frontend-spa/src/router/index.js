@@ -48,7 +48,7 @@ const routes = [
     path: '/admin',
     name: 'admin.dashboard',
     component: AdminDashboard,
-    meta: { requiresAuth: true, roles: ['admin', 'employee'] },
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
 
   // Employee Management (Admin only)
@@ -77,7 +77,7 @@ const routes = [
     path: '/customers',
     name: 'customer.list',
     component: CustomerList,
-    meta: { requiresAuth: true, roles: ['admin', 'employee'] },
+    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
   },
   {
     path: '/customers/:id',
