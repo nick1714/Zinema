@@ -14,7 +14,7 @@ const ForbiddenPage = () => import('@/views/ForbiddenPage.vue')
 const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue')
 const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 const StaffDashboard = () => import('@/views/StaffDashboard.vue')
-// const BookingPage = () => import('@/views/BookingPage.vue')
+const BookingPage = () => import('@/views/BookingPage.vue')
 
 // Movie Management
 const AdminMovieList = () => import('@/views/AdminMovieList.vue')
@@ -36,13 +36,13 @@ const routes = [
   },
 
   // Booking Page (Customer/Staff/Admin)
-  // {
-  //   path: '/movies/:movieId/book',
-  //   name: 'movie.book',
-  //   component: BookingPage,
-  //   meta: { requiresAuth: true, roles: ['admin', 'staff', 'customer'] },
-  //   props: true,
-  // },
+  {
+    path: '/movies/:movieId/book',
+    name: 'movie.book',
+    component: BookingPage,
+    meta: { requiresAuth: true, roles: ['admin', 'employee', 'customer'] },
+    props: true,
+  },
 
   // Protected routes
   {
@@ -100,7 +100,7 @@ const routes = [
     path: '/customers',
     name: 'customer.list',
     component: CustomerList,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, roles: ['admin', 'employee'] },
   },
   {
     path: '/customers/:id',
@@ -115,19 +115,19 @@ const routes = [
     path: '/admin/movies',
     name: 'admin.movies',
     component: AdminMovieList,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, roles: ['admin', 'employee'] },
   },
   {
     path: '/admin/movies/add',
     name: 'admin.movies.add',
     component: MovieAddPage,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, roles: ['admin', 'employee'] },
   },
   {
     path: '/admin/movies/:id',
     name: 'admin.movies.detail',
     component: MovieDetailPage,
-    meta: { requiresAuth: true, roles: ['admin', 'staff'] },
+    meta: { requiresAuth: true, roles: ['admin', 'employee'] },
     props: (route) => ({ movieId: route.params.id }),
   },
 
@@ -164,7 +164,7 @@ router.beforeEach((to, from, next) => {
   if (requiresGuest && isAuthenticated.value) {
     // Người dùng đã đăng nhập, không cho vào trang login/register
     if (userRole.value === 'admin') return next({ name: 'admin.dashboard' })
-    if (userRole.value === 'staff') return next({ name: 'staff.dashboard' })
+    if (userRole.value === 'employee') return next({ name: 'staff.dashboard' })
     return next('/') // Mặc định cho customer
   }
 

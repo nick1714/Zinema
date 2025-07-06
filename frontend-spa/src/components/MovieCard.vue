@@ -1,45 +1,31 @@
 <template>
   <div class="movie-card">
     <div class="poster-container">
-      <img 
-        :src="posterUrl" 
-        :alt="movie.title" 
-        class="movie-poster"
-        @error="handleImageError"
-      >
-      <div class="movie-status" :class="statusClass">
+      <img :src="posterUrl" :alt="movie.title" class="movie-poster" @error="handleImageError" />
+      <div v-if="viewMode === 'admin'" class="movie-status" :class="statusClass">
         {{ statusText }}
       </div>
     </div>
-    
+
     <div class="movie-info">
       <h3 class="movie-title">{{ movie.title }}</h3>
-      
+
       <div class="movie-meta">
         <span class="movie-duration">
           <i class="fas fa-clock"></i> {{ movie.duration_min }} phút
         </span>
-        <span class="movie-rating">
-          <i class="fas fa-star"></i> {{ movie.age_rating }}
-        </span>
+        <span class="movie-rating"> <i class="fas fa-star"></i> {{ movie.age_rating }} </span>
       </div>
-      
-      <div class="movie-genre">
-        <i class="fas fa-film"></i> {{ movie.genre }}
-      </div>
-      
+
+      <div class="movie-genre"><i class="fas fa-film"></i> {{ movie.genre }}</div>
+
       <div class="card-actions">
-        <router-link 
-          :to="`/admin/movies/${movie.id}`" 
-          class="btn-view"
-        >
-          <i class="fas fa-eye"></i> Chi tiết
+        <router-link :to="detailLink" class="btn-view">
+          <i :class="viewMode === 'customer' ? 'fas fa-ticket-alt' : 'fas fa-eye'"></i>
+          {{ viewMode === 'customer' ? 'Đặt vé' : 'Chi tiết' }}
         </router-link>
-        
-        <button 
-          @click="$emit('delete', movie.id)" 
-          class="btn-delete"
-        >
+
+        <button v-if="viewMode === 'admin'" @click="$emit('delete', movie.id)" class="btn-delete">
           <i class="fas fa-trash"></i>
         </button>
       </div>
@@ -48,43 +34,54 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
-import { STATIC_BASE_URL } from '@/constants';
+import { computed, ref } from 'vue'
+import { STATIC_BASE_URL } from '@/constants'
 
 const props = defineProps({
   movie: {
     type: Object,
-    required: true
-  }
-});
+    required: true,
+  },
+  viewMode: {
+    type: String,
+    default: 'admin', // 'admin' or 'customer'
+  },
+})
 
-defineEmits(['delete']);
+defineEmits(['delete'])
+
+const detailLink = computed(() => {
+  if (props.viewMode === 'customer') {
+    return { name: 'movie.book', params: { movieId: props.movie.id } }
+  }
+  return `/admin/movies/${props.movie.id}`
+})
 
 // Xử lý ảnh lỗi
-const imageError = ref(false);
-const defaultPoster = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`;
+const imageError = ref(false)
+const defaultPoster = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`
 
 function handleImageError() {
-  imageError.value = true;
+  imageError.value = true
 }
 
 const posterUrl = computed(() => {
   if (imageError.value) {
-    return defaultPoster;
+    return defaultPoster
   }
-  
+
   // movie.poster_url đã được xử lý thành URL đầy đủ trong service
-  return props.movie.poster_url || defaultPoster;
-});
+  return props.movie.poster_url || defaultPoster
+})
 
 // Hiển thị trạng thái
 const statusClass = computed(() => {
-  return props.movie.status === 'active' ? 'status-active' : 'status-inactive';
-});
+  return props.movie.status === 'active' ? 'status-active' : 'status-inactive'
+})
 
 const statusText = computed(() => {
-  return props.movie.status === 'active' ? 'Đang chiếu' : 'Ngừng chiếu';
-});
+  return props.movie.status === 'active' ? 'Đang chiếu' : 'Ngừng chiếu'
+})
 </script>
 
 <style scoped>
@@ -93,7 +90,9 @@ const statusText = computed(() => {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.05);
   height: 100%;
   display: flex;
@@ -233,4 +232,4 @@ const statusText = computed(() => {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.5);
 }
-</style> 
+</style>

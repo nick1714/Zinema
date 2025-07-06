@@ -9,115 +9,108 @@
         </h1>
       </div>
     </div>
-    
+
     <div class="container py-4">
       <!-- Loading state -->
       <div v-if="isLoading && !currentMovie" class="loading-container">
         <div class="spinner"></div>
         <p>Đang tải dữ liệu...</p>
       </div>
-      
+
       <!-- Error state -->
       <div v-else-if="error" class="error-container">
         <i class="fas fa-exclamation-circle"></i>
         <p>{{ error }}</p>
-        <button @click="fetchMovieData" class="btn-retry">
-          Thử lại
-        </button>
+        <button @click="fetchMovieData" class="btn-retry">Thử lại</button>
       </div>
-      
+
       <!-- Movie detail -->
       <div v-else-if="currentMovie" class="movie-content-card">
         <div class="movie-detail-grid">
           <!-- Poster -->
           <div class="poster-section">
             <div class="poster-container">
-              <img 
-                :src="posterUrl" 
-                :alt="currentMovie?.title" 
+              <img
+                :src="posterUrl"
+                :alt="currentMovie?.title"
                 class="movie-poster"
                 @error="handleImageError"
-              >
-              
+              />
+
               <div v-if="isEditing" class="poster-overlay">
                 <label for="poster-upload" class="btn-upload">
                   <i class="fas fa-camera"></i>
                   Thay đổi poster
                 </label>
-                <input 
-                  type="file" 
-                  id="poster-upload" 
+                <input
+                  type="file"
+                  id="poster-upload"
                   accept="image/*"
                   @change="handlePosterChange"
                   class="hidden-input"
-                >
+                />
               </div>
             </div>
-            
+
             <div class="movie-status" :class="statusClass">
               {{ statusText }}
             </div>
-            
+
             <div v-if="selectedPoster" class="selected-poster-preview">
               <p>Poster đã chọn:</p>
               <div class="preview-container">
-                <img :src="selectedPosterPreview" alt="Preview">
+                <img :src="selectedPosterPreview" alt="Preview" />
                 <button @click="cancelPosterSelection" class="btn-cancel-upload">
                   <i class="fas fa-times"></i>
                 </button>
               </div>
             </div>
           </div>
-          
+
           <!-- Form -->
           <div class="form-section">
             <form @submit.prevent="handleSubmit" class="movie-form">
               <!-- Tiêu đề -->
               <div class="form-group">
                 <label for="title">Tiêu đề phim</label>
-                <input 
-                  type="text" 
-                  id="title" 
-                  v-model="form.title" 
+                <input
+                  type="text"
+                  id="title"
+                  v-model="form.title"
                   :disabled="!isEditing"
                   required
-                >
+                />
               </div>
-              
+
               <!-- Mô tả -->
               <div class="form-group">
                 <label for="description">Mô tả</label>
-                <textarea 
-                  id="description" 
-                  v-model="form.description" 
+                <textarea
+                  id="description"
+                  v-model="form.description"
                   :disabled="!isEditing"
                   rows="5"
                   required
                 ></textarea>
               </div>
-              
+
               <!-- Thông tin cơ bản -->
               <div class="form-row">
                 <div class="form-group">
                   <label for="duration">Thời lượng (phút)</label>
-                  <input 
-                    type="number" 
-                    id="duration" 
-                    v-model.number="form.duration" 
+                  <input
+                    type="number"
+                    id="duration"
+                    v-model.number="form.duration"
                     :disabled="!isEditing"
                     min="1"
                     required
-                  >
+                  />
                 </div>
-                
+
                 <div class="form-group">
                   <label for="rating">Phân loại</label>
-                  <select 
-                    id="rating" 
-                    v-model="form.rating" 
-                    :disabled="!isEditing"
-                    required
-                  >
+                  <select id="rating" v-model="form.rating" :disabled="!isEditing" required>
                     <option value="G">G (Mọi lứa tuổi)</option>
                     <option value="PG">PG (Có phụ huynh hướng dẫn)</option>
                     <option value="PG-13">PG-13 (Dưới 13 tuổi xem với phụ huynh)</option>
@@ -130,93 +123,84 @@
                   </select>
                 </div>
               </div>
-              
+
               <div class="form-row">
                 <div class="form-group">
                   <label for="release_date">Ngày công chiếu</label>
-                  <input 
-                    type="date" 
-                    id="release_date" 
-                    v-model="form.release_date" 
+                  <input
+                    type="date"
+                    id="release_date"
+                    v-model="form.release_date"
                     :disabled="!isEditing"
                     required
-                  >
+                  />
                 </div>
-                
+
                 <div class="form-group">
                   <label for="end_date">Ngày kết thúc (tùy chọn)</label>
-                  <input 
-                    type="date" 
-                    id="end_date" 
-                    v-model="form.end_date" 
-                    :disabled="!isEditing"
-                  >
+                  <input type="date" id="end_date" v-model="form.end_date" :disabled="!isEditing" />
                 </div>
               </div>
-              
+
               <!-- Thông tin chi tiết -->
               <div class="form-group">
                 <label for="genre">Thể loại</label>
-                <input 
-                  type="text" 
-                  id="genre" 
-                  v-model="form.genre" 
+                <input
+                  type="text"
+                  id="genre"
+                  v-model="form.genre"
                   :disabled="!isEditing"
                   required
-                >
+                />
               </div>
-              
+
               <div class="form-group">
                 <label for="director">Đạo diễn</label>
-                <input 
-                  type="text" 
-                  id="director" 
-                  v-model="form.director" 
+                <input
+                  type="text"
+                  id="director"
+                  v-model="form.director"
                   :disabled="!isEditing"
                   required
-                >
+                />
               </div>
-              
+
               <div class="form-group">
                 <label for="cast">Diễn viên</label>
-                <textarea 
-                  id="cast" 
-                  v-model="form.cast" 
+                <textarea
+                  id="cast"
+                  v-model="form.cast"
                   :disabled="!isEditing"
                   rows="2"
                   required
                 ></textarea>
               </div>
-              
+
               <div class="form-group">
                 <label for="country">Quốc gia</label>
-                <input 
-                  type="text" 
-                  id="country" 
-                  v-model="form.country" 
+                <input
+                  type="text"
+                  id="country"
+                  v-model="form.country"
                   :disabled="!isEditing"
                   required
-                >
+                />
               </div>
-              
+
               <div class="form-group">
                 <label for="trailer_url">URL Trailer (tùy chọn)</label>
-                <input 
-                  type="url" 
-                  id="trailer_url" 
-                  v-model="form.trailer_url" 
+                <input
+                  type="url"
+                  id="trailer_url"
+                  v-model="form.trailer_url"
                   :disabled="!isEditing"
                   placeholder="https://www.youtube.com/watch?v=..."
-                >
+                />
               </div>
-              
+
               <div v-if="isEditing" class="form-group">
                 <label for="status">Trạng thái</label>
-                <select 
-                  id="status" 
-                  v-model="form.status" 
-                  required
-                >
+                <select id="status" v-model="form.status" required>
                   <option value="active">Đang chiếu</option>
                   <option value="inactive">Ngừng chiếu</option>
                 </select>
@@ -224,34 +208,23 @@
             </form>
           </div>
         </div>
-        
+
         <!-- Bottom actions -->
         <div class="bottom-actions">
           <button v-if="!isEditing" class="btn-edit" @click="startEdit">
             <i class="fas fa-edit"></i>
             Chỉnh sửa thông tin
           </button>
-          
+
           <div v-if="isEditing" class="editing-actions">
-            <button 
-              type="button" 
-              class="btn-save"
-              :disabled="isSubmitting"
-              @click="handleSubmit"
-            >
+            <button type="button" class="btn-save" :disabled="isSubmitting" @click="handleSubmit">
               <i class="fas fa-save"></i>
               {{ isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi' }}
             </button>
-            
-            <button 
-              type="button" 
-              class="btn-cancel"
-              @click="cancelEdit"
-            >
-              Hủy
-            </button>
+
+            <button type="button" class="btn-cancel" @click="cancelEdit">Hủy</button>
           </div>
-          
+
           <button v-if="!isEditing" class="btn-back" @click="goBack">
             <i class="fas fa-arrow-left"></i>
             Quay lại
@@ -263,31 +236,25 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useMovies } from '@/composables/useMovies';
-import { STATIC_BASE_URL } from '@/constants';
+import { ref, computed, onMounted, reactive } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useMovies } from '@/composables/useMovies'
+import { STATIC_BASE_URL } from '@/constants'
 
-const route = useRoute();
-const router = useRouter();
-const movieId = computed(() => route.params.id);
+const route = useRoute()
+const router = useRouter()
+const movieId = computed(() => route.params.id)
 
 // Composable
-const { 
-  currentMovie, 
-  isLoading, 
-  error, 
-  fetchMovieById,
-  updateMovie
-} = useMovies();
+const { currentMovie, isLoading, error, fetchMovieById, updateMovie } = useMovies()
 
 // Edit state
-const isEditing = ref(false);
-const isSubmitting = ref(false);
-const selectedPoster = ref(null);
-const selectedPosterPreview = ref('');
-const imageError = ref(false);
-const defaultPoster = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`;
+const isEditing = ref(false)
+const isSubmitting = ref(false)
+const selectedPoster = ref(null)
+const selectedPosterPreview = ref('')
+const imageError = ref(false)
+const defaultPoster = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`
 
 // Form data
 const form = reactive({
@@ -302,137 +269,137 @@ const form = reactive({
   country: '',
   rating: '',
   trailer_url: '',
-  status: 'active'
-});
+  status: 'active',
+})
 
 // Computed
 const posterUrl = computed(() => {
   if (imageError.value) {
-    return defaultPoster;
+    return defaultPoster
   }
-  
+
   if (selectedPosterPreview.value) {
-    return selectedPosterPreview.value;
+    return selectedPosterPreview.value
   }
-  
+
   // currentMovie.poster_url đã được xử lý thành URL đầy đủ trong service
-  return currentMovie.value?.poster_url || defaultPoster;
-});
+  return currentMovie.value?.poster_url || defaultPoster
+})
 
 const statusClass = computed(() => {
-  return form.status === 'active' ? 'status-active' : 'status-inactive';
-});
+  return form.status === 'active' ? 'status-active' : 'status-inactive'
+})
 
 const statusText = computed(() => {
-  return form.status === 'active' ? 'Đang chiếu' : 'Ngừng chiếu';
-});
+  return form.status === 'active' ? 'Đang chiếu' : 'Ngừng chiếu'
+})
 
 // Methods
 function handleImageError() {
-  imageError.value = true;
+  imageError.value = true
 }
 
 function handlePosterChange(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
+  const file = event.target.files[0]
+  if (!file) return
+
   // Validate file type
   if (!file.type.match('image.*')) {
-    alert('Vui lòng chọn file hình ảnh');
-    return;
+    alert('Vui lòng chọn file hình ảnh')
+    return
   }
-  
+
   // Preview
-  selectedPoster.value = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    selectedPosterPreview.value = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  selectedPoster.value = file
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    selectedPosterPreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
 }
 
 function cancelPosterSelection() {
-  selectedPoster.value = null;
-  selectedPosterPreview.value = '';
-  document.getElementById('poster-upload').value = '';
+  selectedPoster.value = null
+  selectedPosterPreview.value = ''
+  document.getElementById('poster-upload').value = ''
 }
 
 function startEdit() {
-  isEditing.value = true;
+  isEditing.value = true
 }
 
 function cancelEdit() {
-  isEditing.value = false;
-  selectedPoster.value = null;
-  selectedPosterPreview.value = '';
-  
+  isEditing.value = false
+  selectedPoster.value = null
+  selectedPosterPreview.value = ''
+
   // Reset form to current movie data
   if (currentMovie.value) {
-    populateForm(currentMovie.value);
+    populateForm(currentMovie.value)
   }
 }
 
 function populateForm(movie) {
-  form.title = movie.title || '';
-  form.description = movie.description || '';
-  form.duration = movie.duration_min || 0;
-  form.release_date = movie.release_date ? movie.release_date.split('T')[0] : '';
-  form.end_date = movie.end_date ? movie.end_date.split('T')[0] : '';
-  form.genre = movie.genre || '';
-  form.director = movie.director || '';
-  form.cast = movie.cast || '';
-  form.country = movie.country || '';
-  form.rating = movie.age_rating || '';
-  form.trailer_url = movie.trailer_url || '';
-  form.status = movie.status || 'active';
+  form.title = movie.title || ''
+  form.description = movie.description || ''
+  form.duration = movie.duration_min || 0
+  form.release_date = movie.release_date ? movie.release_date.split('T')[0] : ''
+  form.end_date = movie.end_date ? movie.end_date.split('T')[0] : ''
+  form.genre = movie.genre || ''
+  form.director = movie.director || ''
+  form.cast = movie.cast || ''
+  form.country = movie.country || ''
+  form.rating = movie.age_rating || ''
+  form.trailer_url = movie.trailer_url || ''
+  form.status = movie.status || 'active'
 }
 
 async function handleSubmit() {
-  isSubmitting.value = true;
-  
+  isSubmitting.value = true
+
   try {
-    const formData = new FormData();
-    Object.keys(form).forEach(key => {
-      formData.append(key, form[key]);
-    });
-    
+    const formData = new FormData()
+    Object.keys(form).forEach((key) => {
+      formData.append(key, form[key])
+    })
+
     if (selectedPoster.value) {
-      formData.append('posterFile', selectedPoster.value);
+      formData.append('posterFile', selectedPoster.value)
     }
-    
-    await updateMovie(movieId.value, formData);
-    isEditing.value = false;
-    selectedPoster.value = null;
-    selectedPosterPreview.value = '';
-    alert('Cập nhật phim thành công!');
+
+    await updateMovie(movieId.value, formData)
+    isEditing.value = false
+    selectedPoster.value = null
+    selectedPosterPreview.value = ''
+    alert('Cập nhật phim thành công!')
   } catch (err) {
-    console.error('Lỗi khi cập nhật phim:', err);
+    console.error('Lỗi khi cập nhật phim:', err)
     // Hiển thị thông báo lỗi từ composable
     if (error.value) {
-      alert(error.value);
+      alert(error.value)
     } else {
-      alert('Có lỗi xảy ra khi cập nhật phim. Vui lòng thử lại sau.');
+      alert('Có lỗi xảy ra khi cập nhật phim. Vui lòng thử lại sau.')
     }
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
 }
 
 async function fetchMovieData() {
-  await fetchMovieById(movieId.value);
+  await fetchMovieById(movieId.value)
   if (currentMovie.value) {
-    populateForm(currentMovie.value);
+    populateForm(currentMovie.value)
   }
 }
 
 function goBack() {
-  router.push('/admin/movies');
+  router.push('/admin/movies')
 }
 
 // Lifecycle
 onMounted(() => {
-  fetchMovieData();
-});
+  fetchMovieData()
+})
 </script>
 
 <style scoped>
@@ -469,7 +436,8 @@ onMounted(() => {
 }
 
 /* Loading & Error */
-.loading-container, .error-container {
+.loading-container,
+.error-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -488,7 +456,9 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-container {
@@ -812,7 +782,7 @@ onMounted(() => {
   .movie-detail-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .poster-section {
     max-width: 300px;
     margin: 0 auto;
@@ -823,11 +793,11 @@ onMounted(() => {
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .form-actions button {
     width: 100%;
   }
@@ -838,4 +808,4 @@ onMounted(() => {
   gap: 1rem;
   margin-left: auto;
 }
-</style> 
+</style>
