@@ -222,11 +222,47 @@ async function confirmBooking(req, res) {
     }
 }
 
+/**
+ * Dọn dẹp các booking pending đã hết hạn
+ * POST /api/bookings/cleanup
+ */
+async function cleanupExpiredBookings(req, res) {
+    try {
+        const user = req.user; // Từ auth middleware
+        
+        // Chỉ admin mới có quyền cleanup
+        if (user.role !== 'admin') {
+            return res.status(403).json(JSend.fail('Bạn không có quyền thực hiện thao tác này'));
+        }
+
+        console.log('Cleanup expired bookings request:', {
+            user: { id: user.id, role: user.role }
+        });
+
+        const cleanedCount = await bookingService.cleanupExpiredBookings();
+
+        console.log('Cleanup expired bookings success:', {
+            cleanedCount
+        });
+
+        return res.status(200).json(JSend.success({
+            message: `Đã dọn dẹp ${cleanedCount} booking hết hạn`,
+            data: { cleanedCount }
+        }));
+    } catch (error) {
+        console.error('Cleanup expired bookings error:', error);
+        return res.status(500).json(JSend.error('Lỗi khi dọn dẹp booking hết hạn', {
+            error: error.message
+        }));
+    }
+}
+
 module.exports = {
     getAllBookings,
     getBookingById,
     createBooking,
     confirmBooking,
     updateBooking,
-    deleteBooking
+    deleteBooking,
+    cleanupExpiredBookings
 }; 

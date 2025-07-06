@@ -57,7 +57,7 @@ function canAccessBooking(user, booking) {
     
     // Customer chỉ có thể truy cập booking của mình
     if (user.role === ROLES.CUSTOMER) {
-        return booking.customer_id === user.id;
+        return booking.customer_account_id === user.id;
     }
     
     return false;
@@ -89,6 +89,7 @@ async function getAllBookings(queryParams, user) {
                 'ticket_bookings.*',
                 'customers.full_name as customer_name',
                 'customers.phone_number as customer_phone',
+                'customers.account_id as customer_account_id',
                 'movies.title as movie_title',
                 'cinema_rooms.name as room_name',
                 'showtimes.start_time',
@@ -189,6 +190,7 @@ async function getBookingById(id, user) {
                 'ticket_bookings.*',
                 'customers.full_name as customer_name',
                 'customers.phone_number as customer_phone',
+                'customers.account_id as customer_account_id',
                 'movies.title as movie_title',
                 'movies.duration_min as movie_duration',
                 'movies.age_rating as movie_rating',
@@ -420,6 +422,13 @@ async function createBooking(bookingData, user) {
             throw new Error('Không thể đặt vé cho suất chiếu đã bắt đầu');
         }
 
+        // Dọn dẹp các booking pending đã hết hạn (quá 15 phút)
+        const expiredTime = new Date(Date.now() - 15 * 60 * 1000); // 15 phút trước
+        await ticketBookingRepository()
+            .where('status', 'pending')
+            .where('created_at', '<', expiredTime)
+            .update({ status: 'cancelled' });
+
         // Kiểm tra ghế đã được đặt chưa
         const bookedSeats = await ticketRepository()
             .leftJoin('ticket_bookings', 'tickets.ticket_booking_id', 'ticket_bookings.id')
@@ -434,19 +443,26 @@ async function createBooking(bookingData, user) {
         }
 
         // Xác định customer_id
-        let customerId = user.id;
-        
+        let customerId
+
         // Nếu là staff đặt hộ khách hàng
         if ((user.role === ROLES.STAFF || user.role === ROLES.ADMIN) && customer_phone) {
-            const customer = await customerRepository()
-                .where('phone_number', customer_phone)
-                .first();
-            
-            if (!customer) {
-                throw new Error(`Không tìm thấy khách hàng với số điện thoại ${customer_phone}`);
-            }
-            
-            customerId = customer.id;
+          const customer = await customerRepository().where('phone_number', customer_phone).first()
+
+          if (!customer) {
+            throw new Error(`Không tìm thấy khách hàng với số điện thoại ${customer_phone}`)
+          }
+
+          customerId = customer.id
+        } else {
+          // Khách hàng tự đặt vé
+          const customer = await customerRepository().where('account_id', user.id).first()
+
+          if (!customer) {
+            throw new Error(`Không tìm thấy hồ sơ khách hàng cho tài khoản này.`)
+          }
+
+          customerId = customer.id
         }
 
         // Validate seats và tính toán giá
@@ -633,6 +649,27 @@ async function confirmBooking(bookingId, confirmData, user) {
     }
 }
 
+/**
+ * Dọn dẹp các booking pending đã hết hạn
+ * @param {number} timeoutMinutes - Thời gian hết hạn tính bằng phút (mặc định 15 phút)
+ * @returns {Promise<number>} - Số lượng booking đã được dọn dẹp
+ */
+async function cleanupExpiredBookings(timeoutMinutes = 15) {
+    try {
+        const expiredTime = new Date(Date.now() - timeoutMinutes * 60 * 1000);
+        const result = await ticketBookingRepository()
+            .where('status', 'pending')
+            .where('created_at', '<', expiredTime)
+            .update({ status: 'cancelled' });
+        
+        console.log(`Cleaned up ${result} expired pending bookings`);
+        return result;
+    } catch (error) {
+        console.error('Error cleaning up expired bookings:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     getAllBookings,
     getBookingById,
@@ -641,5 +678,6 @@ module.exports = {
     updateBooking,
     deleteBooking,
     generateBookingCode,
-    canAccessBooking
+    canAccessBooking,
+    cleanupExpiredBookings
 }; 

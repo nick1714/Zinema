@@ -81,6 +81,17 @@ router.put('/:id',
 );
 
 /**
+ * @route POST /api/bookings/cleanup
+ * @desc Dọn dẹp các booking pending đã hết hạn
+ * @access Private (Admin only)
+ */
+router.post('/cleanup',
+    authenticateToken,
+    authorizeRoles([ROLES.ADMIN]),
+    bookingController.cleanupExpiredBookings
+);
+
+/**
  * @route DELETE /api/bookings/:id
  * @desc Xóa booking (chỉ admin)
  * @access Private (Admin only)

@@ -258,17 +258,17 @@ async function getSeatsForShowtime(showtimeId) {
             'seats.row', 
             'seats.column',
             'seat_types.name as type',
-            'seat_types.surcharge'
+            'seat_types.price as surcharge'
         )
         .orderBy(['seats.row', 'seats.column']);
 
     // 3. Lấy ID của các ghế đã được đặt cho suất chiếu này
     const bookedSeatIds = await knex('tickets')
-        .join('ticket_bookings', 'tickets.ticket_booking_id', 'ticket_bookings.id')
-        .where('ticket_bookings.showtime_id', showtimeId)
-        // Chỉ tính những booking đã xác nhận hoặc hoàn thành
-        .whereIn('ticket_bookings.status', ['confirmed', 'completed'])
-        .pluck('tickets.seat_id');
+      .join('ticket_bookings', 'tickets.ticket_booking_id', 'ticket_bookings.id')
+      .where('ticket_bookings.showtime_id', showtimeId)
+      // Tính tất cả booking đang pending, confirmed hoặc completed
+      .whereIn('ticket_bookings.status', ['pending', 'confirmed', 'completed'])
+      .pluck('tickets.seat_id');
 
     // 4. Map trạng thái (booked/available) vào danh sách ghế
     const seatsWithStatus = allSeats.map(seat => ({
