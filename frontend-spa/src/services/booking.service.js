@@ -1,0 +1,91 @@
+import { API_BASE_URL } from '@/constants';
+
+/**
+ * Custom fetch wrapper with error handling
+ * @param {string} url
+ * @param {RequestInit} options
+ * @returns {Promise<any>}
+ */
+async function efetch(url, options = {}) {
+    let result = {};
+    let json = {};
+
+    try {
+        result = await fetch(url, options);
+        json = await result.json();
+    } catch (error) {
+        throw new Error(error.message);
+    }
+    
+    if (!result.ok || json.status !== 'success') {
+        throw new Error(json.message || 'Request failed');
+    }
+    
+    return json.data;
+}
+
+function makeBookingService() {
+    const baseUrl = `${API_BASE_URL}/bookings`;
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('cinema_token');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    /**
+     * Creates a new booking
+     * @param {Object} bookingData - Data to create a booking
+     * @param {number} bookingData.showtime_id - Showtime ID
+     * @param {Array<number>} bookingData.seat_ids - Array of selected seat IDs
+     * @param {Array<{food_id: number, quantity: number}>} [bookingData.foods] - Array of selected foods (optional)
+     * @returns {Promise<Object>} - The created booking data
+     */
+    async function createBooking(bookingData) {
+        return efetch(baseUrl, {
+            method: 'POST',
+            headers: { 
+                ...getAuthHeaders(),
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(bookingData),
+        });
+    }
+
+    /**
+     * Gets detailed information of a booking
+     * @param {number} id - Booking ID
+     * @returns {Promise<Object>} - Detailed booking data
+     */
+    async function getBookingById(id) {
+        const data = await efetch(`${baseUrl}/${id}`, { 
+            headers: getAuthHeaders() 
+        });
+        return data.booking;
+    }
+
+    /**
+     * Confirms and pays for a booking
+     * @param {number} id - Booking ID
+     * @param {Object} confirmData - Confirmation data (e.g., payment method)
+     * @param {string} confirmData.payment_method - Payment method
+     * @returns {Promise<Object>} - Booking data after confirmation
+     */
+    async function confirmBooking(id, confirmData) {
+        return efetch(`${baseUrl}/${id}/confirm`, {
+            method: 'POST',
+            headers: { 
+                ...getAuthHeaders(),
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(confirmData),
+        });
+    }
+
+    return {
+        createBooking,
+        getBookingById,
+        confirmBooking,
+    };
+}
+
+export default makeBookingService(); 
