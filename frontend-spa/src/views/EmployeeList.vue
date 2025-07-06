@@ -10,16 +10,16 @@ import authService from '@/services/auth.service'
 const router = useRouter()
 const { canManageEmployees } = useAuth()
 
-const { 
-  data: employeesData, 
-  isLoading, 
-  isError, 
-  refetch 
+const {
+  data: employeesData,
+  isLoading,
+  isError,
+  refetch,
 } = useQuery({
   queryKey: ['employees'],
   queryFn: authService.getAllEmployees,
-});
-const employees = computed(() => employeesData.value?.employees || []);
+})
+const employees = computed(() => employeesData.value?.employees || [])
 
 const searchText = ref('')
 
@@ -64,33 +64,36 @@ function goToEmployeeDetail(employee) {
 
           <div class="header-actions">
             <button class="action-btn" @click="refetch" :disabled="isLoading">
-              <i class="fas fa-sync-alt" :class="{'fa-spin': isLoading}"></i>
+              <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
               <span>Làm mới</span>
-          </button>
+            </button>
             <button v-if="canManageEmployees" class="action-btn-primary" @click="goToAddEmployee">
               <i class="fas fa-plus"></i>
               <span>Thêm nhân viên</span>
-          </button>
+            </button>
+          </div>
         </div>
-      </div>
 
         <!-- Search bar -->
         <div class="search-container">
-          <InputSearch v-model="searchText" placeholder="Tìm kiếm nhân viên theo tên, mã, email, số điện thoại..." />
-        </div>
+          <InputSearch
+            v-model="searchText"
+            placeholder="Tìm kiếm nhân viên theo tên, mã, email, số điện thoại..."
+          />
         </div>
       </div>
+    </div>
 
     <!-- Page content -->
     <div class="page-content">
       <div class="container">
-      <!-- Loading State -->
+        <!-- Loading State -->
         <div v-if="isLoading" class="loading-state">
           <div class="loader"><i class="fas fa-circle-notch fa-spin"></i></div>
           <p>Đang tải danh sách nhân viên...</p>
-      </div>
+        </div>
 
-      <!-- Error State -->
+        <!-- Error State -->
         <div v-else-if="isError" class="error-state">
           <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
           <h3>Đã xảy ra lỗi!</h3>
@@ -98,9 +101,9 @@ function goToEmployeeDetail(employee) {
           <button class="action-btn-primary" @click="refetch">
             <i class="fas fa-redo"></i> Thử lại
           </button>
-      </div>
+        </div>
 
-      <!-- Employee List -->
+        <!-- Employee List -->
         <div v-else-if="filteredEmployees.length > 0" class="employee-grid">
           <UserCard
             v-for="employee in filteredEmployees"
@@ -110,15 +113,13 @@ function goToEmployeeDetail(employee) {
             :can-edit="canManageEmployees"
             @view-details="goToEmployeeDetail"
           />
-      </div>
+        </div>
 
-      <!-- Empty State -->
+        <!-- Empty State -->
         <div v-else class="empty-state">
           <div class="empty-icon"><i class="fas fa-users-cog"></i></div>
           <h3>Không tìm thấy nhân viên</h3>
-          <p v-if="searchText">
-            Không có nhân viên nào khớp với từ khóa "{{ searchText }}".
-          </p>
+          <p v-if="searchText">Không có nhân viên nào khớp với từ khóa "{{ searchText }}".</p>
           <p v-else>Chưa có nhân viên nào trong hệ thống.</p>
         </div>
       </div>
@@ -152,6 +153,7 @@ function goToEmployeeDetail(employee) {
   bottom: 0;
   background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 5v1H0V0h5z'/%3E%3C/g%3E%3C/svg%3E");
   opacity: 0.3;
+  pointer-events: none;
 }
 
 .header-content {
@@ -182,7 +184,8 @@ function goToEmployeeDetail(employee) {
   gap: 0.75rem;
 }
 
-.action-btn, .action-btn-primary {
+.action-btn,
+.action-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -213,7 +216,8 @@ function goToEmployeeDetail(employee) {
   filter: brightness(1.1);
 }
 
-.action-btn:disabled, .action-btn-primary:disabled {
+.action-btn:disabled,
+.action-btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -239,7 +243,9 @@ function goToEmployeeDetail(employee) {
 }
 
 /* States */
-.loading-state, .error-state, .empty-state {
+.loading-state,
+.error-state,
+.empty-state {
   text-align: center;
   padding: 4rem 0;
   color: var(--cinema-text-muted);
@@ -247,15 +253,21 @@ function goToEmployeeDetail(employee) {
   margin: 0 auto;
 }
 
-.loader, .error-icon, .empty-icon {
+.loader,
+.error-icon,
+.empty-icon {
   font-size: 3rem;
   color: var(--cinema-primary);
   margin-bottom: 1.5rem;
   opacity: 0.8;
 }
 
-.error-icon { color: #ef4444; }
-.empty-icon { opacity: 0.5; }
+.error-icon {
+  color: #ef4444;
+}
+.empty-icon {
+  opacity: 0.5;
+}
 
 h3 {
   color: var(--cinema-text);

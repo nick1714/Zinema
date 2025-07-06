@@ -10,16 +10,16 @@ import authService from '@/services/auth.service'
 const router = useRouter()
 const { canManageCustomers, isCustomer } = useAuth()
 
-const { 
-  data: customersData, 
-  isLoading, 
-  isError, 
-  refetch 
+const {
+  data: customersData,
+  isLoading,
+  isError,
+  refetch,
 } = useQuery({
   queryKey: ['customers'],
   queryFn: authService.getAllCustomers,
-});
-const customers = computed(() => customersData.value?.customers || []);
+})
+const customers = computed(() => customersData.value?.customers || [])
 
 /**
  * Chuyển hướng nếu khách hàng cố gắng truy cập danh sách khách hàng
@@ -77,18 +77,21 @@ function goToCustomerDetail(customer) {
 
           <div class="header-actions">
             <button class="refresh-btn" @click="refetch" :disabled="isLoading">
-              <i class="fas fa-sync-alt" :class="{'fa-spin': isLoading}"></i>
+              <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
               <span>{{ isLoading ? 'Đang tải...' : 'Làm mới' }}</span>
-        </button>
+            </button>
           </div>
-      </div>
+        </div>
 
         <!-- Search bar -->
         <div class="search-container">
-          <InputSearch v-model="searchText" placeholder="Tìm kiếm khách hàng theo tên, email, số điện thoại..." />
-        </div>
+          <InputSearch
+            v-model="searchText"
+            placeholder="Tìm kiếm khách hàng theo tên, email, số điện thoại..."
+          />
         </div>
       </div>
+    </div>
 
     <!-- Page content -->
     <div class="page-content">
@@ -105,14 +108,14 @@ function goToCustomerDetail(customer) {
         <div v-else-if="isError" class="error-state">
           <div class="error-icon">
             <i class="fas fa-exclamation-triangle"></i>
-      </div>
+          </div>
           <h3>Đã xảy ra lỗi!</h3>
           <p>Không thể tải danh sách khách hàng. Vui lòng thử lại.</p>
           <button class="btn-cinema" @click="refetch">
             <i class="fas fa-redo"></i>
             Thử lại
           </button>
-      </div>
+        </div>
 
         <!-- Customer list -->
         <div v-else-if="filteredCustomers.length > 0" class="customer-grid">
@@ -130,11 +133,11 @@ function goToCustomerDetail(customer) {
         <div v-else class="empty-state">
           <div class="empty-icon">
             <i class="fas fa-users"></i>
-      </div>
+          </div>
           <h3>Không tìm thấy khách hàng</h3>
           <p v-if="searchText">
-            Không có khách hàng nào khớp với từ khóa "{{ searchText }}".
-            <br />Hãy thử tìm kiếm với từ khóa khác.
+            Không có khách hàng nào khớp với từ khóa "{{ searchText }}". <br />Hãy thử tìm kiếm với
+            từ khóa khác.
           </p>
           <p v-else>Chưa có khách hàng nào trong hệ thống.</p>
         </div>
@@ -169,6 +172,7 @@ function goToCustomerDetail(customer) {
   bottom: 0;
   background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 5v1H0V0h5z'/%3E%3C/g%3E%3C/svg%3E");
   opacity: 0.3;
+  pointer-events: none;
 }
 
 .header-content {
@@ -301,7 +305,7 @@ function goToCustomerDetail(customer) {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .customer-grid {
     grid-template-columns: 1fr;
   }
