@@ -53,7 +53,14 @@ const addModeSchema = baseSchema
 const validationSchema = toTypedSchema(props.isEditMode ? baseSchema : addModeSchema)
 
 function handleSubmit(values) {
-  emit('submit', values)
+  const payload = { ...values }
+  // Convert empty strings to null for optional DB fields
+  Object.keys(payload).forEach((key) => {
+    if (payload[key] === '') {
+      payload[key] = null
+    }
+  })
+  emit('submit', payload)
 }
 
 function handleCancel() {
@@ -63,7 +70,7 @@ function handleCancel() {
 
 <template>
   <VeeForm
-    as="div"
+    as="form"
     class="employee-form"
     :validation-schema="validationSchema"
     :initial-values="initialValues"
@@ -78,16 +85,21 @@ function handleCancel() {
 
       <div class="form-group">
         <label for="phone_number">Số điện thoại <span class="required">*</span></label>
-        <VeeField name="phone_number" id="phone_number" type="text" placeholder="Nhập số điện thoại" />
+        <VeeField
+          name="phone_number"
+          id="phone_number"
+          type="text"
+          placeholder="Nhập số điện thoại"
+        />
         <ErrorMessage name="phone_number" class="error-message" />
       </div>
-      </div>
+    </div>
 
     <div class="form-group">
       <label for="email">Email</label>
       <VeeField name="email" id="email" type="email" placeholder="Nhập địa chỉ email" />
       <ErrorMessage name="email" class="error-message" />
-      </div>
+    </div>
 
     <div class="form-row">
       <div class="form-group">
@@ -99,24 +111,24 @@ function handleCancel() {
       <div class="form-group">
         <label for="gender">Giới tính</label>
         <VeeField name="gender" id="gender" as="select">
-            <option value="" disabled>Chọn giới tính</option>
-            <option value="male">Nam</option>
-            <option value="female">Nữ</option>
-            <option value="other">Khác</option>
+          <option value="" disabled>Chọn giới tính</option>
+          <option value="male">Nam</option>
+          <option value="female">Nữ</option>
+          <option value="other">Khác</option>
         </VeeField>
         <ErrorMessage name="gender" class="error-message" />
       </div>
     </div>
-    
+
     <div class="form-group">
       <label for="position">Vị trí</label>
       <VeeField name="position" id="position" as="select">
-            <option value="" disabled>Chọn vị trí</option>
-            <option value="Nhân viên bán vé">Nhân viên bán vé</option>
-            <option value="Nhân viên vệ sinh">Nhân viên vệ sinh</option>
-        </VeeField>
+        <option value="" disabled>Chọn vị trí</option>
+        <option value="Nhân viên bán vé">Nhân viên bán vé</option>
+        <option value="Nhân viên vệ sinh">Nhân viên vệ sinh</option>
+      </VeeField>
       <ErrorMessage name="position" class="error-message" />
-      </div>
+    </div>
 
     <div class="form-group">
       <label for="address">Địa chỉ</label>
@@ -130,11 +142,16 @@ function handleCancel() {
           <label for="password">Mật khẩu <span class="required">*</span></label>
           <VeeField name="password" id="password" type="password" placeholder="Nhập mật khẩu" />
           <ErrorMessage name="password" class="error-message" />
-      </div>
+        </div>
 
         <div class="form-group">
           <label for="password_confirm">Xác nhận mật khẩu <span class="required">*</span></label>
-          <VeeField name="password_confirm" id="password_confirm" type="password" placeholder="Xác nhận lại mật khẩu" />
+          <VeeField
+            name="password_confirm"
+            id="password_confirm"
+            type="password"
+            placeholder="Xác nhận lại mật khẩu"
+          />
           <ErrorMessage name="password_confirm" class="error-message" />
         </div>
       </div>
