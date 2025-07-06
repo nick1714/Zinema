@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import AuthForm from '@/components/AuthForm.vue'
@@ -22,7 +22,7 @@ const loginMutation = useMutation({
     localStorage.setItem('cinema_token', data.token)
     setCurrentUser({ ...data.user, role: data.account?.role })
     isAuthenticated.value = true
-    
+
     // Redirect dựa trên role
     if (userRole.value === 'admin') {
       router.push('/admin')
@@ -31,14 +31,16 @@ const loginMutation = useMutation({
     } else {
       router.push('/')
     }
-    
+
     queryClient.invalidateQueries({ queryKey: ['auth'] })
   },
   onError: (error) => {
     console.error('Login error:', error)
     alert('Đăng nhập thất bại: ' + error.message)
-  }
+  },
 })
+
+const isLoading = computed(() => loginMutation.isPending.value)
 
 // If already authenticated, redirect on mount
 onMounted(() => {
@@ -75,11 +77,11 @@ function handleGoogleLogin() {
               <i class="fas fa-film"></i>
               <span>ZINEMA</span>
             </div>
-            
+
             <!-- Tiêu đề và slogan -->
             <h1 class="display-4 text-gradient mb-4">Quản Lý Rạp Chiếu Phim</h1>
             <p class="lead mb-5">Giải pháp hiện đại cho rạp chiếu phim của bạn</p>
-            
+
             <!-- Các tính năng -->
             <div class="features">
               <div class="feature-item">
@@ -91,7 +93,7 @@ function handleGoogleLogin() {
                   <p>Hệ thống đặt vé trực tuyến nhanh chóng, dễ dàng</p>
                 </div>
               </div>
-              
+
               <div class="feature-item">
                 <div class="feature-icon">
                   <i class="fas fa-chart-line"></i>
@@ -101,7 +103,7 @@ function handleGoogleLogin() {
                   <p>Phân tích doanh thu, lượt xem và nhiều hơn nữa</p>
                 </div>
               </div>
-              
+
               <div class="feature-item">
                 <div class="feature-icon">
                   <i class="fas fa-users"></i>
@@ -113,7 +115,7 @@ function handleGoogleLogin() {
               </div>
             </div>
           </div>
-          
+
           <!-- Hiệu ứng rọi đèn rạp chiếu phim -->
           <div class="spotlight spotlight-1"></div>
           <div class="spotlight spotlight-2"></div>
@@ -123,12 +125,12 @@ function handleGoogleLogin() {
         <div class="col-lg-5 d-flex align-items-center justify-content-center login-form-container">
           <div class="w-100 fade-in" style="max-width: 450px">
             <AuthForm
-              :is-loading="loginMutation.isPending"
+              :is-loading="isLoading"
               :show-google-login="true"
               @login="handleLogin"
               @google-login="handleGoogleLogin"
             />
-            
+
             <div class="text-center mt-4 login-footer">
               <p>© {{ new Date().getFullYear() }} ZINEMA. Tất cả quyền được bảo lưu.</p>
             </div>
@@ -156,7 +158,7 @@ function handleGoogleLogin() {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  background-image: 
+  background-image:
     radial-gradient(2px 2px at 40px 60px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
     radial-gradient(2px 2px at 20px 120px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
     radial-gradient(2px 2px at 100px 20px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
@@ -276,7 +278,14 @@ function handleGoogleLogin() {
   position: absolute;
   width: 100px;
   height: 400px;
-  background: linear-gradient(to bottom, transparent, rgba(247, 197, 72, 0.05) 25%, rgba(247, 197, 72, 0.1) 50%, rgba(247, 197, 72, 0.05) 75%, transparent);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(247, 197, 72, 0.05) 25%,
+    rgba(247, 197, 72, 0.1) 50%,
+    rgba(247, 197, 72, 0.05) 75%,
+    transparent
+  );
   border-radius: 50% / 25%;
   transform: rotate(-30deg);
   filter: blur(10px);
@@ -313,7 +322,7 @@ function handleGoogleLogin() {
   .login-page {
     background: var(--cinema-gradient-dark);
   }
-  
+
   .login-form-container {
     background-color: rgba(0, 0, 0, 0.2);
   }
