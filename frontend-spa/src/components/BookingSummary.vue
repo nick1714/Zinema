@@ -73,36 +73,83 @@ const formatDateTime = (dateTime) => new Date(dateTime).toLocaleString('vi-VN')
 
 <style scoped>
 .booking-summary {
-  background-color: #f7fafc;
-  padding: 1.5rem;
+  background-color: #ffffff;
+  padding: 2rem;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
+.booking-summary h4 {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
+}
+
 .summary-item {
-  margin-bottom: 0.8rem;
-}
-.total-price {
-  display: flex;
-  justify-content: space-between;
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin: 1rem 0;
-}
-.confirm-booking-btn {
-  width: 100%;
-  padding: 0.8rem;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  margin-bottom: 1rem;
   font-size: 1rem;
-  cursor: pointer;
+  color: #374151;
 }
-.confirm-booking-btn:disabled {
-  background-color: #ccc;
+
+.summary-item strong {
+  color: #111827;
 }
+
 ul {
   list-style-type: none;
   padding-left: 1rem;
+  border-left: 2px solid #f3f4f6;
+  margin-top: 0.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5rem 0;
+}
+
+.total-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1.5rem 0;
+  color: #111827;
+}
+.total-price span {
+  color: #ef4444;
+}
+
+.confirm-booking-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+}
+.confirm-booking-btn:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+}
+
+.confirm-booking-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
 }
 </style>

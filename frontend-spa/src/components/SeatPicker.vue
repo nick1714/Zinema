@@ -17,30 +17,35 @@
       </div>
 
       <div class="legend">
-        <div class="legend-item">
-          <div class="seat available"></div>
-          <span>Trống</span>
+        <div class="legend-section">
+          <strong class="legend-title">Loại Ghế</strong>
+          <div class="legend-item">
+            <div class="seat standard available"></div>
+            <span>Ghế Thường</span>
+          </div>
+          <div class="legend-item">
+            <div class="seat vip available"></div>
+            <span>Ghế VIP</span>
+          </div>
         </div>
-        <div class="legend-item">
-          <div class="seat booked"></div>
-          <span>Đã đặt</span>
-        </div>
-        <div class="legend-item">
-          <div class="seat selected"></div>
-          <span>Đang chọn</span>
-        </div>
-        <div class="legend-item">
-          <div class="seat standard"></div>
-          <span>Ghế thường</span>
-        </div>
-        <div class="legend-item">
-          <div class="seat vip"></div>
-          <span>Ghế VIP</span>
+        <div class="legend-section">
+          <strong class="legend-title">Trạng Thái</strong>
+          <div class="legend-item">
+            <div class="seat selected"></div>
+            <span>Đang chọn</span>
+          </div>
+          <div class="legend-item">
+            <div class="seat booked"></div>
+            <span>Đã đặt</span>
+          </div>
         </div>
       </div>
 
       <div class="selection-summary">
-        <p>Đã chọn: {{ selectedSeats.length }} ghế</p>
+        <p>
+          Đã chọn:
+          <span class="selected-count">{{ selectedSeats.length }}</span> ghế
+        </p>
         <p>Ghế: {{ selectedSeatNames }}</p>
         <p>Tổng tiền: {{ formatPrice(totalPrice) }}</p>
         <button @click="confirmSelection" :disabled="selectedSeats.length === 0">
@@ -133,66 +138,175 @@ const formatPrice = (price) =>
 
 <style scoped>
 .seat-picker {
-  padding: 1rem;
+  padding: 1rem 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 .screen {
   background-color: #333;
   color: white;
-  padding: 0.5rem;
+  padding: 0.75rem;
   text-align: center;
-  margin-bottom: 2rem;
+  margin: 0 auto 2.5rem auto;
   border-radius: 4px;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  max-width: 50%;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 .seat-grid {
   display: grid;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
+  gap: 8px 12px;
+  justify-content: center;
+  margin-bottom: 2.5rem;
 }
 .seat {
-  width: 35px;
-  height: 35px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
-  background-color: #ccc;
-  border: 1px solid #aaa;
+  font-weight: 500;
+  color: #4b5563;
+  transition:
+    all 0.2s ease-in-out,
+    transform 0.1s;
 }
-.seat.available {
-  background-color: #ff9800;
-} /* Cam */
+.seat:not(.booked):hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+/* Base Available Styles */
+.seat.standard.available {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+}
+.seat.vip.available {
+  background-color: #fef9c3;
+  border: 1px solid #facc15;
+}
+
+/* Status Override Styles */
 .seat.booked {
-  background-color: #616161;
+  background-color: #6b7280;
+  color: #d1d5db;
   cursor: not-allowed;
-} /* Xám đậm */
-.seat.selected {
-  background-color: #4caf50;
-  color: white;
-} /* Xanh lá */
-.seat.vip {
-  border: 2px solid gold;
 }
+.seat.selected {
+  background-color: #ef4444;
+  color: white;
+  border: 1px solid #dc2626;
+  font-weight: bold;
+}
+
+/* VIP Star Icon */
+.seat.vip {
+  position: relative;
+}
+.seat.vip::after {
+  content: '★';
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: 0.8rem;
+  color: #f59e0b;
+}
+.seat.selected.vip::after,
+.seat.booked.vip::after {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Legend Styling */
 .legend {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+}
+.legend-section {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1rem;
+  align-items: center;
+}
+.legend-title {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
 }
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  font-size: 0.9rem;
 }
 .legend-item .seat {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   cursor: default;
 }
+.legend-item .seat:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Summary Styling */
 .selection-summary {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #f0f0f0;
+  margin-top: 2rem;
+  padding: 1.5rem 2rem;
+  background: #fef2f2;
+  border-top: 3px solid #ef4444;
+  color: #374151;
   border-radius: 8px;
+  text-align: center;
+}
+.selection-summary p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+.selection-summary .selected-count {
+  font-weight: bold;
+  color: #ef4444;
+  font-size: 1.2rem;
+}
+.selection-summary button {
+  margin-top: 1rem;
+  padding: 0.8rem 2rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+}
+.selection-summary button:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+}
+.selection-summary button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error,
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: 1.2rem;
 }
 </style>

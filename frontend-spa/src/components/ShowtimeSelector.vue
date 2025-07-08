@@ -160,67 +160,106 @@ const formatPrice = (price) => {
 </script>
 
 <style scoped>
+.showtime-selector h4 {
+  font-size: 1.2rem;
+  color: #374151;
+  margin-bottom: 1rem;
+}
 .date-selector {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 .date-btn {
-  padding: 0.5rem 0.8rem;
-  border: 1px solid #ccc;
-  border-radius: 20px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   cursor: pointer;
   background-color: white;
   text-align: center;
+  transition:
+    all 0.2s,
+    transform 0.1s;
+}
+.date-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  transform: translateY(-2px);
 }
 .date-btn.selected {
   border-color: #ef4444;
   background-color: #ef4444;
   color: white;
   font-weight: bold;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+  transform: translateY(-2px);
 }
 .day-of-week {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  text-transform: capitalize;
 }
 .day-month {
   display: block;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: bold;
 }
 
 .showtime-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 1rem;
 }
 .showtime-btn {
   padding: 0.8rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   cursor: pointer;
-  background-color: #f9f9f9;
+  background-color: #f9fafb;
   text-align: center;
+  transition: all 0.2s;
+}
+.showtime-btn:hover {
+  border-color: #ef4444;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 .showtime-btn.selected {
   border-color: #ef4444;
   background-color: #fee2e2;
+  color: #b91c1c;
   font-weight: bold;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
 }
 .time {
   display: block;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: bold;
+  color: #1f2937;
+}
+.showtime-btn.selected .time {
+  color: #b91c1c;
 }
 .room,
 .price {
   display: block;
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.85rem;
+  color: #6b7280;
 }
 .no-showtimes {
-  margin-top: 1rem;
-  color: #666;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  text-align: center;
+  color: #4b5563;
+}
+
+.error,
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
 }
 </style>
