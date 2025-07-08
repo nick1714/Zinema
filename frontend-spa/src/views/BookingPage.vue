@@ -117,7 +117,7 @@ async function handleConfirmBooking() {
 
     alert('Đặt vé thành công!')
     // Chuyển hướng đến trang chi tiết booking hoặc trang cá nhân
-    router.push({ name: 'profile' })
+    router.push({ name: 'home' })
   } catch (error) {
     console.error('Lỗi khi đặt vé:', error)
     alert('Đã có lỗi xảy ra. Vui lòng thử lại.')
@@ -129,16 +129,39 @@ async function handleConfirmBooking() {
 
 <style scoped>
 .booking-page-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: auto;
+  padding: 2rem 1rem;
+  max-width: 900px;
+  margin: 2rem auto;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #111827;
+  font-size: 2rem;
 }
 
 .booking-steps .step {
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
+.step h2 {
+  font-size: 1.5rem;
+  color: #ef4444;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f3f4f6;
 }
 </style>
