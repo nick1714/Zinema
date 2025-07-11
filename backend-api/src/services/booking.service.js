@@ -98,7 +98,7 @@ async function getAllBookings(queryParams, user) {
 
         // Phân quyền: Customer chỉ xem được booking của mình
         if (user.role === ROLES.CUSTOMER) {
-            query = query.where('ticket_bookings.customer_id', user.id);
+            query = query.where('customers.account_id', user.id);
         }
 
         // Áp dụng các filter
@@ -127,7 +127,7 @@ async function getAllBookings(queryParams, user) {
 
         // Áp dụng cùng các filter cho count query
         if (user.role === ROLES.CUSTOMER) {
-            countQuery = countQuery.where('ticket_bookings.customer_id', user.id);
+            countQuery = countQuery.where('customers.account_id', user.id);
         }
 
         if (status) {
@@ -155,6 +155,43 @@ async function getAllBookings(queryParams, user) {
             .orderBy('ticket_bookings.created_at', 'desc')
             .limit(limit)
             .offset(offset);
+
+        if (bookings.length > 0) {
+            const bookingIds = bookings.map(b => b.id);
+
+            // Lấy tất cả vé và đồ ăn cho các booking đã tìm thấy
+            const ticketsPromise = ticketRepository()
+                .leftJoin('seats', 'tickets.seat_id', 'seats.id')
+                .whereIn('tickets.ticket_booking_id', bookingIds)
+                .select('tickets.ticket_booking_id', 'seats.name as seat_name');
+
+            const foodOrdersPromise = foodOrderRepository()
+                .leftJoin('foods', 'food_orders.food_id', 'foods.id')
+                .whereIn('food_orders.ticket_booking_id', bookingIds)
+                .select('food_orders.ticket_booking_id', 'food_orders.quantity', 'foods.name as food_name');
+            
+            const [tickets, foodOrders] = await Promise.all([ticketsPromise, foodOrdersPromise]);
+
+            // Nhóm chúng theo ID booking để dễ dàng truy xuất
+            const ticketsByBooking = tickets.reduce((acc, t) => {
+                if (!acc[t.ticket_booking_id]) acc[t.ticket_booking_id] = [];
+                acc[t.ticket_booking_id].push(t);
+                return acc;
+            }, {});
+
+            const foodByBooking = foodOrders.reduce((acc, f) => {
+                if (!acc[f.ticket_booking_id]) acc[f.ticket_booking_id] = [];
+                acc[f.ticket_booking_id].push(f);
+                return acc;
+            }, {});
+
+            // Gán thông tin chi tiết vào mỗi booking
+            bookings.forEach(booking => {
+                booking.tickets = ticketsByBooking[booking.id] || [];
+                booking.food_orders = foodByBooking[booking.id] || [];
+            });
+        }
+
 
         return {
             bookings,
@@ -521,6 +558,7 @@ async function createBooking(bookingData, user) {
             const [bookingId] = await ticketBookingRepository()
                 .transacting(trx)
                 .insert({
+                    booking_code: generateBookingCode(),
                     customer_id: customerId,
                     showtime_id: showtime_id,
                     booking_date: new Date(),
