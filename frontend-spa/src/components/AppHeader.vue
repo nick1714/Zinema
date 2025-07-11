@@ -125,6 +125,12 @@ onMounted(() => {
                     Thông tin cá nhân
                   </router-link>
                 </li>
+                <li v-if="!isAdmin && !isEmployee">
+                  <router-link to="/my-bookings" class="dropdown-item" @click="closeMenu">
+                    <i class="fas fa-ticket-alt me-2"></i>
+                    Vé của tôi
+                  </router-link>
+                </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
                   <button class="dropdown-item logout-btn" @click="handleLogout">

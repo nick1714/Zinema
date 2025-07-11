@@ -15,6 +15,7 @@ const GoogleCallbackPage = () => import('@/views/GoogleCallbackPage.vue')
 const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 const StaffDashboard = () => import('@/views/StaffDashboard.vue')
 const BookingPage = () => import('@/views/BookingPage.vue')
+const MyBookingsPage = () => import('@/views/MyBookingsPage.vue')
 
 // Movie Management
 const AdminMovieList = () => import('@/views/AdminMovieList.vue')
@@ -56,6 +57,12 @@ const routes = [
     name: 'profile',
     component: ProfilePage,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/my-bookings',
+    name: 'my.bookings',
+    component: MyBookingsPage,
+    meta: { requiresAuth: true, roles: ['customer'] },
   },
 
   // Admin Dashboard (Admin/Employee main page)

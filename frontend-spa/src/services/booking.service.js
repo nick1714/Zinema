@@ -81,10 +81,28 @@ function makeBookingService() {
         });
     }
 
+    /**
+     * Get bookings for the current user
+     * @param {{status: string}} [params] - Optional params like status
+     * @returns {Promise<Array<Object>>} - List of bookings
+     */
+    async function getMyBookings(params = {}) {
+        const url = new URL(baseUrl);
+        if (params.status) {
+            url.searchParams.append('status', params.status);
+        }
+
+        const data = await efetch(url.toString(), {
+            headers: getAuthHeaders()
+        });
+        return data;
+    }
+
     return {
         createBooking,
         getBookingById,
         confirmBooking,
+        getMyBookings,
     };
 }
 
