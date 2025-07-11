@@ -179,6 +179,7 @@ exports.seed = async function(knex) {
   // Bảng ticket_bookings - đặt vé
   await knex.schema.createTable('ticket_bookings', (table) => {
     table.increments('id').primary();
+    table.string('booking_code', 20).notNullable().unique();
     table.integer('customer_id').unsigned().notNullable();
     table.integer('showtime_id').unsigned().notNullable();
     table.datetime('booking_date').notNullable();
