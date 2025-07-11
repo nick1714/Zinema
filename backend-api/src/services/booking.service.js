@@ -289,6 +289,35 @@ async function getBookingById(id, user) {
 }
 
 /**
+ * Lấy thông tin chi tiết booking theo mã booking
+ * @param {string} bookingCode - Mã của booking
+ * @param {Object} user - Thông tin user từ token (để check quyền)
+ * @returns {Promise<Object|null>} - Thông tin booking hoặc null nếu không tìm thấy
+ */
+async function getBookingByCode(bookingCode, user) {
+    try {
+        // Chỉ admin và staff mới có quyền tra cứu
+        if (user.role !== ROLES.ADMIN && user.role !== ROLES.STAFF) {
+            return null;
+        }
+
+        const booking = await ticketBookingRepository()
+            .where({ booking_code: bookingCode })
+            .first();
+        
+        if (!booking) {
+            return null;
+        }
+
+        // Dùng lại hàm getBookingById để lấy đầy đủ thông tin
+        return await getBookingById(booking.id, user);
+    } catch (error) {
+        console.error(`Error getting booking by code ${bookingCode}:`, error);
+        throw error;
+    }
+}
+
+/**
  * Cập nhật trạng thái booking
  * @param {number} id - ID của booking
  * @param {Object} updateData - Dữ liệu cập nhật
@@ -717,5 +746,6 @@ module.exports = {
     deleteBooking,
     generateBookingCode,
     canAccessBooking,
-    cleanupExpiredBookings
+    cleanupExpiredBookings,
+    getBookingByCode
 }; 

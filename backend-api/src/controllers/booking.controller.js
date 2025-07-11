@@ -75,6 +75,33 @@ async function getBookingById(req, res) {
 }
 
 /**
+ * Lấy thông tin chi tiết booking theo mã booking
+ * GET /api/bookings/code/:code
+ */
+async function getBookingByCode(req, res) {
+    try {
+        const { code } = req.params;
+        const user = req.user;
+
+        const booking = await bookingService.getBookingByCode(code, user);
+
+        if (!booking) {
+            return res.status(404).json(JSend.fail('Không tìm thấy booking với mã này hoặc bạn không có quyền truy cập.'));
+        }
+
+        return res.status(200).json(JSend.success({
+            message: 'Lấy thông tin booking thành công',
+            data: booking
+        }));
+    } catch (error) {
+        console.error('Get booking by code error:', error);
+        return res.status(500).json(JSend.error('Lỗi khi lấy thông tin booking', {
+            error: error.message
+        }));
+    }
+}
+
+/**
  * Cập nhật booking
  * PUT /api/bookings/:id
  */
@@ -260,9 +287,10 @@ async function cleanupExpiredBookings(req, res) {
 module.exports = {
     getAllBookings,
     getBookingById,
-    createBooking,
-    confirmBooking,
     updateBooking,
     deleteBooking,
-    cleanupExpiredBookings
+    createBooking,
+    confirmBooking,
+    cleanupExpiredBookings,
+    getBookingByCode
 }; 

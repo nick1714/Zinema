@@ -10,6 +10,11 @@ const bookingParamsSchema = z.object({
   id: z.coerce.number().positive('ID phải là số dương'),
 });
 
+// Schema cho booking code (URL params)
+const bookingCodeParamsSchema = z.object({
+  code: z.string().min(1, 'Mã booking không được để trống'),
+});
+
 // Schema cho query parameters khi lấy danh sách bookings
 const getBookingsQuerySchema = z.object({
   // Phân trang
@@ -115,6 +120,7 @@ const getBookingByIdRequestSchema = z.object({
 module.exports = {
   bookingSchema,
   bookingParamsSchema,
+  bookingCodeParamsSchema,
   getBookingsQuerySchema,
   createBookingSchema,
   updateBookingSchema,

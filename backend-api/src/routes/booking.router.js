@@ -8,7 +8,8 @@ const {
     bookingParamsSchema,
     createBookingSchema,
     confirmBookingSchema,
-    updateBookingSchema
+    updateBookingSchema,
+    bookingCodeParamsSchema,
 } = require('../schemas/booking.schemas');
 const { ROLES } = require('../constants');
 
@@ -51,6 +52,18 @@ router.get('/:id',
     authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
     validate(bookingParamsSchema, 'params'),
     bookingController.getBookingById
+);
+
+/**
+ * @route GET /api/bookings/code/:code
+ * @desc Lấy thông tin chi tiết booking theo mã code
+ * @access Private (Admin, Staff)
+ */
+router.get('/code/:code',
+    authenticateToken,
+    authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
+    validate(bookingCodeParamsSchema, 'params'),
+    bookingController.getBookingByCode
 );
 
 /**
