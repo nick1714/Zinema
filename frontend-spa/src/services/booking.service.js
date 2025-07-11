@@ -98,11 +98,23 @@ function makeBookingService() {
         return data;
     }
 
+    /**
+     * Get booking details by booking code (for staff/admin)
+     * @param {string} code - The booking code
+     * @returns {Promise<Object>} - The detailed booking data
+     */
+    async function getBookingByCode(code) {
+        return efetch(`${baseUrl}/code/${code}`, {
+            headers: getAuthHeaders(),
+        });
+    }
+
     return {
         createBooking,
         getBookingById,
         confirmBooking,
         getMyBookings,
+        getBookingByCode,
     };
 }
 
