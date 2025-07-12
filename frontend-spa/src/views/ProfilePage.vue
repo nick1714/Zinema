@@ -22,9 +22,18 @@ const updateCustomerMutation = useMutation({
   },
 })
 
+const linkPhoneMutation = useMutation({
+  mutationFn: (phoneNumber) => authService.linkPhoneNumber(phoneNumber),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['auth'] })
+  },
+})
+
 const isEditingProfile = ref(false)
 const isChangingPassword = ref(false)
 const isFirstTimeUser = ref(false)
+const isLinkingPhone = ref(false)
+const phoneNumber = ref('')
 
 // Check if this is a first-time user from Google registration
 onMounted(() => {
@@ -105,6 +114,30 @@ function formatGender(gender) {
   return genderMap[gender] || gender
 }
 
+// Phone linking
+async function handleLinkPhone() {
+  try {
+    if (!phoneNumber.value.trim()) {
+      alert('Vui lòng nhập số điện thoại')
+      return
+    }
+
+    const result = await linkPhoneMutation.mutateAsync(phoneNumber.value.trim())
+    setCurrentUser(result.customer)
+    isLinkingPhone.value = false
+    phoneNumber.value = ''
+    alert('Liên kết số điện thoại thành công!')
+  } catch (error) {
+    console.error('Link phone error:', error)
+    alert('Có lỗi xảy ra khi liên kết số điện thoại: ' + error.message)
+  }
+}
+
+function cancelLinkPhone() {
+  isLinkingPhone.value = false
+  phoneNumber.value = ''
+}
+
 // Go back function based on user role
 function goBack() {
   if (isAdmin.value) {
@@ -152,7 +185,9 @@ function goBack() {
         <div v-if="isFirstTimeUser" class="welcome-alert" role="alert">
           <i class="fas fa-info-circle me-2"></i>
           <strong>Chào mừng bạn đến với Zinema!</strong>
-          <p class="mb-0 mt-2">Vui lòng cập nhật đầy đủ thông tin cá nhân để có trải nghiệm tốt nhất.</p>
+          <p class="mb-0 mt-2">
+            Vui lòng cập nhật đầy đủ thông tin cá nhân để có trải nghiệm tốt nhất.
+          </p>
         </div>
 
         <div class="profile-grid">
@@ -198,6 +233,51 @@ function goBack() {
               />
             </div>
 
+            <!-- Phone Linking Form -->
+            <div v-else-if="isLinkingPhone">
+              <h5 class="panel-title">
+                <i class="fas fa-link me-2"></i>
+                Liên kết số điện thoại
+              </h5>
+              <div class="phone-link-form">
+                <p class="form-description">
+                  Nhập số điện thoại để liên kết với tài khoản Google của bạn. Nếu số điện thoại này
+                  đã được sử dụng để đặt vé trước đó, hệ thống sẽ tự động gộp thông tin lại.
+                </p>
+                <div class="form-group">
+                  <label for="phone-input">Số điện thoại:</label>
+                  <input
+                    id="phone-input"
+                    v-model="phoneNumber"
+                    type="tel"
+                    class="form-control"
+                    placeholder="Nhập số điện thoại"
+                    :disabled="linkPhoneMutation.isLoading"
+                  />
+                </div>
+                <div class="form-actions">
+                  <button
+                    type="button"
+                    class="btn-primary"
+                    :disabled="linkPhoneMutation.isLoading"
+                    @click="handleLinkPhone"
+                  >
+                    <i v-if="linkPhoneMutation.isLoading" class="fas fa-spinner fa-spin me-2"></i>
+                    <i v-else class="fas fa-link me-2"></i>
+                    {{ linkPhoneMutation.isLoading ? 'Đang liên kết...' : 'Liên kết' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    :disabled="linkPhoneMutation.isLoading"
+                    @click="cancelLinkPhone"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- Customer Profile -->
             <div v-else-if="isCustomer">
               <h5 class="panel-title">
@@ -209,6 +289,7 @@ function goBack() {
                 v-if="isEditingProfile"
                 :initial-values="customerInitialValues"
                 :is-loading="updateCustomerMutation.isLoading"
+                :allow-phone-edit="true"
                 @submit="handleUpdateProfile"
                 @cancel="isEditingProfile = false"
               />
@@ -216,7 +297,20 @@ function goBack() {
               <div v-else class="details-view">
                 <div class="detail-item">
                   <span class="detail-label">Số điện thoại:</span>
-                  <span class="detail-value">{{ currentUser.phone_number || 'Chưa cập nhật' }}</span>
+                  <span v-if="currentUser.phone_number" class="detail-value">{{
+                    currentUser.phone_number
+                  }}</span>
+                  <div v-else class="detail-value-missing">
+                    <span class="text-muted">Chưa cập nhật</span>
+                    <button
+                      v-if="isGoogleAccount"
+                      class="btn-link-phone"
+                      @click="isLinkingPhone = true"
+                    >
+                      <i class="fas fa-link me-1"></i>
+                      Liên kết số điện thoại
+                    </button>
+                  </div>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">Email:</span>
@@ -224,7 +318,9 @@ function goBack() {
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">Giới tính:</span>
-                  <span class="detail-value">{{ formatGender(currentUser.gender) || 'Chưa cập nhật' }}</span>
+                  <span class="detail-value">{{
+                    formatGender(currentUser.gender) || 'Chưa cập nhật'
+                  }}</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">Ngày sinh:</span>
@@ -250,7 +346,9 @@ function goBack() {
               <div class="details-view">
                 <div class="detail-item">
                   <span class="detail-label">Số điện thoại:</span>
-                  <span class="detail-value">{{ currentUser.phone_number || 'Chưa cập nhật' }}</span>
+                  <span class="detail-value">{{
+                    currentUser.phone_number || 'Chưa cập nhật'
+                  }}</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">Email:</span>
@@ -258,7 +356,9 @@ function goBack() {
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">Giới tính:</span>
-                  <span class="detail-value">{{ formatGender(currentUser.gender) || 'Chưa cập nhật' }}</span>
+                  <span class="detail-value">{{
+                    formatGender(currentUser.gender) || 'Chưa cập nhật'
+                  }}</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">Ngày sinh:</span>
@@ -485,6 +585,132 @@ function goBack() {
 .detail-value {
   font-size: 1rem;
   color: var(--cinema-text);
+}
+
+.detail-value-missing {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.text-muted {
+  color: #6b7280;
+}
+
+.btn-link-phone {
+  background: var(--cinema-primary);
+  color: var(--cinema-dark);
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.btn-link-phone:hover {
+  background: #e6b800;
+  transform: translateY(-1px);
+}
+
+/* Phone Link Form */
+.phone-link-form {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.form-description {
+  color: #9ca3af;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  color: var(--cinema-text);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--cinema-text);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--cinema-primary);
+  box-shadow: 0 0 0 3px rgba(247, 197, 72, 0.1);
+}
+
+.form-control:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  background: var(--cinema-primary);
+  color: var(--cinema-dark);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #e6b800;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--cinema-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Responsive */

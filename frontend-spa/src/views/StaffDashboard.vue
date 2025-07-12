@@ -33,6 +33,34 @@
             </router-link>
           </div>
         </div>
+
+        <div class="management-card">
+          <div class="card-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="card-content">
+            <h3>Kiểm tra mã đặt vé</h3>
+            <p>Tra cứu thông tin chi tiết của một mã đặt vé</p>
+            <router-link to="/staff/check-booking" class="dashboard-btn">
+              <span>Truy cập</span>
+              <i class="fas fa-arrow-right"></i>
+            </router-link>
+          </div>
+        </div>
+
+        <div class="management-card">
+          <div class="card-icon">
+            <i class="fas fa-ticket-alt"></i>
+          </div>
+          <div class="card-content">
+            <h3>Đặt vé tại quầy</h3>
+            <p>Xem danh sách phim và đặt vé cho khách hàng</p>
+            <router-link to="/" class="dashboard-btn">
+              <span>Bắt đầu</span>
+              <i class="fas fa-arrow-right"></i>
+            </router-link>
+          </div>
+        </div>
       </div>
     </div>
   </div>
