@@ -2,6 +2,66 @@
   <div class="booking-page-container">
     <h1>Đặt vé xem phim: {{ movie?.title }}</h1>
     <div class="booking-steps">
+      <!-- Step 0: Customer Info (for Staff/Admin) -->
+      <div v-if="isStaffOrAdmin" class="step">
+        <h2>Thông tin khách hàng</h2>
+
+        <!-- Phone Input and Search -->
+        <div v-if="!selectedCustomer" class="customer-search">
+          <div class="customer-phone-input">
+            <label for="customer-phone">Số điện thoại khách hàng:</label>
+            <div class="phone-input-group">
+              <input
+                type="tel"
+                id="customer-phone"
+                v-model="customerPhone"
+                placeholder="Nhập SĐT để tìm khách hàng"
+                @keyup.enter="handleCheckCustomer"
+              />
+              <button
+                type="button"
+                @click="handleCheckCustomer"
+                :disabled="isCheckingCustomer || !customerPhone.trim()"
+                class="check-btn"
+              >
+                <i v-if="!isCheckingCustomer" class="fas fa-search"></i>
+                <i v-else class="fas fa-spinner fa-spin"></i>
+                {{ isCheckingCustomer ? 'Đang tìm...' : 'Kiểm tra' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Found -->
+        <div v-if="selectedCustomer" class="customer-found">
+          <div class="customer-info">
+            <h3>
+              <i class="fas fa-user-check"></i>
+              Thông tin khách hàng
+            </h3>
+            <div class="customer-details">
+              <p><strong>Tên:</strong> {{ selectedCustomer.full_name }}</p>
+              <p><strong>SĐT:</strong> {{ selectedCustomer.phone_number }}</p>
+              <p v-if="selectedCustomer.address">
+                <strong>Địa chỉ:</strong> {{ selectedCustomer.address }}
+              </p>
+            </div>
+            <button type="button" @click="resetCustomerSelection" class="change-customer-btn">
+              <i class="fas fa-edit"></i>
+              Thay đổi khách hàng
+            </button>
+          </div>
+        </div>
+
+        <!-- Customer Not Found - Show Form -->
+        <CustomerForm
+          v-if="showCustomerForm"
+          :phone-number="customerPhone"
+          @submit="handleCreateCustomer"
+          @cancel="handleCancelCreateCustomer"
+        />
+      </div>
+
       <!-- Step 1: Chọn Lịch chiếu -->
       <div class="step">
         <h2>1. Chọn lịch chiếu</h2>
@@ -41,9 +101,13 @@ import ShowtimeSelector from '@/components/ShowtimeSelector.vue'
 import SeatPicker from '@/components/SeatPicker.vue'
 import FoodPicker from '@/components/FoodPicker.vue'
 import BookingSummary from '@/components/BookingSummary.vue'
+import CustomerForm from '@/components/CustomerForm.vue'
 import bookingService from '@/services/booking.service'
 import movieService from '@/services/movie.service'
+import { useAuth } from '@/composables/useAuth'
 
+const { isAdmin, isEmployee, currentUser } = useAuth()
+const isStaffOrAdmin = computed(() => isAdmin.value || isEmployee.value)
 const route = useRoute()
 const router = useRouter()
 const movieId = ref(route.params.movieId)
@@ -53,6 +117,10 @@ const selectedShowtime = ref(null)
 const selectedSeats = ref([])
 const selectedFood = ref([])
 const isBooking = ref(false)
+const customerPhone = ref('')
+const selectedCustomer = ref(null)
+const isCheckingCustomer = ref(false)
+const showCustomerForm = ref(false)
 
 onMounted(async () => {
   try {
@@ -82,17 +150,87 @@ const bookingDetails = computed(() => ({
   food: selectedFood.value,
 }))
 
+// Customer handling functions
+async function handleCheckCustomer() {
+  if (!customerPhone.value.trim()) {
+    alert('Vui lòng nhập số điện thoại')
+    return
+  }
+
+  isCheckingCustomer.value = true
+  selectedCustomer.value = null
+  showCustomerForm.value = false
+
+  try {
+    const response = await bookingService.checkCustomerByPhone(customerPhone.value.trim())
+
+    if (response.exists) {
+      selectedCustomer.value = response.customer
+      alert(response.message)
+    } else {
+      // Khách hàng không tồn tại, hiển thị form tạo mới
+      showCustomerForm.value = true
+      alert(response.message + '. Vui lòng nhập thông tin để tạo khách hàng mới.')
+    }
+  } catch (error) {
+    console.error('Check customer error:', error)
+    alert('Lỗi khi kiểm tra khách hàng: ' + error.message)
+  } finally {
+    isCheckingCustomer.value = false
+  }
+}
+
+async function handleCreateCustomer(customerData) {
+  try {
+    const response = await bookingService.createCustomerWithoutAccount(customerData)
+    selectedCustomer.value = response.customer
+    showCustomerForm.value = false
+    alert('Tạo khách hàng mới thành công!')
+  } catch (error) {
+    console.error('Create customer error:', error)
+    alert('Lỗi khi tạo khách hàng: ' + error.message)
+  }
+}
+
+function handleCancelCreateCustomer() {
+  showCustomerForm.value = false
+  customerPhone.value = ''
+}
+
+function resetCustomerSelection() {
+  selectedCustomer.value = null
+  customerPhone.value = ''
+  showCustomerForm.value = false
+}
+
 async function handleConfirmBooking() {
   if (!selectedShowtime.value || selectedSeats.value.length === 0) {
     alert('Vui lòng chọn suất chiếu và ghế ngồi.')
     return
   }
+
+  if (isStaffOrAdmin.value && !selectedCustomer.value) {
+    alert('Vui lòng kiểm tra thông tin khách hàng trước khi đặt vé.')
+    return
+  }
+
+  // Validation cho customer: bắt buộc phải có phone number
+  if (!isStaffOrAdmin.value && !currentUser.value?.phone_number) {
+    alert('Vui lòng cập nhật số điện thoại trong thông tin cá nhân trước khi đặt vé.')
+    router.push('/profile')
+    return
+  }
+
   isBooking.value = true
   try {
     const bookingPayload = {
       showtime_id: selectedShowtime.value.id,
       seats: selectedSeats.value.map((s) => s.id),
       food_items: selectedFood.value.map((f) => ({ food_id: f.food_id, quantity: f.quantity })),
+    }
+
+    if (isStaffOrAdmin.value && selectedCustomer.value) {
+      bookingPayload.customer_phone = selectedCustomer.value.phone_number
     }
 
     // Create booking
@@ -117,7 +255,11 @@ async function handleConfirmBooking() {
 
     alert('Đặt vé thành công!')
     // Chuyển hướng đến trang chi tiết booking hoặc trang cá nhân
-    router.push({ name: 'home' })
+    if (isStaffOrAdmin.value) {
+      router.push({ name: 'staff.dashboard' })
+    } else {
+      router.push({ name: 'home' })
+    }
   } catch (error) {
     console.error('Lỗi khi đặt vé:', error)
     alert('Đã có lỗi xảy ra. Vui lòng thử lại.')
@@ -163,5 +305,99 @@ h1 {
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #f3f4f6;
+}
+
+.customer-phone-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.customer-phone-input label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.phone-input-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.customer-phone-input input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.check-btn {
+  padding: 0.75rem 1.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.check-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.check-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.customer-found {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+}
+
+.customer-info h3 {
+  color: #0369a1;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.customer-details {
+  margin-bottom: 1rem;
+}
+
+.customer-details p {
+  margin: 0.5rem 0;
+  color: #374151;
+}
+
+.change-customer-btn {
+  padding: 0.5rem 1rem;
+  background-color: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.change-customer-btn:hover {
+  background-color: #d97706;
 }
 </style>

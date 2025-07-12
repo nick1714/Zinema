@@ -16,6 +16,7 @@ const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 const StaffDashboard = () => import('@/views/StaffDashboard.vue')
 const BookingPage = () => import('@/views/BookingPage.vue')
 const MyBookingsPage = () => import('@/views/MyBookingsPage.vue')
+const StaffCheckBooking = () => import('@/views/StaffCheckBooking.vue')
 
 // Movie Management
 const AdminMovieList = () => import('@/views/AdminMovieList.vue')
@@ -41,7 +42,7 @@ const routes = [
     path: '/movies/:movieId/book',
     name: 'movie.book',
     component: BookingPage,
-    meta: { requiresAuth: true, roles: ['admin', 'employee', 'customer'] },
+    meta: { requiresAuth: true, roles: ['admin', 'employee', 'customer', 'staff'] },
     props: true,
   },
 
@@ -50,7 +51,7 @@ const routes = [
     path: '/',
     name: 'home',
     component: () => import('@/views/HomePage.vue'),
-    meta: { requiresAuth: true, roles: ['customer'] },
+    meta: { requiresAuth: true, roles: ['customer', 'staff', 'employee'] },
   },
   {
     path: '/profile',
@@ -79,6 +80,12 @@ const routes = [
     name: 'staff.dashboard',
     component: StaffDashboard,
     meta: { requiresAuth: true, roles: ['staff'] },
+  },
+  {
+    path: '/staff/check-booking',
+    name: 'staff.check-booking',
+    component: StaffCheckBooking,
+    meta: { requiresAuth: true, roles: ['staff', 'admin'] },
   },
 
   // Employee Management (Admin only)
@@ -122,7 +129,7 @@ const routes = [
     path: '/admin/movies',
     name: 'admin.movies',
     component: AdminMovieList,
-    meta: { requiresAuth: true, roles: ['admin', 'employee'] },
+    meta: { requiresAuth: true, roles: ['admin', 'employee', 'staff'] },
   },
   {
     path: '/admin/movies/add',
@@ -134,7 +141,7 @@ const routes = [
     path: '/admin/movies/:id',
     name: 'admin.movies.detail',
     component: MovieDetailPage,
-    meta: { requiresAuth: true, roles: ['admin', 'employee'] },
+    meta: { requiresAuth: true, roles: ['admin', 'employee', 'staff'] },
     props: (route) => ({ movieId: route.params.id }),
   },
 
