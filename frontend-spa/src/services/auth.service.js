@@ -160,6 +160,19 @@ function makeAuthService() {
         });
     }
 
+    // === PHONE LINKING ===
+    async function linkPhoneNumber(phoneNumber) {
+        const token = localStorage.getItem('cinema_token');
+        return efetch(`${baseUrl}/link-phone`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ input: { phone_number: phoneNumber } }),
+        });
+    }
+
     return {
         // Auth
         login,
@@ -182,7 +195,10 @@ function makeAuthService() {
         getRoles,
         
         // Password
-        changePassword
+        changePassword,
+        
+        // Phone linking
+        linkPhoneNumber
     };
 }
 

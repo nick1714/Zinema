@@ -109,12 +109,53 @@ function makeBookingService() {
         });
     }
 
+    /**
+     * Kiểm tra khách hàng theo số điện thoại (Staff/Admin only)
+     * @param {string} phoneNumber - Số điện thoại cần kiểm tra
+     * @returns {Promise<Object>} - Response chứa thông tin khách hàng nếu có
+     */
+    async function checkCustomerByPhone(phoneNumber) {
+      try {
+        const response = await efetch(`${API_BASE_URL}/auth/check-customer/${phoneNumber}`, {
+          headers: getAuthHeaders()
+        });
+        return response;
+      } catch (error) {
+        console.error('Check customer by phone error:', error)
+        throw new Error(error.message || 'Lỗi khi kiểm tra khách hàng')
+      }
+    }
+
+    /**
+     * Tạo khách hàng mới không có tài khoản (Staff/Admin only)
+     * @param {Object} customerData - Dữ liệu khách hàng mới
+     * @returns {Promise<Object>} - Response chứa thông tin khách hàng vừa tạo
+     */
+    async function createCustomerWithoutAccount(customerData) {
+      try {
+        const response = await efetch(`${API_BASE_URL}/auth/create-customer`, {
+          method: 'POST',
+          headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ input: customerData })
+        });
+        return response;
+      } catch (error) {
+        console.error('Create customer without account error:', error)
+        throw new Error(error.message || 'Lỗi khi tạo khách hàng mới')
+      }
+    }
+
     return {
         createBooking,
         getBookingById,
         confirmBooking,
         getMyBookings,
         getBookingByCode,
+        checkCustomerByPhone,
+        createCustomerWithoutAccount
     };
 }
 
