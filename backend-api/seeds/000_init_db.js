@@ -58,7 +58,7 @@ exports.seed = async function(knex) {
   // Bảng customers - thông tin khách hàng
   await knex.schema.createTable('customers', (table) => {
     table.increments('id').primary();
-    table.integer('account_id').unsigned().notNullable().unique();
+    table.integer('account_id').unsigned().unique(); // Cho phép NULL để hỗ trợ customer POS
     table.string('full_name', 100).notNullable();
     table.string('phone_number', 20);
     table.string('address', 255);

@@ -737,15 +737,17 @@ async function cleanupExpiredBookings(timeoutMinutes = 15) {
     }
 }
 
+
+
 module.exports = {
     getAllBookings,
     getBookingById,
+    getBookingByCode,
     createBooking,
     confirmBooking,
     updateBooking,
     deleteBooking,
     generateBookingCode,
     canAccessBooking,
-    cleanupExpiredBookings,
-    getBookingByCode
+    cleanupExpiredBookings
 }; 

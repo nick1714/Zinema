@@ -355,6 +355,161 @@ async function changePassword(req, res, next) {
   }
 }
 
+/**
+ * Kiểm tra khách hàng theo số điện thoại
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response 
+ * @param {Function} next - Express next middleware
+ */
+async function checkCustomerByPhone(req, res, next) {
+  try {
+    const { phone } = req.params;
+    
+    if (!phone || phone.trim().length === 0) {
+      return next(new ApiError(400, 'Số điện thoại không được để trống'));
+    }
+
+    const customer = await authService.checkCustomerByPhone(phone.trim());
+    
+    if (customer) {
+      return res.json(JSend.success({
+        customer,
+        exists: true,
+        message: `Tìm thấy khách hàng: ${customer.full_name}`
+      }));
+    } else {
+      return res.json(JSend.success({
+        customer: null,
+        exists: false,
+        message: 'Không tìm thấy khách hàng với số điện thoại này'
+      }));
+    }
+  } catch (error) {
+    console.error('Check customer by phone error:', error);
+    return next(new ApiError(500, 'Lỗi server khi kiểm tra khách hàng'));
+  }
+}
+
+/**
+ * Tạo khách hàng mới không có tài khoản
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function createCustomerWithoutAccount(req, res, next) {
+  try {
+    const customerData = req.body.input || req.body;
+    
+    const newCustomer = await authService.createCustomerWithoutAccount(customerData);
+    
+    return res.status(201).json(JSend.success({
+      customer: newCustomer,
+      message: 'Tạo khách hàng mới thành công'
+    }));
+  } catch (error) {
+    console.error('Create customer without account error:', error);
+    
+    if (error.message === 'Số điện thoại đã tồn tại') {
+      return next(new ApiError(409, error.message));
+    }
+    
+    return next(new ApiError(500, 'Lỗi server khi tạo khách hàng mới'));
+  }
+}
+
+/**
+ * Merge customer POS với Google account (chỉ admin)
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function mergePosCustomerWithGoogleAccount(req, res, next) {
+  try {
+    const { posCustomerId, googleEmail } = req.body.input;
+    
+    if (!posCustomerId || !googleEmail) {
+      return next(new ApiError(400, 'POS Customer ID và Google Email là bắt buộc'));
+    }
+
+    const mergedCustomer = await authService.mergePosCustomerWithGoogleAccount(
+      parseInt(posCustomerId), 
+      googleEmail
+    );
+    
+    return res.json(JSend.success({
+      customer: mergedCustomer,
+      message: 'Merge customer thành công'
+    }));
+  } catch (error) {
+    console.error('Merge POS customer with Google account error:', error);
+    
+    if (error.message.includes('not found') || error.message.includes('already has account')) {
+      return next(new ApiError(404, error.message));
+    }
+    
+    return next(new ApiError(500, 'Lỗi khi merge customer'));
+  }
+}
+
+/**
+ * Lấy danh sách customer POS (không có account) để admin merge
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function getPosCustomers(req, res, next) {
+  try {
+    const posCustomers = await authService.getPosCustomers();
+    
+    return res.json(JSend.success({
+      customers: posCustomers,
+      count: posCustomers.length
+    }));
+  } catch (error) {
+    console.error('Get POS customers error:', error);
+    return next(new ApiError(500, 'Lỗi khi lấy danh sách customer POS'));
+  }
+}
+
+/**
+ * Link số điện thoại với Google account (merge với customer POS nếu có)
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function linkPhoneNumberToGoogleAccount(req, res, next) {
+  try {
+    const { phone_number } = req.body.input;
+    const accountId = req.user.id; // Lấy từ JWT token
+    
+    if (!phone_number || phone_number.trim().length === 0) {
+      return next(new ApiError(400, 'Số điện thoại không được để trống'));
+    }
+
+    const updatedCustomer = await authService.linkPhoneNumberToGoogleAccount(
+      accountId, 
+      phone_number.trim()
+    );
+    
+    return res.json(JSend.success({
+      customer: updatedCustomer,
+      message: 'Link số điện thoại thành công'
+    }));
+  } catch (error) {
+    console.error('Link phone number to Google account error:', error);
+    
+    if (error.message.includes('not found')) {
+      return next(new ApiError(404, error.message));
+    }
+    
+    if (error.message.includes('đã được sử dụng')) {
+      return next(new ApiError(409, error.message));
+    }
+    
+    return next(new ApiError(500, 'Lỗi khi link số điện thoại'));
+  }
+}
+
 module.exports = {
   registerEmployee,
   login,
@@ -368,5 +523,10 @@ module.exports = {
   getEmployeeById,
   updateCustomer,
   updateEmployee,
-  changePassword
+  changePassword,
+  checkCustomerByPhone,
+  createCustomerWithoutAccount,
+  mergePosCustomerWithGoogleAccount,
+  getPosCustomers,
+  linkPhoneNumberToGoogleAccount
 }; 

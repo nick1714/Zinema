@@ -9,7 +9,9 @@ const {
   googleCompleteRequestSchema,
   updateCustomerRequestSchema,
   updateEmployeeRequestSchema,
-  changePasswordRequestSchema
+  changePasswordRequestSchema,
+  createCustomerWithoutAccountRequestSchema,
+  linkPhoneNumberRequestSchema
 } = require("../schemas/auth.schemas");
 const { ROLES } = require("../constants");
 
@@ -141,5 +143,62 @@ module.exports.setup = (app) => {
   // Google OAuth routes
   router.get('/google/url', authController.getGoogleAuthUrl);
   router.post('/google/callback', authController.googleCallback);
+
+  // Kiểm tra khách hàng theo số điện thoại (Staff/Admin only)
+  router.get(
+    "/check-customer/:phone",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
+    ],
+    authController.checkCustomerByPhone
+  );
+  router.all("/check-customer/:phone", methodNotAllowed);
+
+  // Tạo khách hàng mới không có tài khoản (Staff/Admin only)
+  router.post(
+    "/create-customer",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
+      validateRequest(createCustomerWithoutAccountRequestSchema),
+    ],
+    authController.createCustomerWithoutAccount
+  );
+  router.all("/create-customer", methodNotAllowed);
+
+  // Merge customer POS với Google account (Admin only)
+  router.post(
+    "/merge-customer",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN]),
+    ],
+    authController.mergePosCustomerWithGoogleAccount
+  );
+  router.all("/merge-customer", methodNotAllowed);
+
+  // Lấy danh sách customer POS (không có account) để merge (Admin only)
+  router.get(
+    "/pos-customers",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN]),
+    ],
+    authController.getPosCustomers
+  );
+  router.all("/pos-customers", methodNotAllowed);
+
+  // Link số điện thoại với Google account (Customer only)
+  router.post(
+    "/link-phone",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.CUSTOMER]),
+      validateRequest(linkPhoneNumberRequestSchema),
+    ],
+    authController.linkPhoneNumberToGoogleAccount
+  );
+  router.all("/link-phone", methodNotAllowed);
 }
 

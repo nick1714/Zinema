@@ -128,6 +128,25 @@ const changePasswordSchema = z.object({
   path: ['confirm_password']
 });
 
+// Schema để tạo khách hàng mới không có tài khoản
+const createCustomerWithoutAccountSchema = z.object({
+    full_name: z.string()
+        .min(1, 'Họ tên không được để trống')
+        .max(100, 'Họ tên không được vượt quá 100 ký tự'),
+    phone_number: z.string()
+        .min(10, 'Số điện thoại phải có ít nhất 10 số')
+        .max(15, 'Số điện thoại không được vượt quá 15 số')
+        .regex(/^[0-9]+$/, 'Số điện thoại chỉ được chứa số'),
+    date_of_birth: z.string()
+        .optional()
+        .refine((val) => !val || !isNaN(Date.parse(val)), 'Ngày sinh không hợp lệ'),
+    gender: z.enum(['male', 'female', 'other'])
+        .default('other'),
+    address: z.string()
+        .max(255, 'Địa chỉ không được vượt quá 255 ký tự')
+        .optional()
+});
+
 // Schemas để validate toàn bộ request body
 const employeeRegisterRequestSchema = employeeRegisterSchema;
 
@@ -151,11 +170,29 @@ const changePasswordRequestSchema = z.object({
   input: changePasswordSchema,
 });
 
+const createCustomerWithoutAccountRequestSchema = z.object({
+  input: createCustomerWithoutAccountSchema,
+});
+
+// Schema để link số điện thoại với Google account
+const linkPhoneNumberSchema = z.object({
+  phone_number: z.string()
+    .min(10, { message: 'Số điện thoại phải có ít nhất 10 ký tự' })
+    .max(15, { message: 'Số điện thoại không được quá 15 ký tự' })
+    .regex(/^[0-9]+$/, { message: 'Số điện thoại chỉ được chứa số' }),
+});
+
+const linkPhoneNumberRequestSchema = z.object({
+  input: linkPhoneNumberSchema,
+});
+
 module.exports = {
   employeeRegisterRequestSchema,
   loginRequestSchema,
   googleCompleteRequestSchema,
   updateCustomerRequestSchema,
   updateEmployeeRequestSchema,
-  changePasswordRequestSchema
+  changePasswordRequestSchema,
+  createCustomerWithoutAccountRequestSchema,
+  linkPhoneNumberRequestSchema
 }; 

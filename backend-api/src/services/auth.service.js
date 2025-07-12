@@ -370,7 +370,7 @@ async function getEmployeeById(id) {
 }
 
 /**
- * Cập nhật thông tin khách hàng
+ * Cập nhật thông tin khách hàng (có thể có hoặc không có account)
  * @param {Number} id - ID của khách hàng
  * @param {Object} updateData - Dữ liệu cập nhật
  * @returns {Promise<Object|null>} - Thông tin khách hàng sau khi cập nhật hoặc null nếu không tìm thấy
@@ -385,6 +385,15 @@ async function updateCustomer(id, updateData) {
             return null;
         }
 
+        // Lấy phone number hiện tại từ đúng source
+        let currentPhoneNumber = customer.phone_number;
+        if (customer.account_id) {
+            const account = await accountRepository()
+                .where('id', customer.account_id)
+                .first();
+            currentPhoneNumber = account?.phone_number || null;
+        }
+
         // Use a transaction to ensure atomicity
         const updatedCustomerWithAccount = await knex.transaction(async (trx) => {
             const customerPayload = {};
@@ -396,18 +405,81 @@ async function updateCustomer(id, updateData) {
             if (updateData.hasOwnProperty('date_of_birth')) customerPayload.date_of_birth = updateData.date_of_birth || null;
             if (updateData.hasOwnProperty('gender')) customerPayload.gender = updateData.gender;
             
-            // Phone number goes to both tables for now due to messy schema
+            // Phone number handling
             if (updateData.hasOwnProperty('phone_number')) {
-                // Check uniqueness in accounts table first
-                const existingAccount = await trx('accounts')
-                    .where('phone_number', updateData.phone_number)
-                    .whereNot('id', customer.account_id)
-                    .first();
-                if (existingAccount) {
-                    throw new Error('Phone number already exists');
+                
+                // Chỉ validate nếu phone number thực sự thay đổi
+                if (updateData.phone_number !== currentPhoneNumber) {
+                    console.log('Phone number changed, validating uniqueness...');
+                    
+                    // CROSS-CHECK: Kiểm tra phone đã tồn tại trong cả 2 bảng
+                    // 1. Kiểm tra trong accounts table
+                    const existingAccount = await trx('accounts')
+                        .where('phone_number', updateData.phone_number)
+                        .whereNot('id', customer.account_id || 0) // Exclude current account if exists
+                        .first();
+                    
+                    console.log('- existingAccount:', existingAccount?.id || 'none');
+                    
+                    // 2. Kiểm tra trong customers table
+                    const existingCustomer = await trx('customers')
+                        .where('phone_number', updateData.phone_number)
+                        .whereNot('id', id)
+                        .first();
+                    
+                    console.log('- existingCustomer:', existingCustomer?.id || 'none');
+                    
+                    // SPECIAL CASE: Merge với customer POS
+                    if (existingCustomer && !existingCustomer.account_id && customer.account_id) {
+                        console.log('Merging with POS customer...');
+                        
+                        // XÓA customer Google cũ TRƯỚC để tránh constraint violation
+                        await trx('customers').where('id', id).delete();
+                        
+                        // Merge thông tin: cập nhật customer POS với account và data mới
+                        await trx('customers')
+                            .where('id', existingCustomer.id)
+                            .update({
+                                account_id: customer.account_id,
+                                full_name: updateData.full_name || customer.full_name,
+                                date_of_birth: updateData.date_of_birth || existingCustomer.date_of_birth,
+                                gender: updateData.gender || existingCustomer.gender,
+                                address: updateData.address || existingCustomer.address,
+                                loyalty_points: (existingCustomer.loyalty_points || 0) + (customer.loyalty_points || 0),
+                                updated_at: new Date()
+                            });
+                        
+                        // Cập nhật phone trong accounts table
+                        await trx('accounts')
+                            .where('id', customer.account_id)
+                            .update({
+                                phone_number: updateData.phone_number,
+                                updated_at: new Date()
+                            });
+                        
+                        // Trả về customer đã merge
+                        const mergedCustomer = await trx('customers').where('id', existingCustomer.id).first();
+                        const account = await trx('accounts').where('id', customer.account_id).first();
+                        
+                        return {
+                            ...mergedCustomer,
+                            email: account.email,
+                            phone_number: account.phone_number
+                        };
+                    } else if (existingAccount || existingCustomer) {
+                        console.log('Phone number conflict detected!');
+                        throw new Error('Phone number already exists');
+                    }
+                } else {
+                    console.log('Phone number unchanged, skipping validation');
                 }
+                
                 customerPayload.phone_number = updateData.phone_number;
-                accountPayload.phone_number = updateData.phone_number;
+                
+                // Nếu customer có account, cập nhật phone trong accounts table
+                if (customer.account_id) {
+                    accountPayload.phone_number = updateData.phone_number;
+                }
             }
 
             // Update customers table if there's data for it
@@ -420,8 +492,8 @@ async function updateCustomer(id, updateData) {
                     });
             }
             
-            // Update accounts table if there's data for it
-            if (Object.keys(accountPayload).length > 0) {
+            // Update accounts table if there's data for it AND customer has account
+            if (Object.keys(accountPayload).length > 0 && customer.account_id) {
                  await trx('accounts')
                     .where({ id: customer.account_id })
                     .update(accountPayload);
@@ -429,13 +501,18 @@ async function updateCustomer(id, updateData) {
 
             // Refetch the updated customer data
             const freshCustomer = await trx('customers').where({ id }).first();
-            const freshAccount = await trx('accounts').where({ id: freshCustomer.account_id }).first();
-
-            return {
-                ...freshCustomer,
-                email: freshAccount.email, // Keep email from account
-                phone_number: freshAccount.phone_number // Use phone from account as source of truth
-            };
+            
+            if (freshCustomer.account_id) {
+                const freshAccount = await trx('accounts').where({ id: freshCustomer.account_id }).first();
+                return {
+                    ...freshCustomer,
+                    email: freshAccount.email,
+                    phone_number: freshAccount.phone_number // Use phone from account as source of truth
+                };
+            } else {
+                // Customer không có account, chỉ trả về data từ bảng customers
+                return freshCustomer;
+            }
         });
             
         return updatedCustomerWithAccount;
@@ -626,12 +703,14 @@ async function handleGoogleCallback(code) {
         let account = await accountRepository().where({ google_id: googleId }).first();
         let user;
         let roleName;
-        let isFirstTime = false; // Flag để indicate đây có phải lần đầu đăng ký không
+        let isFirstTime = false;
         
         if (!account) {
-            isFirstTime = true; // Đây là lần đầu đăng ký
+            isFirstTime = true;
             const customerRole = await getRoleByName(ROLES.CUSTOMER);
+            
             await knex.transaction(async (trx) => {
+                // Tạo account mới
                 const [newAccountId] = await trx('accounts').insert({
                     email: email,
                     google_id: googleId,
@@ -640,6 +719,8 @@ async function handleGoogleCallback(code) {
                 
                 account = { id: newAccountId.id, role_id: customerRole.id };
                 
+                // Tạo customer mới (không merge tự động vì không có thông tin SĐT từ Google)
+                // Admin có thể merge thủ công sau này nếu cần
                 const [newCustomerId] = await trx('customers').insert({
                     account_id: account.id,
                     full_name: fullName,
@@ -657,17 +738,303 @@ async function handleGoogleCallback(code) {
         const accessTokenJWT = generateToken({ 
             id: account.id, 
             role_id: account.role_id,
-            phone_number: null, // Google users không có phone_number ban đầu
+            phone_number: user.phone_number, // Sử dụng phone từ user data
             role: roleName 
         });
 
         return {
             user: { ...user, role: roleName },
             token: accessTokenJWT,
-            isFirstTime, // Thêm flag này vào response
+            isFirstTime,
         };
     } catch (error) {
         console.error('Google callback handling error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Kiểm tra khách hàng theo số điện thoại
+ * @param {string} phoneNumber - Số điện thoại cần kiểm tra
+ * @returns {Promise<Object|null>} - Thông tin khách hàng hoặc null nếu không tìm thấy
+ */
+async function checkCustomerByPhone(phoneNumber) {
+    try {
+        const customer = await customerRepository()
+            .where('phone_number', phoneNumber)
+            .first();
+
+        return customer;
+    } catch (error) {
+        console.error('Check customer by phone error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Tạo khách hàng mới không có tài khoản (cho staff đặt vé tại quầy)
+ * @param {Object} customerData - Dữ liệu khách hàng
+ * @returns {Promise<Object>} - Thông tin khách hàng vừa tạo
+ */
+async function createCustomerWithoutAccount(customerData) {
+    try {
+        const { full_name, phone_number, date_of_birth, gender, address } = customerData;
+
+        // CROSS-CHECK: Kiểm tra số điện thoại đã tồn tại trong cả 2 bảng
+        // 1. Kiểm tra trong customers table
+        const existingCustomer = await customerRepository()
+            .where('phone_number', phone_number)
+            .first();
+            
+        // 2. Kiểm tra trong accounts table
+        const existingAccount = await accountRepository()
+            .where('phone_number', phone_number)
+            .first();
+
+        if (existingCustomer || existingAccount) {
+            throw new Error('Số điện thoại đã tồn tại');
+        }
+
+        // CHỈ tạo khách hàng mới, KHÔNG tạo account
+        const [newCustomerId] = await customerRepository()
+            .insert({
+                account_id: null, // Không có account
+                full_name,
+                phone_number,
+                date_of_birth: date_of_birth || null,
+                gender: gender || 'other',
+                address: address || null,
+                loyalty_points: 0,
+                created_at: new Date(),
+                updated_at: new Date()
+            })
+            .returning('id');
+
+        // Lấy thông tin khách hàng vừa tạo
+        const customer = await customerRepository()
+            .where('id', newCustomerId.id || newCustomerId)
+            .first();
+
+        return customer;
+    } catch (error) {
+        console.error('Create customer without account error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Merge customer POS (không có account) với Google account hiện có
+ * @param {number} posCustomerId - ID của customer POS (account_id = null)
+ * @param {string} googleEmail - Email của Google account cần merge
+ * @returns {Promise<Object>} - Thông tin customer sau khi merge
+ */
+async function mergePosCustomerWithGoogleAccount(posCustomerId, googleEmail) {
+    try {
+        return await knex.transaction(async (trx) => {
+            // Tìm customer POS (không có account)
+            const posCustomer = await trx('customers')
+                .where('id', posCustomerId)
+                .whereNull('account_id')
+                .first();
+                
+            if (!posCustomer) {
+                throw new Error('POS customer not found or already has account');
+            }
+
+            // Tìm Google account
+            const googleAccount = await trx('accounts')
+                .where('email', googleEmail)
+                .whereNotNull('google_id')
+                .first();
+                
+            if (!googleAccount) {
+                throw new Error('Google account not found');
+            }
+
+            // Tìm customer hiện tại của Google account
+            const googleCustomer = await trx('customers')
+                .where('account_id', googleAccount.id)
+                .first();
+
+            if (!googleCustomer) {
+                throw new Error('Google customer not found');
+            }
+
+            // Merge thông tin: giữ thông tin chi tiết từ POS customer, 
+            // nhưng dùng account của Google
+            await trx('customers')
+                .where('id', googleCustomer.id)
+                .update({
+                    full_name: posCustomer.full_name || googleCustomer.full_name,
+                    phone_number: posCustomer.phone_number || googleCustomer.phone_number,
+                    date_of_birth: posCustomer.date_of_birth || googleCustomer.date_of_birth,
+                    gender: posCustomer.gender || googleCustomer.gender,
+                    address: posCustomer.address || googleCustomer.address,
+                    loyalty_points: (posCustomer.loyalty_points || 0) + (googleCustomer.loyalty_points || 0),
+                    updated_at: new Date()
+                });
+
+            // Cập nhật phone_number trong accounts table nếu POS customer có
+            if (posCustomer.phone_number) {
+                await trx('accounts')
+                    .where('id', googleAccount.id)
+                    .update({
+                        phone_number: posCustomer.phone_number,
+                        updated_at: new Date()
+                    });
+            }
+
+            // TODO: Chuyển tất cả bookings từ POS customer sang Google customer
+            await trx('ticket_bookings')
+                .where('customer_id', posCustomerId)
+                .update({
+                    customer_id: googleCustomer.id,
+                    updated_at: new Date()
+                });
+
+            // Xóa POS customer (vì đã merge)
+            await trx('customers').where('id', posCustomerId).del();
+
+            // Trả về thông tin customer sau merge
+            const mergedCustomer = await trx('customers')
+                .where('id', googleCustomer.id)
+                .first();
+                
+            const account = await trx('accounts')
+                .where('id', googleAccount.id)
+                .first();
+
+            return {
+                ...mergedCustomer,
+                email: account.email,
+                phone_number: account.phone_number
+            };
+        });
+    } catch (error) {
+        console.error('Merge POS customer with Google account error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Lấy danh sách customer POS (không có account) để admin merge
+ * @returns {Promise<Array>} - Danh sách customer POS
+ */
+async function getPosCustomers() {
+    try {
+        const posCustomers = await customerRepository()
+            .whereNull('account_id')
+            .orderBy('created_at', 'desc');
+            
+        return posCustomers;
+    } catch (error) {
+        console.error('Get POS customers error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Link số điện thoại với Google account (merge với customer POS nếu có)
+ * @param {number} accountId - ID của Google account
+ * @param {string} phoneNumber - Số điện thoại cần link
+ * @returns {Promise<Object>} - Thông tin customer sau khi merge
+ */
+async function linkPhoneNumberToGoogleAccount(accountId, phoneNumber) {
+    try {
+        return await knex.transaction(async (trx) => {
+            // Kiểm tra account hiện tại
+            const account = await trx('accounts')
+                .where('id', accountId)
+                .whereNotNull('google_id')
+                .first();
+                
+            if (!account) {
+                throw new Error('Google account not found');
+            }
+
+            // Kiểm tra customer hiện tại của Google account
+            const googleCustomer = await trx('customers')
+                .where('account_id', accountId)
+                .first();
+
+            if (!googleCustomer) {
+                throw new Error('Google customer not found');
+            }
+
+            // Kiểm tra xem có customer POS nào với SĐT này không
+            const posCustomer = await trx('customers')
+                .where('phone_number', phoneNumber)
+                .whereNull('account_id')
+                .first();
+
+            if (posCustomer) {
+                // Có customer POS -> merge
+                console.log('Found POS customer, merging...');
+                
+                // Cập nhật customer POS với account_id và merge thông tin
+                await trx('customers')
+                    .where('id', posCustomer.id)
+                    .update({
+                        account_id: accountId,
+                        full_name: googleCustomer.full_name, // Giữ tên từ Google
+                        loyalty_points: (posCustomer.loyalty_points || 0) + (googleCustomer.loyalty_points || 0),
+                        updated_at: new Date()
+                    });
+
+                // Cập nhật phone_number trong accounts
+                await trx('accounts')
+                    .where('id', accountId)
+                    .update({
+                        phone_number: phoneNumber,
+                        updated_at: new Date()
+                    });
+
+                // Xóa customer Google cũ (không cần thiết nữa)
+                await trx('customers')
+                    .where('id', googleCustomer.id)
+                    .delete();
+
+                // Trả về customer đã merge
+                return await trx('customers').where('id', posCustomer.id).first();
+            } else {
+                // Không có customer POS -> chỉ cập nhật SĐT
+                console.log('No POS customer found, just updating phone number...');
+                
+                // CROSS-CHECK: Kiểm tra SĐT đã được sử dụng chưa trong cả 2 bảng
+                const existingCustomerWithPhone = await trx('customers')
+                    .where('phone_number', phoneNumber)
+                    .first();
+                    
+                const existingAccountWithPhone = await trx('accounts')
+                    .where('phone_number', phoneNumber)
+                    .whereNot('id', accountId) // Exclude current account
+                    .first();
+
+                if (existingCustomerWithPhone || existingAccountWithPhone) {
+                    throw new Error('Số điện thoại đã được sử dụng bởi khách hàng khác');
+                }
+
+                // Cập nhật SĐT cho customer hiện tại
+                await trx('customers')
+                    .where('id', googleCustomer.id)
+                    .update({
+                        phone_number: phoneNumber,
+                        updated_at: new Date()
+                    });
+
+                // Cập nhật phone_number trong accounts
+                await trx('accounts')
+                    .where('id', accountId)
+                    .update({
+                        phone_number: phoneNumber,
+                        updated_at: new Date()
+                    });
+
+                return await trx('customers').where('id', googleCustomer.id).first();
+            }
+        });
+    } catch (error) {
+        console.error('Link phone number to Google account error:', error);
         throw error;
     }
 }
@@ -687,5 +1054,10 @@ module.exports = {
     getUserInfoByAccountId,
     getGoogleAuthUrl,
     handleGoogleCallback,
-    changePassword
+    changePassword,
+    checkCustomerByPhone,
+    createCustomerWithoutAccount,
+    mergePosCustomerWithGoogleAccount,
+    getPosCustomers,
+    linkPhoneNumberToGoogleAccount
 }; 
