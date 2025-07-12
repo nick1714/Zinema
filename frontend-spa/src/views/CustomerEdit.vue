@@ -13,15 +13,15 @@ const customerId = computed(() => route.params.id)
 const { currentUser, canManageCustomers, isCustomer } = useAuth()
 const { updateCustomer } = useCustomers()
 
-const { 
-  data: customerData, 
-  isLoading, 
-  isError 
+const {
+  data: customerData,
+  isLoading,
+  isError,
 } = useQuery({
   queryKey: ['customers', { id: customerId.value }],
   queryFn: () => authService.getCustomerById(customerId.value),
   enabled: !!customerId.value,
-});
+})
 
 const isEditing = ref(false)
 
@@ -85,9 +85,9 @@ function getInitials(name) {
 
 function formatGender(gender) {
   const genderMap = {
-    'male': 'Nam',
-    'female': 'Nữ',
-    'other': 'Khác'
+    male: 'Nam',
+    female: 'Nữ',
+    other: 'Khác',
   }
   return genderMap[gender] || 'Chưa cập nhật'
 }
@@ -105,7 +105,7 @@ function formatGender(gender) {
           </div>
         </div>
       </div>
-          </div>
+    </div>
 
     <!-- Page content -->
     <div class="page-content">
@@ -116,7 +116,7 @@ function formatGender(gender) {
             <i class="fas fa-circle-notch fa-spin"></i>
           </div>
           <p>Đang tải thông tin khách hàng...</p>
-            </div>
+        </div>
 
         <!-- Error state -->
         <div v-else-if="isError" class="error-state">
@@ -129,21 +129,22 @@ function formatGender(gender) {
             <i class="fas fa-arrow-left"></i>
             Quay lại
           </button>
-              </div>
+        </div>
 
         <!-- Customer Info -->
         <div v-else-if="customerData?.customer" class="detail-card">
-              <!-- Edit Form -->
-              <CustomerForm
-                v-if="isEditing && canEdit"
-                :initial-values="initialValues"
-                :is-loading="updateCustomer.isLoading"
-                @submit="handleUpdateCustomer"
-                @cancel="isEditing = false"
-              />
+          <!-- Edit Form -->
+          <CustomerForm
+            v-if="isEditing && canEdit"
+            :initial-values="initialValues"
+            :is-loading="updateCustomer.isLoading"
+            :allow-phone-edit="true"
+            @submit="handleUpdateCustomer"
+            @cancel="isEditing = false"
+          />
 
-              <!-- View Mode -->
-              <div v-else class="customer-view">
+          <!-- View Mode -->
+          <div v-else class="customer-view">
             <!-- Customer header -->
             <div class="customer-header">
               <div class="customer-avatar badge-customer">
@@ -158,24 +159,28 @@ function formatGender(gender) {
             <!-- Customer details -->
             <div class="detail-section">
               <h3 class="section-title">Thông tin cá nhân</h3>
-              
+
               <div class="detail-grid">
                 <div class="detail-item">
                   <div class="detail-label">
                     <i class="fas fa-phone"></i>
                     <span>Số điện thoại</span>
                   </div>
-                  <div class="detail-value">{{ customerData.customer.phone_number || 'Chưa cập nhật' }}</div>
+                  <div class="detail-value">
+                    {{ customerData.customer.phone_number || 'Chưa cập nhật' }}
+                  </div>
                 </div>
-                
+
                 <div class="detail-item">
                   <div class="detail-label">
                     <i class="fas fa-envelope"></i>
                     <span>Email</span>
                   </div>
-                  <div class="detail-value">{{ customerData.customer.email || 'Chưa cập nhật' }}</div>
+                  <div class="detail-value">
+                    {{ customerData.customer.email || 'Chưa cập nhật' }}
+                  </div>
                 </div>
-                
+
                 <div class="detail-item">
                   <div class="detail-label">
                     <i class="fas fa-venus-mars"></i>
@@ -183,25 +188,29 @@ function formatGender(gender) {
                   </div>
                   <div class="detail-value">{{ formatGender(customerData.customer.gender) }}</div>
                 </div>
-                
+
                 <div class="detail-item">
                   <div class="detail-label">
                     <i class="fas fa-birthday-cake"></i>
                     <span>Ngày sinh</span>
                   </div>
                   <div class="detail-value">
-                    {{ customerData.customer.date_of_birth
-                      ? new Date(customerData.customer.date_of_birth).toLocaleDateString('vi-VN')
-                      : 'Chưa cập nhật' }}
+                    {{
+                      customerData.customer.date_of_birth
+                        ? new Date(customerData.customer.date_of_birth).toLocaleDateString('vi-VN')
+                        : 'Chưa cập nhật'
+                    }}
                   </div>
                 </div>
-                
+
                 <div class="detail-item">
                   <div class="detail-label">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>Địa chỉ</span>
                   </div>
-                  <div class="detail-value">{{ customerData.customer.address || 'Chưa cập nhật' }}</div>
+                  <div class="detail-value">
+                    {{ customerData.customer.address || 'Chưa cập nhật' }}
+                  </div>
                 </div>
 
                 <div class="detail-item">
@@ -222,7 +231,7 @@ function formatGender(gender) {
                 <i class="fas fa-edit"></i>
                 <span>Chỉnh sửa thông tin</span>
               </button>
-              
+
               <button class="btn-back" @click="goBack">
                 <i class="fas fa-arrow-left"></i>
                 <span>Quay lại</span>
@@ -513,17 +522,15 @@ function formatGender(gender) {
   .detail-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .customer-header {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .customer-avatar {
     margin-right: 0;
     margin-bottom: 1rem;
   }
 }
-
-
 </style>
