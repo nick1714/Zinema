@@ -21,7 +21,7 @@
       <div v-else-if="error" class="error-container">
         <i class="fas fa-exclamation-circle"></i>
         <p>{{ error }}</p>
-        <button @click="fetchMovieData" class="btn-retry">Thử lại</button>
+        <button @click="refetch" class="btn-retry">Thử lại</button>
       </div>
 
       <!-- Movie detail -->
@@ -219,7 +219,7 @@
           <div v-if="isEditing" class="editing-actions">
             <button type="button" class="btn-save" :disabled="isSubmitting" @click="handleSubmit">
               <i class="fas fa-save"></i>
-              {{ isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi' }}
+              {{ isUpdatingMovie ? 'Đang lưu...' : 'Lưu thay đổi' }}
             </button>
 
             <button type="button" class="btn-cancel" @click="cancelEdit">Hủy</button>
@@ -236,9 +236,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMovies } from '@/composables/useMovies'
+import { useMovies, useMovieById } from '@/composables/useMovies'
 import { STATIC_BASE_URL } from '@/constants'
 
 const route = useRoute()
@@ -246,11 +246,11 @@ const router = useRouter()
 const movieId = computed(() => route.params.id)
 
 // Composable
-const { currentMovie, isLoading, error, fetchMovieById, updateMovie } = useMovies()
+const { updateMovie, isUpdatingMovie, updateMovieError } = useMovies()
+const { data: currentMovie, isLoading, error, refetch } = useMovieById(movieId)
 
 // Edit state
 const isEditing = ref(false)
-const isSubmitting = ref(false)
 const selectedPoster = ref(null)
 const selectedPosterPreview = ref('')
 const imageError = ref(false)
@@ -355,40 +355,35 @@ function populateForm(movie) {
 }
 
 async function handleSubmit() {
-  isSubmitting.value = true
-
   try {
     const formData = new FormData()
     Object.keys(form).forEach((key) => {
-      formData.append(key, form[key])
+      if (form[key] !== null && form[key] !== undefined && form[key] !== '') {
+        formData.append(key, form[key])
+      }
     })
 
     if (selectedPoster.value) {
       formData.append('posterFile', selectedPoster.value)
     }
 
-    await updateMovie(movieId.value, formData)
+    await updateMovie.mutateAsync({ id: movieId.value, data: formData })
+
     isEditing.value = false
     selectedPoster.value = null
     selectedPosterPreview.value = ''
     alert('Cập nhật phim thành công!')
+
+    // Refetch current movie data
+    await refetch()
   } catch (err) {
     console.error('Lỗi khi cập nhật phim:', err)
-    // Hiển thị thông báo lỗi từ composable
-    if (error.value) {
-      alert(error.value)
-    } else {
-      alert('Có lỗi xảy ra khi cập nhật phim. Vui lòng thử lại sau.')
-    }
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-async function fetchMovieData() {
-  await fetchMovieById(movieId.value)
-  if (currentMovie.value) {
-    populateForm(currentMovie.value)
+    // Show error from composable if available
+    const errorMessage =
+      updateMovieError.value?.message ||
+      err.message ||
+      'Có lỗi xảy ra khi cập nhật phim. Vui lòng thử lại sau.'
+    alert(errorMessage)
   }
 }
 
@@ -396,9 +391,18 @@ function goBack() {
   router.push('/admin/movies')
 }
 
-// Lifecycle
+// Watch for movie data and populate form
 onMounted(() => {
-  fetchMovieData()
+  if (currentMovie.value) {
+    populateForm(currentMovie.value)
+  }
+})
+
+// Also watch for changes to currentMovie (when data is loaded)
+watch(currentMovie, (newMovie) => {
+  if (newMovie) {
+    populateForm(newMovie)
+  }
 })
 </script>
 

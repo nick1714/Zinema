@@ -40,23 +40,18 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { useMovies } from '@/composables/useMovies'
+import { computed } from 'vue'
+import { useNowShowingMovies } from '@/composables/useMovies'
 import MovieCard from '@/components/MovieCard.vue'
 
-const { movies, isLoading, error, fetchMovies } = useMovies()
+const { data: moviesResponse, isLoading, error, refetch } = useNowShowingMovies({ limit: 20 })
 
-function fetchActiveMovies() {
-  fetchMovies({ status: 'active', limit: 20 })
-}
+// Extract movies array from response
+const movies = computed(() => moviesResponse.value?.movies || [])
 
 function retryFetch() {
-  fetchActiveMovies()
+  refetch()
 }
-
-onMounted(() => {
-  fetchActiveMovies()
-})
 </script>
 
 <style scoped>

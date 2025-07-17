@@ -11,34 +11,30 @@
         </div>
       </div>
     </div>
-    
+
     <div class="container py-4">
       <div class="movie-form-container">
         <div class="movie-form-grid">
           <!-- Poster section -->
           <div class="poster-section">
             <div class="poster-container">
-              <img 
-                :src="posterPreview || defaultPoster" 
-                alt="Movie poster" 
-                class="movie-poster"
-              >
-              
+              <img :src="posterPreview || defaultPoster" alt="Movie poster" class="movie-poster" />
+
               <div class="poster-overlay">
                 <label for="poster-upload" class="btn-upload">
                   <i class="fas fa-camera"></i>
                   {{ posterFile ? 'Thay đổi poster' : 'Chọn poster' }}
                 </label>
-                <input 
-                  type="file" 
-                  id="poster-upload" 
+                <input
+                  type="file"
+                  id="poster-upload"
                   accept="image/*"
                   @change="handlePosterChange"
                   class="hidden-input"
-                >
+                />
               </div>
             </div>
-            
+
             <div v-if="posterFile" class="selected-poster-info">
               <div class="selected-file">
                 <i class="fas fa-file-image"></i>
@@ -48,64 +44,60 @@
                 <i class="fas fa-times"></i>
               </button>
             </div>
-            
+
             <div v-if="!posterFile" class="poster-note">
               <p>Vui lòng chọn poster cho phim</p>
               <p class="note-small">Kích thước khuyến nghị: 500x750px</p>
             </div>
           </div>
-          
+
           <!-- Form section -->
           <div class="form-section">
             <form @submit.prevent="handleSubmit" class="movie-form">
               <!-- Tiêu đề -->
               <div class="form-group">
                 <label for="title">Tiêu đề phim <span class="required">*</span></label>
-                <input 
-                  type="text" 
-                  id="title" 
-                  v-model="form.title" 
+                <input
+                  type="text"
+                  id="title"
+                  v-model="form.title"
                   required
                   placeholder="Nhập tiêu đề phim"
-                >
+                />
                 <div v-if="errors.title" class="error-message">{{ errors.title }}</div>
               </div>
-              
+
               <!-- Mô tả -->
               <div class="form-group">
                 <label for="description">Mô tả <span class="required">*</span></label>
-                <textarea 
-                  id="description" 
-                  v-model="form.description" 
+                <textarea
+                  id="description"
+                  v-model="form.description"
                   rows="5"
                   required
                   placeholder="Nhập mô tả phim"
                 ></textarea>
                 <div v-if="errors.description" class="error-message">{{ errors.description }}</div>
               </div>
-              
+
               <!-- Thông tin cơ bản -->
               <div class="form-row">
                 <div class="form-group">
                   <label for="duration">Thời lượng (phút) <span class="required">*</span></label>
-                  <input 
-                    type="number" 
-                    id="duration" 
-                    v-model.number="form.duration" 
+                  <input
+                    type="number"
+                    id="duration"
+                    v-model.number="form.duration"
                     min="1"
                     required
                     placeholder="120"
-                  >
+                  />
                   <div v-if="errors.duration" class="error-message">{{ errors.duration }}</div>
                 </div>
-                
+
                 <div class="form-group">
                   <label for="rating">Phân loại <span class="required">*</span></label>
-                  <select 
-                    id="rating" 
-                    v-model="form.rating" 
-                    required
-                  >
+                  <select id="rating" v-model="form.rating" required>
                     <option value="" disabled selected>Chọn phân loại</option>
                     <option value="G">G (Mọi lứa tuổi)</option>
                     <option value="PG">PG (Có phụ huynh hướng dẫn)</option>
@@ -120,118 +112,97 @@
                   <div v-if="errors.rating" class="error-message">{{ errors.rating }}</div>
                 </div>
               </div>
-              
+
               <div class="form-row">
                 <div class="form-group">
                   <label for="release_date">Ngày công chiếu <span class="required">*</span></label>
-                  <input 
-                    type="date" 
-                    id="release_date" 
-                    v-model="form.release_date" 
-                    required
-                  >
-                  <div v-if="errors.release_date" class="error-message">{{ errors.release_date }}</div>
+                  <input type="date" id="release_date" v-model="form.release_date" required />
+                  <div v-if="errors.release_date" class="error-message">
+                    {{ errors.release_date }}
+                  </div>
                 </div>
-                
+
                 <div class="form-group">
                   <label for="end_date">Ngày kết thúc</label>
-                  <input 
-                    type="date" 
-                    id="end_date" 
-                    v-model="form.end_date"
-                  >
+                  <input type="date" id="end_date" v-model="form.end_date" />
                 </div>
               </div>
-              
+
               <!-- Thông tin chi tiết -->
               <div class="form-group">
                 <label for="genre">Thể loại <span class="required">*</span></label>
-                <input 
-                  type="text" 
-                  id="genre" 
-                  v-model="form.genre" 
+                <input
+                  type="text"
+                  id="genre"
+                  v-model="form.genre"
                   required
                   placeholder="Hành động, Phiêu lưu, Khoa học viễn tưởng,..."
-                >
+                />
                 <div v-if="errors.genre" class="error-message">{{ errors.genre }}</div>
               </div>
-              
+
               <div class="form-group">
                 <label for="director">Đạo diễn <span class="required">*</span></label>
-                <input 
-                  type="text" 
-                  id="director" 
-                  v-model="form.director" 
+                <input
+                  type="text"
+                  id="director"
+                  v-model="form.director"
                   required
                   placeholder="Tên đạo diễn"
-                >
+                />
                 <div v-if="errors.director" class="error-message">{{ errors.director }}</div>
               </div>
-              
+
               <div class="form-group">
                 <label for="cast">Diễn viên <span class="required">*</span></label>
-                <textarea 
-                  id="cast" 
-                  v-model="form.cast" 
+                <textarea
+                  id="cast"
+                  v-model="form.cast"
                   rows="2"
                   required
                   placeholder="Danh sách diễn viên, ngăn cách bởi dấu phẩy"
                 ></textarea>
                 <div v-if="errors.cast" class="error-message">{{ errors.cast }}</div>
               </div>
-              
+
               <div class="form-group">
                 <label for="country">Quốc gia <span class="required">*</span></label>
-                <input 
-                  type="text" 
-                  id="country" 
-                  v-model="form.country" 
+                <input
+                  type="text"
+                  id="country"
+                  v-model="form.country"
                   required
                   placeholder="Việt Nam, Mỹ, Hàn Quốc,..."
-                >
+                />
                 <div v-if="errors.country" class="error-message">{{ errors.country }}</div>
               </div>
-              
+
               <div class="form-group">
                 <label for="trailer_url">URL Trailer</label>
-                <input 
-                  type="url" 
-                  id="trailer_url" 
-                  v-model="form.trailer_url" 
+                <input
+                  type="url"
+                  id="trailer_url"
+                  v-model="form.trailer_url"
                   placeholder="https://www.youtube.com/watch?v=..."
-                >
+                />
               </div>
-              
+
               <div class="form-group">
                 <label for="status">Trạng thái <span class="required">*</span></label>
-                <select 
-                  id="status" 
-                  v-model="form.status" 
-                  required
-                >
+                <select id="status" v-model="form.status" required>
                   <option value="active">Đang chiếu</option>
                   <option value="inactive">Ngừng chiếu</option>
                 </select>
               </div>
-              
+
               <!-- Form actions -->
               <div class="form-actions">
-                <button 
-                  type="submit" 
-                  class="btn-save"
-                  :disabled="isSubmitting"
-                >
+                <button type="submit" class="btn-save" :disabled="isCreatingMovie">
                   <i class="fas fa-save"></i>
-                  {{ isSubmitting ? 'Đang lưu...' : 'Tạo phim' }}
+                  {{ isCreatingMovie ? 'Đang lưu...' : 'Tạo phim' }}
                 </button>
-                
-                <button 
-                  type="button" 
-                  class="btn-cancel"
-                  @click="goBack"
-                >
-                  Hủy
-                </button>
+
+                <button type="button" class="btn-cancel" @click="goBack">Hủy</button>
               </div>
             </form>
           </div>
@@ -242,20 +213,19 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { useMovies } from '@/composables/useMovies';
-import { STATIC_BASE_URL } from '@/constants';
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useMovies } from '@/composables/useMovies'
+import { STATIC_BASE_URL } from '@/constants'
 
-const router = useRouter();
-const { createMovie } = useMovies();
+const router = useRouter()
+const { createMovie, isCreatingMovie, createMovieError } = useMovies()
 
 // State
-const posterFile = ref(null);
-const posterPreview = ref('');
-const defaultPoster = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`;
-const isSubmitting = ref(false);
-const errors = reactive({});
+const posterFile = ref(null)
+const posterPreview = ref('')
+const defaultPoster = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`
+const errors = reactive({})
 
 // Form data
 const form = reactive({
@@ -270,128 +240,136 @@ const form = reactive({
   country: '',
   rating: '',
   trailer_url: '',
-  status: 'active'
-});
+  status: 'active',
+})
 
 // Methods
 function handlePosterChange(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
+  const file = event.target.files[0]
+  if (!file) return
+
   // Validate file type
   if (!file.type.match('image.*')) {
-    alert('Vui lòng chọn file hình ảnh');
-    return;
+    alert('Vui lòng chọn file hình ảnh')
+    return
   }
-  
+
   // Preview
-  posterFile.value = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    posterPreview.value = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  posterFile.value = file
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    posterPreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
 }
 
 function removePoster() {
-  posterFile.value = null;
-  posterPreview.value = '';
-  document.getElementById('poster-upload').value = '';
+  posterFile.value = null
+  posterPreview.value = ''
+  document.getElementById('poster-upload').value = ''
 }
 
 function validateForm() {
-  const newErrors = {};
-  
+  const newErrors = {}
+
   if (!form.title.trim()) {
-    newErrors.title = 'Tiêu đề không được để trống';
+    newErrors.title = 'Tiêu đề không được để trống'
   } else if (form.title.length > 255) {
-    newErrors.title = 'Tiêu đề quá dài (tối đa 255 ký tự)';
+    newErrors.title = 'Tiêu đề quá dài (tối đa 255 ký tự)'
   }
-  
+
   if (!form.description.trim()) {
-    newErrors.description = 'Mô tả không được để trống';
+    newErrors.description = 'Mô tả không được để trống'
   } else if (form.description.length > 2000) {
-    newErrors.description = 'Mô tả quá dài (tối đa 2000 ký tự)';
+    newErrors.description = 'Mô tả quá dài (tối đa 2000 ký tự)'
   }
-  
+
   if (!form.duration) {
-    newErrors.duration = 'Thời lượng không được để trống';
+    newErrors.duration = 'Thời lượng không được để trống'
   } else if (form.duration < 1 || form.duration > 600) {
-    newErrors.duration = 'Thời lượng phải từ 1 đến 600 phút';
+    newErrors.duration = 'Thời lượng phải từ 1 đến 600 phút'
   }
-  
+
   if (!form.release_date) {
-    newErrors.release_date = 'Ngày công chiếu không được để trống';
+    newErrors.release_date = 'Ngày công chiếu không được để trống'
   }
-  
+
   if (!form.genre.trim()) {
-    newErrors.genre = 'Thể loại không được để trống';
+    newErrors.genre = 'Thể loại không được để trống'
   } else if (form.genre.length > 100) {
-    newErrors.genre = 'Thể loại quá dài (tối đa 100 ký tự)';
+    newErrors.genre = 'Thể loại quá dài (tối đa 100 ký tự)'
   }
-  
+
   if (!form.director.trim()) {
-    newErrors.director = 'Đạo diễn không được để trống';
+    newErrors.director = 'Đạo diễn không được để trống'
   } else if (form.director.length > 255) {
-    newErrors.director = 'Tên đạo diễn quá dài (tối đa 255 ký tự)';
+    newErrors.director = 'Tên đạo diễn quá dài (tối đa 255 ký tự)'
   }
-  
+
   if (!form.cast.trim()) {
-    newErrors.cast = 'Danh sách diễn viên không được để trống';
+    newErrors.cast = 'Danh sách diễn viên không được để trống'
   } else if (form.cast.length > 1000) {
-    newErrors.cast = 'Danh sách diễn viên quá dài (tối đa 1000 ký tự)';
+    newErrors.cast = 'Danh sách diễn viên quá dài (tối đa 1000 ký tự)'
   }
-  
+
   if (!form.country.trim()) {
-    newErrors.country = 'Quốc gia không được để trống';
+    newErrors.country = 'Quốc gia không được để trống'
   } else if (form.country.length > 100) {
-    newErrors.country = 'Quốc gia quá dài (tối đa 100 ký tự)';
+    newErrors.country = 'Quốc gia quá dài (tối đa 100 ký tự)'
   }
-  
+
   if (!form.rating) {
-    newErrors.rating = 'Phân loại không được để trống';
+    newErrors.rating = 'Phân loại không được để trống'
   }
-  
-  Object.assign(errors, newErrors);
-  return Object.keys(newErrors).length === 0;
+
+  Object.assign(errors, newErrors)
+  return Object.keys(newErrors).length === 0
 }
 
 async function handleSubmit() {
   // Reset errors
-  Object.keys(errors).forEach(key => {
-    errors[key] = undefined;
-  });
-  
+  Object.keys(errors).forEach((key) => {
+    errors[key] = undefined
+  })
+
   // Validate form
   if (!validateForm()) {
-    return;
+    return
   }
-  
-  isSubmitting.value = true;
-  
+
   try {
-    const formData = new FormData();
-    Object.keys(form).forEach(key => {
-      formData.append(key, form[key]);
-    });
-    
+    const formData = new FormData()
+    Object.keys(form).forEach((key) => {
+      if (form[key] !== null && form[key] !== undefined && form[key] !== '') {
+        formData.append(key, form[key])
+      }
+    })
+
     if (posterFile.value) {
-      formData.append('posterFile', posterFile.value);
+      formData.append('posterFile', posterFile.value)
     }
-    
-    const movie = await createMovie(formData);
-    alert('Tạo phim mới thành công');
-    router.push(`/admin/movies/${movie.id}`);
+
+    const result = await createMovie.mutateAsync(formData)
+
+    if (result && result.movie) {
+      alert('Tạo phim mới thành công')
+      router.push(`/admin/movies/${result.movie.id}`)
+    } else {
+      throw new Error('Invalid response structure')
+    }
   } catch (err) {
-    console.error('Lỗi khi tạo phim:', err);
-    alert('Có lỗi xảy ra khi tạo phim. Vui lòng thử lại sau.');
-  } finally {
-    isSubmitting.value = false;
+    console.error('Lỗi khi tạo phim:', err)
+    // Show error from composable if available
+    const errorMessage =
+      createMovieError.value?.message ||
+      err.message ||
+      'Có lỗi xảy ra khi tạo phim. Vui lòng thử lại sau.'
+    alert(errorMessage)
   }
 }
 
 function goBack() {
-  router.push('/admin/movies');
+  router.push('/admin/movies')
 }
 </script>
 
@@ -693,7 +671,7 @@ function goBack() {
   .movie-form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .poster-section {
     max-width: 300px;
     margin: 0 auto 2rem;
@@ -704,17 +682,17 @@ function goBack() {
   .movie-form-container {
     padding: 1.5rem;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .form-actions button {
     width: 100%;
   }
 }
-</style> 
+</style>

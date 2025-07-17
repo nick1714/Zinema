@@ -1,30 +1,24 @@
-import { ref, reactive, computed } from 'vue'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import movieService from '@/services/movie.service'
+
+const MOVIE_QUERY_KEY = 'movies'
+
+// Helper to unwrap refs without using unref (available to all functions in this module)
+function toVal(source) {
+  return source && typeof source === 'object' && 'value' in source ? source.value : source
+}
 
 /**
  * Composable hook để quản lý phim
  */
 export function useMovies() {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
-  // State
-  const movies = ref([])
-  const currentMovie = ref(null)
-  const isLoading = ref(false)
-  const error = ref(null)
-
-  // Metadata cho phân trang
-  const metadata = reactive({
-    totalRecords: 0,
-    firstPage: 1,
-    lastPage: 1,
-    page: 1,
-    limit: 10,
-  })
-
-  // Filters
-  const filters = reactive({
+  // Local state for filters (using ref instead of reactive)
+  const _filtersRef = ref({
     title: '',
     genre: '',
     status: 'active',
@@ -33,158 +27,58 @@ export function useMovies() {
     limit: 10,
   })
 
-  // Computed
-  const totalPages = computed(() => metadata.lastPage)
+  // Expose a proxy so components can keep using `filters.xxx` without `.value`
+  const filters = new Proxy(_filtersRef.value, {
+    get(target, prop) {
+      return _filtersRef.value[prop]
+    },
+    set(target, prop, value) {
+      _filtersRef.value[prop] = value
+      return true
+    },
+  })
 
-  /**
-   * Lấy danh sách phim với filter và phân trang
-   */
-  async function fetchMovies() {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      // Loại bỏ các tham số rỗng khỏi bộ lọc
-      const cleanFilters = Object.fromEntries(
-        Object.entries(filters).filter(([_, value]) => value !== '' && value !== null),
-      )
-
-      const result = await movieService.getMovies(cleanFilters)
-      movies.value = result.movies
-
-      // Cập nhật metadata
-      Object.assign(metadata, result.metadata)
-    } catch (err) {
-      console.error('Lỗi khi lấy danh sách phim:', err)
-      error.value = 'Không thể tải danh sách phim. Vui lòng thử lại sau.'
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * Lấy chi tiết phim theo ID
-   * @param {number} id - ID của phim
-   */
-  async function fetchMovieById(id) {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      currentMovie.value = await movieService.getMovieById(id)
-    } catch (err) {
-      console.error('Lỗi khi lấy thông tin phim:', err)
-
-      // Xử lý thông báo lỗi chi tiết hơn
-      if (err.response) {
-        // Lỗi từ server với response
-        if (err.response.status === 401) {
-          error.value = 'Bạn không có quyền xem thông tin phim này. Vui lòng đăng nhập lại.'
-        } else if (err.response.status === 404) {
-          error.value = 'Không tìm thấy phim này. Có thể phim đã bị xóa.'
-        } else {
-          error.value = `Lỗi từ server: ${err.response.status} - ${err.response.data?.message || 'Không thể tải thông tin phim'}`
-        }
-      } else if (err.request) {
-        // Không nhận được response
-        error.value = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.'
-      } else {
-        // Lỗi khác
-        error.value = 'Không thể tải thông tin phim. Vui lòng thử lại sau.'
+  // Mutations
+  const createMovieMutation = useMutation({
+    mutationFn: movieService.createMovie,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [MOVIE_QUERY_KEY] })
+      if (data && data.movie) {
+        queryClient.setQueryData([MOVIE_QUERY_KEY, data.movie.id], data.movie)
       }
-    } finally {
-      isLoading.value = false
-    }
-  }
+    },
+    onError: (error) => {
+      console.error('Create movie error:', error)
+    },
+  })
 
-  /**
-   * Tạo phim mới
-   * @param {Object} movieData - Dữ liệu phim
-   */
-  async function createMovie(movieData) {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const { movie } = await movieService.createMovie(movieData)
-      return movie
-    } catch (err) {
-      console.error('Lỗi khi tạo phim:', err)
-      error.value = 'Không thể tạo phim. Vui lòng thử lại sau.'
-      throw err
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * Cập nhật thông tin phim
-   * @param {number} id - ID của phim
-   * @param {Object} movieData - Dữ liệu phim cần cập nhật
-   */
-  async function updateMovie(id, movieData) {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const { movie } = await movieService.updateMovie(id, movieData)
-      currentMovie.value = movie
-      return movie
-    } catch (err) {
-      console.error('Lỗi khi cập nhật phim:', err)
-
-      // Xử lý thông báo lỗi chi tiết hơn
-      if (err.response) {
-        // Lỗi từ server với response
-        if (err.response.status === 401) {
-          error.value = 'Bạn không có quyền cập nhật phim. Vui lòng đăng nhập lại.'
-        } else if (err.response.status === 400) {
-          error.value = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.'
-        } else {
-          error.value = `Lỗi từ server: ${err.response.status} - ${err.response.data?.message || 'Không thể cập nhật phim'}`
-        }
-      } else if (err.request) {
-        // Không nhận được response
-        error.value = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.'
-      } else {
-        // Lỗi khác
-        error.value = 'Không thể cập nhật phim. Vui lòng thử lại sau.'
+  const updateMovieMutation = useMutation({
+    mutationFn: ({ id, data }) => movieService.updateMovie(id, data),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: [MOVIE_QUERY_KEY] })
+      if (data && data.movie) {
+        queryClient.setQueryData([MOVIE_QUERY_KEY, variables.id], data.movie)
       }
+    },
+    onError: (error) => {
+      console.error('Update movie error:', error)
+    },
+  })
 
-      throw err
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * Xóa phim
-   * @param {number} id - ID của phim cần xóa
-   */
-  async function deleteMovie(id) {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      await movieService.deleteMovie(id)
-      // Cập nhật lại danh sách sau khi xóa
-      await fetchMovies()
-    } catch (err) {
-      console.error('Lỗi khi xóa phim:', err)
-      error.value = 'Không thể xóa phim. Vui lòng thử lại sau.'
-      throw err
-    } finally {
-      isLoading.value = false
-    }
-  }
+  const deleteMovieMutation = useMutation({
+    mutationFn: movieService.deleteMovie,
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: [MOVIE_QUERY_KEY] })
+      queryClient.removeQueries({ queryKey: [MOVIE_QUERY_KEY, variables] })
+    },
+  })
 
   /**
    * Thay đổi trang
    * @param {number} page - Số trang mới
    */
   function changePage(page) {
-    filters.page = page
-    fetchMovies()
+    _filtersRef.value.page = page
   }
 
   /**
@@ -192,15 +86,14 @@ export function useMovies() {
    * @param {Object} newFilters - Bộ lọc mới
    */
   function applyFilters(newFilters) {
-    Object.assign(filters, newFilters, { page: 1 }) // Reset về trang 1 khi lọc
-    fetchMovies()
+    Object.assign(_filtersRef.value, newFilters, { page: 1 }) // Reset về trang 1 khi lọc
   }
 
   /**
    * Reset bộ lọc về mặc định
    */
   function resetFilters() {
-    Object.assign(filters, {
+    Object.assign(_filtersRef.value, {
       title: '',
       genre: '',
       status: 'active',
@@ -208,27 +101,147 @@ export function useMovies() {
       page: 1,
       limit: 10,
     })
-    fetchMovies()
   }
 
   return {
-    // State
-    movies,
-    currentMovie,
-    isLoading,
-    error,
-    metadata,
+    // Local state
     filters,
-    totalPages,
+
+    // Mutations
+    createMovie: createMovieMutation,
+    updateMovie: updateMovieMutation,
+    deleteMovie: deleteMovieMutation,
+
+    // Loading states
+    isCreatingMovie: computed(() => createMovieMutation.isPending.value),
+    isUpdatingMovie: computed(() => updateMovieMutation.isPending.value),
+    isDeletingMovie: computed(() => deleteMovieMutation.isPending.value),
+
+    // Error states
+    createMovieError: computed(() => createMovieMutation.error),
+    updateMovieError: computed(() => updateMovieMutation.error),
+    deleteMovieError: computed(() => deleteMovieMutation.error),
 
     // Methods
-    fetchMovies,
-    fetchMovieById,
-    createMovie,
-    updateMovie,
-    deleteMovie,
     changePage,
     applyFilters,
     resetFilters,
   }
+}
+
+/**
+ * Composable để lấy danh sách phim với filter và phân trang
+ */
+export function useMoviesList(filters = {}) {
+  // Loại bỏ các tham số rỗng khỏi bộ lọc
+  const cleanFilters = computed(() => {
+    const src = toVal(filters)
+    return Object.fromEntries(
+      Object.entries(src).filter(([_, value]) => value !== '' && value !== null)
+    )
+  })
+
+  return useQuery({
+    queryKey: [MOVIE_QUERY_KEY, 'list', cleanFilters],
+    queryFn: () => movieService.getMovies(cleanFilters.value),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    keepPreviousData: true, // Giữ data cũ khi refetch
+  })
+}
+
+/**
+ * Composable để lấy chi tiết phim theo ID
+ */
+export function useMovieById(movieId) {
+  return useQuery({
+    queryKey: [MOVIE_QUERY_KEY, toVal(movieId)],
+    queryFn: () => movieService.getMovieById(toVal(movieId)),
+    enabled: computed(() => !!toVal(movieId)),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    retry: (failureCount, error) => {
+      // Không retry nếu là lỗi 404
+      if (error.response?.status === 404) {
+        return false
+      }
+      return failureCount < 3
+    },
+  })
+}
+
+/**
+ * Composable để lấy movies theo genre
+ */
+export function useMoviesByGenre(genre, params = {}) {
+  const queryParams = computed(() => ({ ...toVal(params), genre: toVal(genre) }))
+  
+  return useQuery({
+    queryKey: [MOVIE_QUERY_KEY, 'genre', toVal(genre), params],
+    queryFn: () => movieService.getMovies(queryParams.value),
+    enabled: computed(() => !!toVal(genre)),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+  })
+}
+
+/**
+ * Composable để lấy movies theo status
+ */
+export function useMoviesByStatus(status, params = {}) {
+  const queryParams = computed(() => ({ ...toVal(params), status: toVal(status) }))
+  
+  return useQuery({
+    queryKey: [MOVIE_QUERY_KEY, 'status', toVal(status), params],
+    queryFn: () => movieService.getMovies(queryParams.value),
+    enabled: computed(() => !!toVal(status)),
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+  })
+}
+
+/**
+ * Composable để search movies theo title
+ */
+export function useMoviesSearch(searchTerm, params = {}) {
+  const queryParams = computed(() => ({ ...toVal(params), title: toVal(searchTerm) }))
+  
+  return useQuery({
+    queryKey: [MOVIE_QUERY_KEY, 'search', toVal(searchTerm), params],
+    queryFn: () => movieService.getMovies(queryParams.value),
+    enabled: computed(() => {
+      const term = toVal(searchTerm)
+      return !!term && term.length > 2
+    }),
+    staleTime: 1 * 60 * 1000, // 1 minute - search results có thể thay đổi
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
+
+/**
+ * Composable để lấy now showing movies
+ */
+export function useNowShowingMovies(params = {}) {
+  const queryParams = computed(() => ({ ...toVal(params), status: 'active' }))
+  
+  return useQuery({
+    queryKey: [MOVIE_QUERY_KEY, 'now-showing', params],
+    queryFn: () => movieService.getMovies(queryParams.value),
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+  })
+}
+
+/**
+ * Composable để lấy upcoming movies
+ */
+export function useUpcomingMovies(params = {}) {
+  const queryParams = computed(() => ({ ...toVal(params), status: 'upcoming' }))
+  
+  return useQuery({
+    queryKey: [MOVIE_QUERY_KEY, 'upcoming', params],
+    queryFn: () => movieService.getMovies(queryParams.value),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 20 * 60 * 1000, // 20 minutes
+  })
 }

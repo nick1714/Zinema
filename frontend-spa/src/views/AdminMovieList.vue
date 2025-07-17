@@ -21,19 +21,19 @@
             </router-link>
           </div>
         </div>
-        
+
         <!-- Search and Filters -->
         <div class="search-filters-bar">
           <div class="search-box">
-            <input 
-              type="text" 
-              v-model="searchTitle" 
+            <input
+              type="text"
+              v-model="searchTitle"
               placeholder="Tìm theo tên phim..."
               @input="debounceSearch"
-            >
+            />
             <i class="fas fa-search"></i>
           </div>
-          
+
           <div class="filter-group">
             <select v-model="filters.status" @change="applyFilters">
               <option value="active">Đang chiếu</option>
@@ -44,51 +44,47 @@
         </div>
       </div>
     </div>
-    
+
     <div class="container py-4">
       <!-- Loading state -->
       <div v-if="isLoading" class="loading-container">
         <div class="spinner"></div>
         <p>Đang tải dữ liệu...</p>
       </div>
-      
+
       <!-- Error state -->
       <div v-else-if="error" class="error-container">
         <i class="fas fa-exclamation-circle"></i>
         <p>{{ error }}</p>
-        <button @click="fetchMovies" class="btn-retry">
-          Thử lại
-        </button>
+        <button @click="refetch" class="btn-retry">Thử lại</button>
       </div>
-      
+
       <!-- Empty state -->
       <div v-else-if="movies.length === 0" class="empty-container">
         <i class="fas fa-film"></i>
         <p>Không có phim nào</p>
-        <router-link to="/admin/movies/add" class="btn-add">
-          Thêm phim mới
-        </router-link>
+        <router-link to="/admin/movies/add" class="btn-add"> Thêm phim mới </router-link>
       </div>
-      
+
       <!-- Movie grid -->
       <div v-else class="movie-grid">
-        <movie-card 
-          v-for="movie in movies" 
-          :key="movie.id" 
+        <movie-card
+          v-for="movie in movies"
+          :key="movie.id"
           :movie="movie"
           @delete="confirmDelete"
         />
       </div>
-      
+
       <!-- Pagination -->
-      <main-pagination 
+      <main-pagination
         v-if="movies.length > 0"
-        :current-page="metadata.page" 
+        :current-page="metadata.page"
         :total-pages="totalPages"
         @page-change="changePage"
       />
     </div>
-    
+
     <!-- Delete confirmation modal -->
     <div v-if="showDeleteModal" class="modal-overlay" @click="showDeleteModal = false">
       <div class="modal-content" @click.stop>
@@ -97,9 +93,7 @@
           Bạn có chắc chắn muốn xóa phim này không? Hành động này không thể hoàn tác.
         </p>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showDeleteModal = false">
-            Hủy
-          </button>
+          <button class="btn-cancel" @click="showDeleteModal = false">Hủy</button>
           <button class="btn-confirm" @click="handleDelete">
             <i class="fas fa-trash"></i> Xóa
           </button>
@@ -110,79 +104,76 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useMovies } from '@/composables/useMovies';
-import MovieCard from '@/components/MovieCard.vue';
-import MainPagination from '@/components/MainPagination.vue';
+import { ref, computed } from 'vue'
+import { useMovies, useMoviesList } from '@/composables/useMovies'
+import MovieCard from '@/components/MovieCard.vue'
+import MainPagination from '@/components/MainPagination.vue'
 
 // Composable
-const { 
-  movies, 
-  isLoading, 
-  error, 
-  metadata, 
+const {
   filters,
-  totalPages,
-  fetchMovies, 
   changePage,
   applyFilters: applyMovieFilters,
   resetFilters: resetMovieFilters,
-  deleteMovie
-} = useMovies();
+  deleteMovie,
+} = useMovies()
+
+// Get movies list with current filters
+const { data: moviesResponse, isLoading, error, refetch } = useMoviesList(filters)
+
+// Extract data from response
+const movies = computed(() => moviesResponse.value?.movies || [])
+const metadata = computed(() => moviesResponse.value?.metadata || {})
+const totalPages = computed(() => metadata.value.lastPage || 1)
 
 // Search state
-const searchTitle = ref('');
-const searchTimeout = ref(null);
+const searchTitle = ref('')
+const searchTimeout = ref(null)
 
 // Delete modal
-const showDeleteModal = ref(false);
-const movieToDelete = ref(null);
+const showDeleteModal = ref(false)
+const movieToDelete = ref(null)
 
 // Debounce search
 function debounceSearch() {
-  clearTimeout(searchTimeout.value);
+  clearTimeout(searchTimeout.value)
   searchTimeout.value = setTimeout(() => {
-    applyFilters();
-  }, 300);
+    applyFilters()
+  }, 300)
 }
 
 // Apply filters
 function applyFilters() {
   applyMovieFilters({
     title: searchTitle.value,
-    status: filters.status
-  });
+    status: filters.status,
+  })
 }
 
 // Reset filters
 function resetFilters() {
-  searchTitle.value = '';
-  resetMovieFilters();
+  searchTitle.value = ''
+  resetMovieFilters()
 }
 
 // Confirm delete
 function confirmDelete(id) {
-  movieToDelete.value = id;
-  showDeleteModal.value = true;
+  movieToDelete.value = id
+  showDeleteModal.value = true
 }
 
 // Handle delete
 async function handleDelete() {
-  if (!movieToDelete.value) return;
-  
+  if (!movieToDelete.value) return
+
   try {
-    await deleteMovie(movieToDelete.value);
-    showDeleteModal.value = false;
-    movieToDelete.value = null;
+    await deleteMovie.mutateAsync(movieToDelete.value)
+    showDeleteModal.value = false
+    movieToDelete.value = null
   } catch (err) {
-    console.error('Lỗi khi xóa phim:', err);
+    console.error('Lỗi khi xóa phim:', err)
   }
 }
-
-// Load data on mount
-onMounted(() => {
-  fetchMovies();
-});
 </script>
 
 <style scoped>
@@ -278,7 +269,8 @@ onMounted(() => {
   z-index: 2;
 }
 
-.action-btn, .action-btn-primary {
+.action-btn,
+.action-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -338,7 +330,9 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Error state */
@@ -468,13 +462,13 @@ onMounted(() => {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-box {
     width: 100%;
   }
-  
+
   .movie-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
-</style> 
+</style>
