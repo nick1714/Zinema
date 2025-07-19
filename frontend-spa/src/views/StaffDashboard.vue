@@ -20,7 +20,7 @@
 
       <!-- Danh sách chức năng quản lý -->
       <div class="management-cards">
-        <div class="management-card">
+        <!--        <div class="management-card">
           <div class="card-icon">
             <i class="fas fa-user-friends"></i>
           </div>
@@ -33,7 +33,7 @@
             </router-link>
           </div>
         </div>
-
+-->
         <div class="management-card">
           <div class="card-icon">
             <i class="fas fa-search"></i>

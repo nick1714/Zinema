@@ -89,7 +89,8 @@ onMounted(() => {
               </router-link>
             </li>
 
-            <li class="nav-item" v-if="isAdmin || isEmployee">
+            <li class="nav-item" v-if="isAdmin">
+              <!-- || isEmployee -->
               <router-link to="/customers" class="nav-link" @click="closeMenu">
                 <i class="fas fa-user-friends me-2"></i>
                 <span>Khách hàng</span>
