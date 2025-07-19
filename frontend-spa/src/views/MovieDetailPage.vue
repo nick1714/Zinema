@@ -37,7 +37,8 @@
                 @error="handleImageError"
               />
 
-              <div v-if="isEditing" class="poster-overlay">
+              <!-- Chỉ hiển thị overlay upload cho Admin khi đang edit -->
+              <div v-if="isEditing && canEditMovie" class="poster-overlay">
                 <label for="poster-upload" class="btn-upload">
                   <i class="fas fa-camera"></i>
                   Thay đổi poster
@@ -56,7 +57,8 @@
               {{ statusText }}
             </div>
 
-            <div v-if="selectedPoster" class="selected-poster-preview">
+            <!-- Preview poster mới chỉ hiển thị khi đang edit -->
+            <div v-if="selectedPoster && isEditing" class="selected-poster-preview">
               <p>Poster đã chọn:</p>
               <div class="preview-container">
                 <img :src="selectedPosterPreview" alt="Preview" />
@@ -77,7 +79,7 @@
                   type="text"
                   id="title"
                   v-model="form.title"
-                  :disabled="!isEditing"
+                  :disabled="!isEditing || !canEditMovie"
                   required
                 />
               </div>
@@ -88,7 +90,7 @@
                 <textarea
                   id="description"
                   v-model="form.description"
-                  :disabled="!isEditing"
+                  :disabled="!isEditing || !canEditMovie"
                   rows="5"
                   required
                 ></textarea>
@@ -102,7 +104,7 @@
                     type="number"
                     id="duration"
                     v-model.number="form.duration"
-                    :disabled="!isEditing"
+                    :disabled="!isEditing || !canEditMovie"
                     min="1"
                     required
                   />
@@ -110,7 +112,12 @@
 
                 <div class="form-group">
                   <label for="rating">Phân loại</label>
-                  <select id="rating" v-model="form.rating" :disabled="!isEditing" required>
+                  <select
+                    id="rating"
+                    v-model="form.rating"
+                    :disabled="!isEditing || !canEditMovie"
+                    required
+                  >
                     <option value="G">G (Mọi lứa tuổi)</option>
                     <option value="PG">PG (Có phụ huynh hướng dẫn)</option>
                     <option value="PG-13">PG-13 (Dưới 13 tuổi xem với phụ huynh)</option>
@@ -131,14 +138,19 @@
                     type="date"
                     id="release_date"
                     v-model="form.release_date"
-                    :disabled="!isEditing"
+                    :disabled="!isEditing || !canEditMovie"
                     required
                   />
                 </div>
 
                 <div class="form-group">
                   <label for="end_date">Ngày kết thúc (tùy chọn)</label>
-                  <input type="date" id="end_date" v-model="form.end_date" :disabled="!isEditing" />
+                  <input
+                    type="date"
+                    id="end_date"
+                    v-model="form.end_date"
+                    :disabled="!isEditing || !canEditMovie"
+                  />
                 </div>
               </div>
 
@@ -149,7 +161,7 @@
                   type="text"
                   id="genre"
                   v-model="form.genre"
-                  :disabled="!isEditing"
+                  :disabled="!isEditing || !canEditMovie"
                   required
                 />
               </div>
@@ -160,7 +172,7 @@
                   type="text"
                   id="director"
                   v-model="form.director"
-                  :disabled="!isEditing"
+                  :disabled="!isEditing || !canEditMovie"
                   required
                 />
               </div>
@@ -170,7 +182,7 @@
                 <textarea
                   id="cast"
                   v-model="form.cast"
-                  :disabled="!isEditing"
+                  :disabled="!isEditing || !canEditMovie"
                   rows="2"
                   required
                 ></textarea>
@@ -182,7 +194,7 @@
                   type="text"
                   id="country"
                   v-model="form.country"
-                  :disabled="!isEditing"
+                  :disabled="!isEditing || !canEditMovie"
                   required
                 />
               </div>
@@ -193,12 +205,13 @@
                   type="url"
                   id="trailer_url"
                   v-model="form.trailer_url"
-                  :disabled="!isEditing"
+                  :disabled="!isEditing || !canEditMovie"
                   placeholder="https://www.youtube.com/watch?v=..."
                 />
               </div>
 
-              <div v-if="isEditing" class="form-group">
+              <!-- Chỉ Admin mới thấy được trạng thái -->
+              <div v-if="canEditMovie && isEditing" class="form-group">
                 <label for="status">Trạng thái</label>
                 <select id="status" v-model="form.status" required>
                   <option value="active">Đang chiếu</option>
@@ -209,14 +222,26 @@
           </div>
         </div>
 
-        <!-- Bottom actions -->
+        <!-- Bottom actions - Phân quyền theo role -->
         <div class="bottom-actions">
-          <button v-if="!isEditing" class="btn-edit" @click="startEdit">
+          <!-- Customer và Staff: Chỉ thấy button Đặt vé -->
+          <button
+            v-if="(isCustomer || isEmployee) && !isEditing"
+            class="btn-book"
+            @click="handleBookTicket"
+          >
+            <i class="fas fa-ticket-alt"></i>
+            Đặt vé
+          </button>
+
+          <!-- Admin: Thấy button Chỉnh sửa khi không đang edit -->
+          <button v-if="canEditMovie && !isEditing" class="btn-edit" @click="startEdit">
             <i class="fas fa-edit"></i>
             Chỉnh sửa thông tin
           </button>
 
-          <div v-if="isEditing" class="editing-actions">
+          <!-- Admin: Thấy button Save/Cancel khi đang edit -->
+          <div v-if="canEditMovie && isEditing" class="editing-actions">
             <button type="button" class="btn-save" :disabled="isSubmitting" @click="handleSubmit">
               <i class="fas fa-save"></i>
               {{ isUpdatingMovie ? 'Đang lưu...' : 'Lưu thay đổi' }}
@@ -225,6 +250,7 @@
             <button type="button" class="btn-cancel" @click="cancelEdit">Hủy</button>
           </div>
 
+          <!-- Button Quay lại cho tất cả -->
           <button v-if="!isEditing" class="btn-back" @click="goBack">
             <i class="fas fa-arrow-left"></i>
             Quay lại
@@ -239,15 +265,17 @@
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMovies, useMovieById } from '@/composables/useMovies'
+import { useAuth } from '@/composables/useAuth'
 import { STATIC_BASE_URL } from '@/constants'
 
 const route = useRoute()
 const router = useRouter()
 const movieId = computed(() => route.params.id)
 
-// Composable
+// Composables
 const { updateMovie, isUpdatingMovie, updateMovieError } = useMovies()
 const { data: currentMovie, isLoading, error, refetch } = useMovieById(movieId)
+const { isAdmin, isEmployee, isCustomer } = useAuth()
 
 // Edit state
 const isEditing = ref(false)
@@ -272,7 +300,7 @@ const form = reactive({
   status: 'active',
 })
 
-// Computed
+// Computed properties
 const posterUrl = computed(() => {
   if (imageError.value) {
     return defaultPoster
@@ -282,7 +310,6 @@ const posterUrl = computed(() => {
     return selectedPosterPreview.value
   }
 
-  // currentMovie.poster_url đã được xử lý thành URL đầy đủ trong service
   return currentMovie.value?.poster_url || defaultPoster
 })
 
@@ -292,6 +319,15 @@ const statusClass = computed(() => {
 
 const statusText = computed(() => {
   return form.status === 'active' ? 'Đang chiếu' : 'Ngừng chiếu'
+})
+
+// Permission checks
+const canEditMovie = computed(() => {
+  return isAdmin.value
+})
+
+const isSubmitting = computed(() => {
+  return isUpdatingMovie.value
 })
 
 // Methods
@@ -325,6 +361,7 @@ function cancelPosterSelection() {
 }
 
 function startEdit() {
+  if (!canEditMovie.value) return
   isEditing.value = true
 }
 
@@ -355,6 +392,8 @@ function populateForm(movie) {
 }
 
 async function handleSubmit() {
+  if (!canEditMovie.value) return
+
   try {
     const formData = new FormData()
     Object.keys(form).forEach((key) => {
@@ -378,7 +417,6 @@ async function handleSubmit() {
     await refetch()
   } catch (err) {
     console.error('Lỗi khi cập nhật phim:', err)
-    // Show error from composable if available
     const errorMessage =
       updateMovieError.value?.message ||
       err.message ||
@@ -387,8 +425,21 @@ async function handleSubmit() {
   }
 }
 
+function handleBookTicket() {
+  if (currentMovie.value) {
+    router.push({ name: 'BookingPage', params: { id: currentMovie.value.id } })
+  }
+}
+
 function goBack() {
-  router.push('/admin/movies')
+  // Điều hướng về trang phù hợp với role
+  if (isAdmin.value) {
+    router.push('/admin/movies')
+  } else if (isEmployee.value) {
+    router.push('/admin/movies')
+  } else {
+    router.push('/')
+  }
 }
 
 // Watch for movie data and populate form
@@ -629,7 +680,7 @@ watch(currentMovie, (newMovie) => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  flex-grow: 1; /* Make form grow to fill space */
+  flex-grow: 1;
 }
 
 .form-group {
@@ -674,14 +725,7 @@ watch(currentMovie, (newMovie) => {
   cursor: not-allowed;
 }
 
-/* Actions inside the form (Save, Cancel) */
-.form-actions {
-  margin-top: auto; /* Push actions to the bottom of the form */
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
+/* Actions */
 .btn-save {
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -740,6 +784,26 @@ watch(currentMovie, (newMovie) => {
   transform: translateY(-2px);
 }
 
+.btn-book {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--cinema-gradient-gold);
+  border: none;
+  color: var(--cinema-darker);
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: auto;
+}
+
+.btn-book:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
 .btn-back {
   display: inline-flex;
   align-items: center;
@@ -759,7 +823,7 @@ watch(currentMovie, (newMovie) => {
   transform: translateY(-2px);
 }
 
-/* Bottom actions outside the form (Edit, Back) */
+/* Bottom actions */
 .bottom-actions {
   margin-top: 2rem;
   display: flex;
@@ -769,7 +833,13 @@ watch(currentMovie, (newMovie) => {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* New styles for the content card */
+.editing-actions {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+/* Content card */
 .movie-content-card {
   background: rgba(13, 27, 42, 0.7);
   border-radius: 10px;
@@ -798,18 +868,13 @@ watch(currentMovie, (newMovie) => {
     grid-template-columns: 1fr;
   }
 
-  .form-actions {
+  .bottom-actions {
     flex-direction: column;
+    gap: 1rem;
   }
 
-  .form-actions button {
+  .bottom-actions button {
     width: 100%;
   }
-}
-
-.editing-actions {
-  display: flex;
-  gap: 1rem;
-  margin-left: auto;
 }
 </style>

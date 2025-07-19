@@ -22,7 +22,6 @@ const StaffCheckBooking = () => import('@/views/StaffCheckBooking.vue')
 const AdminMovieList = () => import('@/views/AdminMovieList.vue')
 const MovieAddPage = () => import('@/views/MovieAddPage.vue')
 const MovieDetailPage = () => import('@/views/MovieDetailPage.vue')
-const CustomerMovieDetailPage = () => import('@/views/CustomerMovieDetailPage.vue')
 
 const routes = [
   // Public routes
@@ -40,7 +39,7 @@ const routes = [
   {
     path: '/movies/:id',
     name: 'movie.detail',
-    component: CustomerMovieDetailPage,
+    component: MovieDetailPage,
     meta: { requiresAuth: true, roles: ['customer', 'staff', 'employee', 'admin'] },
     props: true,
   },
