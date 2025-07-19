@@ -3,76 +3,101 @@
  * @returns { Promise<void> }
  */
 exports.seed = async function(knex) {
-  console.log('Seeding showtimes for 7 days, 5 rooms × 4 movies × 5 slots...');
+  console.log('Seeding optimized showtimes for 7 days, 5 rooms...');
 
   // Xóa showtimes cũ
   await knex('showtimes').del();
 
-  // Lấy 4 phim đã seed trước
+  // Lấy dữ liệu phim và phòng
   const movies = await knex('movies')
-    .select('id', 'title')
-    .limit(4);
-
-  // Lấy 5 phòng active
+    .select('id', 'title', 'duration_min')
+    .where('status', 'active');
   const rooms = await knex('cinema_rooms')
     .select('id', 'name')
     .where('status', 'active')
     .limit(5);
 
-  if (movies.length < 4) {
-    console.error('Cần seed trước 4 movies');
-    return;
-  }
-  if (rooms.length < 5) {
-    console.error('Cần seed trước 5 cinema_rooms (status=active)');
+  if (!movies.length || rooms.length < 5) {
+    console.error('Cần seed đủ movies và cinema_rooms trước khi chạy!');
     return;
   }
 
-  // Các khung giờ cố định
-  const slots = [
-    { startHour: 8,  endHour: 10 },
-    { startHour: 11, endHour: 13 },
-    { startHour: 14, endHour: 16 },
-    { startHour: 17, endHour: 19 },
-    { startHour: 20, endHour: 22 },
-  ];
-
+  // Thông số chung
+  const DAYS = 7;
+  const OPEN_HOUR = 8;
+  const CLOSE_HOUR = 22;
+  const CLEANUP_MIN = 10;     // thời gian dọn dẹp sau mỗi suất
   const showtimes = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // 7 ngày liên tiếp
-  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+  // Hàm xáo phim mỗi ngày để tránh lặp lịch
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  for (let d = 0; d < DAYS; d++) {
     const showDate = new Date(today);
-    showDate.setDate(showDate.getDate() + dayOffset);
+    showDate.setDate(showDate.getDate() + d);
 
-    movies.forEach((movie, mi) => {
-      slots.forEach((slot, si) => {
-        // Tính start_time và end_time
-        const startTime = new Date(showDate);
-        startTime.setHours(slot.startHour, 0, 0, 0);
+    // Xác định mốc đóng cửa ngày đó (timestamp)
+    const closeTimestamp = new Date(showDate)
+      .setHours(CLOSE_HOUR, 0, 0, 0);
 
-        const endTime = new Date(showDate);
-        endTime.setHours(slot.endHour, 0, 0, 0);
+    // Xáo danh sách phim để mỗi ngày có thứ tự khác nhau
+    let dayQueue = shuffle(movies);
 
-        // Chọn phòng theo vòng (round-robin)
-        const room = rooms[(mi + si) % rooms.length];
+    // Với mỗi phòng, “nhồi” phim liên tục từ 8h–22h
+    for (const room of rooms) {
+      let cursor = new Date(showDate);
+      cursor.setHours(OPEN_HOUR, 0, 0, 0);
+
+      // Chạy cho đến khi cursor vượt mốc đóng cửa
+      while (cursor.getTime() < closeTimestamp) {
+        // Lấy phim kế tiếp trong hàng đợi; nếu hết thì quay vòng
+        const movie = dayQueue.shift();
+        dayQueue.push(movie);
+
+        const startTime = new Date(cursor);
+        const endTime = new Date(
+          startTime.getTime() + (movie.duration_min + CLEANUP_MIN) * 60_000
+        );
+
+        // Nếu kết thúc vượt giờ đóng cửa thì không tạo thêm
+        if (endTime.getTime() > closeTimestamp) {
+          break;
+        }
+
+        // Giá vé: tuỳ theo khung giờ bắt đầu
+        const h = startTime.getHours();
+        let price;
+        if (h < 12)       price = 35000;
+        else if (h < 17)  price = 45000;
+        else              price = 55000;
 
         showtimes.push({
           movie_id: movie.id,
           cinema_room_id: room.id,
           start_time: startTime,
           end_time: endTime,
-          price: 45000,          // giá vé mặt định
+          price,
           status: 'scheduled',
           created_at: new Date(),
           updated_at: new Date(),
         });
-      });
-    });
+
+        // Di chuyển cursor đến ngay sau endTime
+        cursor = new Date(endTime);
+      }
+    }
   }
 
-  // Chèn tất cả vào DB
+  // Chèn vào DB
   await knex('showtimes').insert(showtimes);
-  console.log(`Đã thêm ${showtimes.length} suất chiếu (4 movies × 5 slots × 7 days)`);
+  console.log(`Đã tạo ${showtimes.length} suất chiếu trong ${DAYS} ngày cho ${rooms.length} phòng.`);
 };
