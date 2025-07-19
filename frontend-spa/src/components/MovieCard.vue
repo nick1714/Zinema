@@ -21,8 +21,8 @@
 
       <div class="card-actions">
         <router-link :to="detailLink" class="btn-view">
-          <i :class="viewMode === 'customer' ? 'fas fa-ticket-alt' : 'fas fa-eye'"></i>
-          {{ viewMode === 'customer' ? 'Đặt vé' : 'Chi tiết' }}
+          <i :class="viewMode === 'customer' ? 'fas fa-eye' : 'fas fa-eye'"></i>
+          {{ viewMode === 'customer' ? 'Xem chi tiết' : 'Chi tiết' }}
         </router-link>
 
         <button v-if="viewMode === 'admin'" @click="$emit('delete', movie.id)" class="btn-delete">
@@ -52,7 +52,7 @@ defineEmits(['delete'])
 
 const detailLink = computed(() => {
   if (props.viewMode === 'customer') {
-    return { name: 'movie.book', params: { movieId: props.movie.id } }
+    return `/movies/${props.movie.id}`
   }
   return `/admin/movies/${props.movie.id}`
 })
