@@ -96,7 +96,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import ShowtimeSelector from '@/components/ShowtimeSelector.vue'
 import SeatPicker from '@/components/SeatPicker.vue'
 import FoodPicker from '@/components/FoodPicker.vue'
