@@ -22,6 +22,7 @@ const StaffCheckBooking = () => import('@/views/StaffCheckBooking.vue')
 const AdminMovieList = () => import('@/views/AdminMovieList.vue')
 const MovieAddPage = () => import('@/views/MovieAddPage.vue')
 const MovieDetailPage = () => import('@/views/MovieDetailPage.vue')
+const CustomerMovieDetailPage = () => import('@/views/CustomerMovieDetailPage.vue')
 
 const routes = [
   // Public routes
@@ -36,11 +37,18 @@ const routes = [
     name: 'google.callback',
     component: GoogleCallbackPage,
   },
+  {
+    path: '/movies/:id',
+    name: 'movie.detail',
+    component: CustomerMovieDetailPage,
+    meta: { requiresAuth: true, roles: ['customer', 'staff', 'employee', 'admin'] },
+    props: true,
+  },
 
   // Booking Page (Customer/Staff/Admin)
   {
-    path: '/movies/:movieId/book',
-    name: 'movie.book',
+    path: '/movies/:id/book',
+    name: 'BookingPage',
     component: BookingPage,
     meta: { requiresAuth: true, roles: ['admin', 'employee', 'customer', 'staff'] },
     props: true,

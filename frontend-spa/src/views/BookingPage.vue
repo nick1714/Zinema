@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ShowtimeSelector from '@/components/ShowtimeSelector.vue'
 import SeatPicker from '@/components/SeatPicker.vue'
@@ -103,15 +103,21 @@ import FoodPicker from '@/components/FoodPicker.vue'
 import BookingSummary from '@/components/BookingSummary.vue'
 import CustomerForm from '@/components/CustomerForm.vue'
 import bookingService from '@/services/booking.service'
-import movieService from '@/services/movie.service'
+import { useMovieById } from '@/composables/useMovies'
 import { useAuth } from '@/composables/useAuth'
+
+const props = defineProps({
+  id: {
+    type: [String, Number],
+    required: true,
+  },
+})
 
 const { isAdmin, isEmployee, currentUser } = useAuth()
 const isStaffOrAdmin = computed(() => isAdmin.value || isEmployee.value)
-const route = useRoute()
 const router = useRouter()
-const movieId = ref(route.params.movieId)
-const movie = ref(null)
+const movieId = computed(() => props.id)
+const { data: movie } = useMovieById(movieId)
 
 const selectedShowtime = ref(null)
 const selectedSeats = ref([])
@@ -121,14 +127,6 @@ const customerPhone = ref('')
 const selectedCustomer = ref(null)
 const isCheckingCustomer = ref(false)
 const showCustomerForm = ref(false)
-
-onMounted(async () => {
-  try {
-    movie.value = await movieService.getMovieById(movieId.value)
-  } catch (error) {
-    console.error('Failed to fetch movie details:', error)
-  }
-})
 
 function handleShowtimeSelected(showtime) {
   selectedShowtime.value = showtime
