@@ -5,11 +5,7 @@
 
     <div v-if="!loading && !error" class="food-grid">
       <div v-for="item in foodItems" :key="item.id" class="food-card">
-        <img
-          :src="item.image_url || '/images/default-food.png'"
-          :alt="item.name"
-          class="food-image"
-        />
+        <img :src="item.image_url" :alt="item.name" class="food-image" @error="handleImageError" />
         <div class="food-details">
           <h4>{{ item.name }}</h4>
           <p>{{ item.description }}</p>
@@ -31,6 +27,7 @@
 
 <script setup>
 import { ref, onMounted, defineEmits, watch } from 'vue'
+import { STATIC_BASE_URL } from '@/constants'
 import foodService from '@/services/food.service'
 
 const emit = defineEmits(['food-selection-changed'])
@@ -46,8 +43,13 @@ watch(
   (newValue) => {
     emit('food-selection-changed', newValue)
   },
-  { deep: true }
+  { deep: true },
 )
+
+// Xử lý lỗi hình ảnh
+function handleImageError(event) {
+  event.target.src = `${STATIC_BASE_URL}/public/images/default-movie-poster.png`
+}
 
 async function fetchFoodItems() {
   loading.value = true
@@ -120,7 +122,9 @@ const formatPrice = (price) =>
 }
 .food-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 .food-image {
   width: 100%;

@@ -137,16 +137,6 @@ exports.seed = async function(knex) {
       updated_at: new Date()
     },
     {
-      name: 'Nachos phô mai',
-      description: 'Bánh Nachos với sốt phô mai',
-      price: 50000,
-      image_url: '/public/images/foods/nachos.jpg',
-      category: 'Snack',
-      is_available: true,
-      created_at: faker.date.past(),
-      updated_at: new Date()
-    },
-    {
       name: 'Gà rán',
       description: 'Gà rán giòn 3 miếng',
       price: 65000,
@@ -191,22 +181,6 @@ exports.seed = async function(knex) {
       updated_at: new Date()
     }
   );
-  
-  // Thêm một số đồ ăn ngẫu nhiên
-  for (let i = 0; i < 5; i++) {
-    const category = faker.helpers.arrayElement(categories);
-    
-    foods.push({
-      name: faker.commerce.productName(),
-      description: faker.commerce.productDescription(),
-      price: faker.number.int({ min: 30000, max: 100000 }),
-      image_url: `/public/images/foods/food-${i + 1}.jpg`,
-      category: category,
-      is_available: faker.datatype.boolean(),
-      created_at: faker.date.past(),
-      updated_at: new Date()
-    });
-  }
   
   await knex('foods').insert(foods);
   console.log(`Đã thêm ${foods.length} món ăn/đồ uống`);
