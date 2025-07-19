@@ -26,7 +26,7 @@
 
       <!-- Movie Grid -->
       <div v-else-if="movies.length > 0" class="movie-grid">
-        <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" view-mode="customer" />
+        <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" />
       </div>
 
       <!-- Empty State -->

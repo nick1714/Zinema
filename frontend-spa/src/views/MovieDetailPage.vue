@@ -224,12 +224,8 @@
 
         <!-- Bottom actions - Phân quyền theo role -->
         <div class="bottom-actions">
-          <!-- Customer và Staff: Chỉ thấy button Đặt vé -->
-          <button
-            v-if="(isCustomer || isEmployee) && !isEditing"
-            class="btn-book"
-            @click="handleBookTicket"
-          >
+          <!-- Customer: Chỉ thấy button Đặt vé -->
+          <button v-if="isCustomer && !isEditing" class="btn-book" @click="handleBookTicket">
             <i class="fas fa-ticket-alt"></i>
             Đặt vé
           </button>

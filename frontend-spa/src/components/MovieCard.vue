@@ -2,7 +2,7 @@
   <div class="movie-card">
     <div class="poster-container">
       <img :src="posterUrl" :alt="movie.title" class="movie-poster" @error="handleImageError" />
-      <div v-if="viewMode === 'admin'" class="movie-status" :class="statusClass">
+      <div v-if="isAdmin" class="movie-status" :class="statusClass">
         {{ statusText }}
       </div>
     </div>
@@ -20,12 +20,26 @@
       <div class="movie-genre"><i class="fas fa-film"></i> {{ movie.genre }}</div>
 
       <div class="card-actions">
-        <router-link :to="detailLink" class="btn-view">
-          <i :class="viewMode === 'customer' ? 'fas fa-eye' : 'fas fa-eye'"></i>
-          {{ viewMode === 'customer' ? 'Xem chi tiết' : 'Chi tiết' }}
+        <!-- Staff: Button đặt vé trực tiếp -->
+        <button v-if="isEmployee" @click="handleBookTicket" class="btn-book">
+          <i class="fas fa-ticket-alt"></i>
+          Đặt vé
+        </button>
+
+        <!-- Customer: Button xem chi tiết -->
+        <router-link v-else-if="isCustomer" :to="detailLink" class="btn-view">
+          <i class="fas fa-eye"></i>
+          Xem chi tiết
         </router-link>
 
-        <button v-if="viewMode === 'admin'" @click="$emit('delete', movie.id)" class="btn-delete">
+        <!-- Admin: Button chi tiết -->
+        <router-link v-else :to="detailLink" class="btn-view">
+          <i class="fas fa-eye"></i>
+          Chi tiết
+        </router-link>
+
+        <!-- Admin: Button xóa -->
+        <button v-if="isAdmin" @click="$emit('delete', movie.id)" class="btn-delete">
           <i class="fas fa-trash"></i>
         </button>
       </div>
@@ -35,23 +49,24 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import { STATIC_BASE_URL } from '@/constants'
+
+const router = useRouter()
+const { isEmployee, isCustomer, isAdmin } = useAuth()
 
 const props = defineProps({
   movie: {
     type: Object,
     required: true,
   },
-  viewMode: {
-    type: String,
-    default: 'admin', // 'admin' or 'customer'
-  },
 })
 
 defineEmits(['delete'])
 
 const detailLink = computed(() => {
-  if (props.viewMode === 'customer') {
+  if (isCustomer.value) {
     return `/movies/${props.movie.id}`
   }
   return `/admin/movies/${props.movie.id}`
@@ -82,6 +97,11 @@ const statusClass = computed(() => {
 const statusText = computed(() => {
   return props.movie.status === 'active' ? 'Đang chiếu' : 'Ngừng chiếu'
 })
+
+// Xử lý đặt vé cho Staff
+function handleBookTicket() {
+  router.push({ name: 'BookingPage', params: { id: props.movie.id } })
+}
 </script>
 
 <style scoped>
@@ -210,6 +230,26 @@ const statusText = computed(() => {
 }
 
 .btn-view:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(247, 197, 72, 0.3);
+}
+
+.btn-book {
+  background: var(--cinema-gradient-gold);
+  color: var(--cinema-darker);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  flex-grow: 1;
+  text-align: center;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-book:hover {
   filter: brightness(1.1);
   box-shadow: 0 4px 12px rgba(247, 197, 72, 0.3);
 }
