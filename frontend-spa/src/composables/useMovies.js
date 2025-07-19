@@ -24,7 +24,7 @@ export function useMovies() {
     status: 'active',
     director: '',
     page: 1,
-    limit: 10,
+    limit: 5,
   })
 
   // Expose a proxy so components can keep using `filters.xxx` without `.value`
@@ -99,7 +99,7 @@ export function useMovies() {
       status: 'active',
       director: '',
       page: 1,
-      limit: 10,
+      limit: 5,
     })
   }
 

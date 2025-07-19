@@ -29,6 +29,14 @@
         <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" />
       </div>
 
+      <!-- Pagination -->
+      <main-pagination
+        v-if="movies.length > 0"
+        :current-page="metadata.page"
+        :total-pages="totalPages"
+        @update:current-page="changePage"
+      />
+
       <!-- Empty State -->
       <div v-else class="empty-state">
         <i class="fas fa-video-slash"></i>
@@ -41,13 +49,24 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useNowShowingMovies } from '@/composables/useMovies'
+import { useMovies, useMoviesList } from '@/composables/useMovies'
 import MovieCard from '@/components/MovieCard.vue'
+import MainPagination from '@/components/MainPagination.vue'
 
-const { data: moviesResponse, isLoading, error, refetch } = useNowShowingMovies({ limit: 20 })
+// Composable cho pagination
+const { filters, changePage } = useMovies()
 
-// Extract movies array from response
+// Set limit cho HomePage
+filters.limit = 4
+filters.status = 'active' // Chỉ hiển thị phim đang chiếu
+
+// Get movies list với pagination
+const { data: moviesResponse, isLoading, error, refetch } = useMoviesList(filters)
+
+// Extract data từ response
 const movies = computed(() => moviesResponse.value?.movies || [])
+const metadata = computed(() => moviesResponse.value?.metadata || {})
+const totalPages = computed(() => metadata.value.lastPage || 1)
 
 function retryFetch() {
   refetch()

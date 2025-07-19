@@ -81,7 +81,7 @@
         v-if="movies.length > 0"
         :current-page="metadata.page"
         :total-pages="totalPages"
-        @page-change="changePage"
+        @update:current-page="changePage"
       />
     </div>
 
