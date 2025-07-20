@@ -74,6 +74,12 @@
                     </li>
                   </ul>
                 </div>
+                <div class="card-actions">
+                    <button @click="handleCancelBooking(booking.id)" class="btn-cancel">
+                    <i class="fas fa-trash-alt"></i>
+                    Hủy vé
+                    </button>
+                </div>
               </div>
             </div>
           </div>
@@ -181,6 +187,21 @@ function formatDateTime(dateTimeString) {
 function formatSeatList(tickets) {
   if (!tickets || tickets.length === 0) return 'Không có'
   return tickets.map((ticket) => ticket.seat_name).join(', ')
+}
+
+async function handleCancelBooking(bookingId) {
+    if (confirm('Bạn có chắc chắn muốn hủy vé này không?')) {
+        try {
+            await bookingService.cancelBooking(bookingId);
+            alert('Hủy vé thành công!');
+            // Tải lại danh sách booking
+            const response = await bookingService.getMyBookings({ status: 'confirmed' });
+            bookings.value = response.data;
+        } catch (err) {
+            console.error('Lỗi khi hủy vé:', err);
+            alert(err.message || 'Không thể hủy vé. Vui lòng thử lại.');
+        }
+    }
 }
 </script>
 
@@ -311,6 +332,33 @@ function formatSeatList(tickets) {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-cancel {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-cancel:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
 }
 
 .info-item {

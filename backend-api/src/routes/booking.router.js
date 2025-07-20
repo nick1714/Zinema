@@ -1,17 +1,23 @@
-const express = require('express');
+const express = require("express");
 
-const bookingController = require('../controllers/booking.controller');
-const { authenticateToken, authorizeRoles } = require('../middlewares/auth.middleware');
-const { validateRequest, validate } = require('../middlewares/validator.middleware');
-const { 
-    getBookingsQuerySchema,
-    bookingParamsSchema,
-    createBookingSchema,
-    confirmBookingSchema,
-    updateBookingSchema,
-    bookingCodeParamsSchema,
-} = require('../schemas/booking.schemas');
-const { ROLES } = require('../constants');
+const bookingController = require("../controllers/booking.controller");
+const {
+  authenticateToken,
+  authorizeRoles,
+} = require("../middlewares/auth.middleware");
+const {
+  validateRequest,
+  validate,
+} = require("../middlewares/validator.middleware");
+const {
+  getBookingsQuerySchema,
+  bookingParamsSchema,
+  createBookingSchema,
+  confirmBookingSchema,
+  updateBookingSchema,
+  bookingCodeParamsSchema,
+} = require("../schemas/booking.schemas");
+const { ROLES } = require("../constants");
 
 const router = express.Router();
 
@@ -21,11 +27,12 @@ const router = express.Router();
  * @access Private (All authenticated users)
  * @permission Customer: tạo booking cho mình, Admin/Staff: tạo booking cho bất kỳ ai
  */
-router.post('/',
-    authenticateToken,
-    authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-    validate(createBookingSchema, 'body'),
-    bookingController.createBooking
+router.post(
+  "/",
+  authenticateToken,
+  authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
+  validate(createBookingSchema, "body"),
+  bookingController.createBooking
 );
 
 /**
@@ -34,11 +41,12 @@ router.post('/',
  * @access Private (All authenticated users)
  * @permission Customer: chỉ xem booking của mình, Admin/Staff: xem tất cả
  */
-router.get('/', 
-    authenticateToken,
-    authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-    validate(getBookingsQuerySchema, 'query'),
-    bookingController.getAllBookings
+router.get(
+  "/",
+  authenticateToken,
+  authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
+  validate(getBookingsQuerySchema, "query"),
+  bookingController.getAllBookings
 );
 
 /**
@@ -47,11 +55,12 @@ router.get('/',
  * @access Private (All authenticated users)
  * @permission Customer: chỉ xem booking của mình, Admin/Staff: xem tất cả
  */
-router.get('/:id',
-    authenticateToken,
-    authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-    validate(bookingParamsSchema, 'params'),
-    bookingController.getBookingById
+router.get(
+  "/:id",
+  authenticateToken,
+  authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
+  validate(bookingParamsSchema, "params"),
+  bookingController.getBookingById
 );
 
 /**
@@ -59,11 +68,12 @@ router.get('/:id',
  * @desc Lấy thông tin chi tiết booking theo mã code
  * @access Private (Admin, Staff)
  */
-router.get('/code/:code',
-    authenticateToken,
-    authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
-    validate(bookingCodeParamsSchema, 'params'),
-    bookingController.getBookingByCode
+router.get(
+  "/code/:code",
+  authenticateToken,
+  authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
+  validate(bookingCodeParamsSchema, "params"),
+  bookingController.getBookingByCode
 );
 
 /**
@@ -72,11 +82,12 @@ router.get('/code/:code',
  * @access Private (All authenticated users)
  * @permission Customer: xác nhận booking của mình, Admin/Staff: xác nhận bất kỳ booking nào
  */
-router.post('/:id/confirm',
-    authenticateToken,
-    authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-    validate(confirmBookingSchema, 'body'),
-    bookingController.confirmBooking
+router.post(
+  "/:id/confirm",
+  authenticateToken,
+  authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
+  validate(confirmBookingSchema, "body"),
+  bookingController.confirmBooking
 );
 
 /**
@@ -85,12 +96,13 @@ router.post('/:id/confirm',
  * @access Private (Admin, Staff, Customer owner)
  * @permission Customer: chỉ cập nhật booking của mình, Admin/Staff: cập nhật tất cả
  */
-router.put('/:id',
-    authenticateToken,
-    authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-    validate(bookingParamsSchema, 'params'),
-    validate(updateBookingSchema, 'body'),
-    bookingController.updateBooking
+router.put(
+  "/:id",
+  authenticateToken,
+  authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
+  validate(bookingParamsSchema, "params"),
+  validate(updateBookingSchema, "body"),
+  bookingController.updateBooking
 );
 
 /**
@@ -98,10 +110,11 @@ router.put('/:id',
  * @desc Dọn dẹp các booking pending đã hết hạn
  * @access Private (Admin only)
  */
-router.post('/cleanup',
-    authenticateToken,
-    authorizeRoles([ROLES.ADMIN]),
-    bookingController.cleanupExpiredBookings
+router.post(
+  "/cleanup",
+  authenticateToken,
+  authorizeRoles([ROLES.ADMIN]),
+  bookingController.cleanupExpiredBookings
 );
 
 /**
@@ -109,13 +122,14 @@ router.post('/cleanup',
  * @desc Xóa booking (chỉ admin)
  * @access Private (Admin only)
  */
-router.delete('/:id',
-    authenticateToken,
-    authorizeRoles([ROLES.ADMIN]),
-    bookingController.deleteBooking
+router.delete(
+  "/:id",
+  authenticateToken,
+  authorizeRoles([ROLES.ADMIN, ROLES.CUSTOMER]),
+  bookingController.deleteBooking
 );
 
 // Export router setup function theo pattern của project
 module.exports.setup = (app) => {
-    app.use('/api/bookings', router);
+  app.use("/api/bookings", router);
 };

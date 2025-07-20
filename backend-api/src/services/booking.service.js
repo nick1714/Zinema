@@ -427,15 +427,33 @@ async function updateBooking(id, updateData, user) {
  */
 async function deleteBooking(id, user) {
   try {
-    // Chỉ admin mới được xóa
-    if (user.role !== ROLES.ADMIN) {
-      return false;
-    }
-
-    const booking = await ticketBookingRepository().where("id", id).first();
+    const booking = await ticketBookingRepository()
+      .leftJoin("customers", "ticket_bookings.customer_id", "customers.id")
+      .where("ticket_bookings.id", id)
+      .select(
+        "ticket_bookings.*",
+        "customers.account_id as customer_account_id"
+      )
+      .first();
 
     if (!booking) {
       return false;
+    }
+
+    // Kiểm tra quyền: Admin có toàn quyền, Customer chỉ được xóa booking của mình
+    if (
+      user.role === ROLES.CUSTOMER &&
+      booking.customer_account_id !== user.id
+    ) {
+      return false;
+    }
+
+    // Customer chỉ có thể hủy vé 'pending' hoặc 'confirmed'
+    if (
+      user.role === ROLES.CUSTOMER &&
+      !["pending", "confirmed"].includes(booking.status)
+    ) {
+      throw new Error("Chỉ có thể hủy các vé đang chờ xử lý hoặc đã xác nhận.");
     }
 
     // Xóa trong transaction để đảm bảo tính toàn vẹn
