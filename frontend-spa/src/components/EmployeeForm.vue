@@ -172,18 +172,16 @@ function handleCancel() {
 </template>
 
 <style scoped>
-/* Scoped styles based on MovieDetailPage */
 .employee-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 1.25rem;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .form-group {
@@ -194,36 +192,57 @@ function handleCancel() {
 
 .form-group label {
   font-weight: 600;
-  color: var(--cinema-text);
+  color: var(--cinema-text-muted);
   font-size: 0.9rem;
 }
 
 .required {
-  color: #ef4444;
+  color: var(--cinema-secondary);
   margin-left: 0.25rem;
 }
 
-/* Vee-Validate fields will automatically inherit these styles */
+/* Using :deep to style child components from Vee-Validate */
 :deep(input),
 :deep(select),
 :deep(textarea) {
-  padding: 0.75rem;
+  padding: 0.8rem 1rem;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(15, 23, 42, 0.9);
   color: var(--cinema-text);
-  font-size: 0.9rem;
+  font-size: 1rem;
   width: 100%;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+:deep(input:focus),
+:deep(select:focus),
+:deep(textarea:focus) {
+  outline: none;
+  border-color: var(--cinema-primary);
+  box-shadow: 0 0 0 3px rgba(247, 197, 72, 0.2);
 }
 
 :deep(textarea) {
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px;
+}
+
+:deep(select) {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23aaa' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 16px;
 }
 
 .error-message {
-  color: #ef4444;
-  font-size: 0.8rem;
+  color: var(--cinema-secondary);
+  font-size: 0.875rem;
   margin-top: 0.25rem;
 }
 
@@ -231,7 +250,9 @@ function handleCancel() {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-save {
@@ -245,17 +266,18 @@ function handleCancel() {
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
-.btn-save:hover {
+.btn-save:hover:not(:disabled) {
   filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(247, 197, 72, 0.2);
 }
 
 .btn-save:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
-  filter: grayscale(0.5);
 }
 
 .btn-cancel {
@@ -263,16 +285,18 @@ function handleCancel() {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.1);
   color: var(--cinema-text);
-  border: none;
+  font-weight: 500;
+  border: 1px solid transparent;
   cursor: pointer;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .btn-cancel:hover {
   background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 @media (max-width: 768px) {

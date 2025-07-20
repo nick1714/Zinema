@@ -31,39 +31,64 @@ function goBack() {
 
 <template>
   <div class="employee-add-page">
-    <div class="container mt-4">
-      <div class="row justify-content-center">
-        <div class="col-lg-8">
-          <div class="card">
-            <div class="card-header bg-cinema-primary text-white">
-              <h4 class="mb-0">
-                <i class="fas fa-user-plus me-2"></i>
-                Đăng ký nhân viên mới
-              </h4>
-            </div>
-
-            <div class="card-body">
-              <EmployeeForm
-                :is-loading="registerEmployee.isLoading"
-                @submit="handleSubmit"
-                @cancel="goBack"
-              />
-            </div>
-          </div>
-        </div>
+    <div class="form-container">
+      <div class="form-header">
+        <h1>
+          <i class="fas fa-user-plus"></i>
+          Đăng ký nhân viên mới
+        </h1>
+      </div>
+      <div class="form-body">
+        <EmployeeForm
+          :is-loading="registerEmployee.isLoading"
+          @submit="handleSubmit"
+          @cancel="goBack"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.bg-cinema-primary {
-  background-color: #e50914 !important;
+.employee-add-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+  background-color: var(--cinema-dark);
+  min-height: calc(100vh - 80px); /* Adjust based on header height */
 }
 
-.error-feedback {
-  color: #dc3545;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+.form-container {
+  width: 100%;
+  max-width: 800px;
+  background: rgba(13, 27, 42, 0.8);
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
 }
+
+.form-header {
+  background: var(--cinema-gradient-gold);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.form-header h1 {
+  font-size: 1.8rem;
+  color: var(--cinema-darker);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.form-body {
+  padding: 2rem;
+}
+
+/* You might need to adjust styles in EmployeeForm.vue to match this new theme */
+/* For example, make form inputs have a dark background */
 </style>
