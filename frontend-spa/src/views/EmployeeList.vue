@@ -26,8 +26,8 @@ const searchText = ref('')
 // Search functionality
 const searchableEmployees = computed(() =>
   employees.value.map((employee) => {
-    const { name, employee_code, phone_number, email } = employee
-    return [name, employee_code, phone_number, email].join('').toLowerCase()
+    const { full_name, employee_code, phone_number, email } = employee
+    return [full_name, employee_code, phone_number, email].join('').toLowerCase()
   }),
 )
 
@@ -78,7 +78,7 @@ function goToEmployeeDetail(employee) {
         <div class="search-container">
           <InputSearch
             v-model="searchText"
-            placeholder="Tìm kiếm nhân viên theo tên, mã, email, số điện thoại..."
+            placeholder="Tìm kiếm nhân viên theo tên, email, số điện thoại..."
           />
         </div>
       </div>

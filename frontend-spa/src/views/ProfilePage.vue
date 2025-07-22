@@ -215,7 +215,7 @@ function goBack() {
                 Chỉnh sửa thông tin
               </button>
               <button
-                v-if="!isGoogleAccount && !isChangingPassword"
+                v-if="(isAdmin || isEmployee) && !isGoogleAccount && !isChangingPassword"
                 class="btn-action"
                 @click="isChangingPassword = true"
               >
@@ -228,7 +228,7 @@ function goBack() {
           <!-- Right Panel: Forms or Details -->
           <div class="details-panel">
             <!-- Password Change Form -->
-            <div v-if="isChangingPassword">
+            <div v-if="(isAdmin || isEmployee) && isChangingPassword">
               <h5 class="panel-title">
                 <i class="fas fa-key me-2"></i>
                 Tạo mật khẩu mới
@@ -250,8 +250,8 @@ function goBack() {
                 </h5>
                 <div class="phone-link-form">
                   <p class="form-description">
-                    Nhập số điện thoại để liên kết với tài khoản Google của bạn. Nếu số điện thoại này
-                    đã được sử dụng để đặt vé trước đó, hệ thống sẽ tự động gộp thông tin lại.
+                    Nhập số điện thoại để liên kết với tài khoản Google của bạn. Nếu số điện thoại
+                    này đã được sử dụng để đặt vé trước đó, hệ thống sẽ tự động gộp thông tin lại.
                   </p>
                   <div class="form-group">
                     <label for="phone-input">Số điện thoại:</label>
@@ -377,7 +377,9 @@ function goBack() {
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Chức vụ:</span>
-                      <span class="detail-value">{{ currentUser.position || 'Chưa cập nhật' }}</span>
+                      <span class="detail-value">{{
+                        currentUser.position || 'Chưa cập nhật'
+                      }}</span>
                     </div>
                     <div class="detail-item full-width">
                       <span class="detail-label">Địa chỉ:</span>

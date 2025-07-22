@@ -54,15 +54,39 @@ const selectedSeatNames = computed(() => {
 })
 
 const totalPrice = computed(() => {
-  const seatsTotal = props.details.seats.reduce((total, seat) => {
-    const seatPrice = Number(seat.surcharge) || 0
-    return total + seatPrice
-  }, 0)
-
+  // Lấy giá suất chiếu từ details.showtime.price nếu có, hoặc từ seat.showtimePrice nếu có
+  let basePrice = null
+  if (
+    props.details.showtime &&
+    props.details.showtime.price !== undefined &&
+    props.details.showtime.price !== null
+  ) {
+    basePrice = Number(props.details.showtime.price)
+  }
+  // Nếu không có, thử lấy từ seat đầu tiên (nếu có)
+  if (
+    (basePrice === null || isNaN(basePrice)) &&
+    props.details.seats &&
+    props.details.seats.length > 0 &&
+    props.details.seats[0].showtimePrice !== undefined
+  ) {
+    basePrice = Number(props.details.seats[0].showtimePrice)
+  }
+  let seatsTotal = 0
+  if (basePrice !== null && !isNaN(basePrice)) {
+    seatsTotal = props.details.seats.reduce((total, seat) => {
+      const seatSurcharge = Number(seat.surcharge) || 0
+      return total + basePrice + seatSurcharge
+    }, 0)
+  } else {
+    seatsTotal = props.details.seats.reduce((total, seat) => {
+      const seatPrice = Number(seat.surcharge) || 0
+      return total + seatPrice
+    }, 0)
+  }
   const foodTotal = props.details.food.reduce((total, item) => {
     return total + Number(item.price) * item.quantity
   }, 0)
-
   return seatsTotal + foodTotal
 })
 
@@ -77,7 +101,9 @@ const formatDateTime = (dateTime) => new Date(dateTime).toLocaleString('vi-VN')
   padding: 2rem;
   border-radius: 8px;
   border: 1px solid #d1d5db;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .booking-summary h4 {

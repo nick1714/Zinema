@@ -65,6 +65,11 @@ const props = defineProps({
     type: [String, Number],
     required: true,
   },
+  showtime: {
+    type: Object,
+    required: false, // sẽ truyền từ BookingPage
+    default: null,
+  },
 })
 
 const emit = defineEmits(['seats-selected'])
@@ -122,6 +127,24 @@ const isSelected = (seat) => selectedSeats.value.some((s) => s.id === seat.id)
 const selectedSeatNames = computed(() => selectedSeats.value.map((s) => s.name).join(', '))
 
 const totalPrice = computed(() => {
+  let basePrice = null
+  if (props.showtime && props.showtime.price !== undefined && props.showtime.price !== null) {
+    basePrice = Number(props.showtime.price)
+  }
+  if (
+    (basePrice === null || isNaN(basePrice)) &&
+    seatData.value &&
+    seatData.value.showtimePrice !== undefined
+  ) {
+    basePrice = Number(seatData.value.showtimePrice)
+  }
+  if (basePrice !== null && !isNaN(basePrice)) {
+    return selectedSeats.value.reduce((total, seat) => {
+      const seatSurcharge = Number(seat.surcharge) || 0
+      return total + basePrice + seatSurcharge
+    }, 0)
+  }
+  // Fallback: chỉ cộng surcharge
   return selectedSeats.value.reduce((total, seat) => {
     const seatPrice = Number(seat.surcharge) || 0
     return total + seatPrice
