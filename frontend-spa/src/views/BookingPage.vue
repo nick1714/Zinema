@@ -231,7 +231,7 @@ async function handleConfirmBooking() {
       bookingPayload.customer_phone = selectedCustomer.value.phone_number
     }
 
-    // Create booking
+    // Create booking (do NOT wrap in { input })
     const createdBookingResponse = await bookingService.createBooking(bookingPayload)
 
     if (!createdBookingResponse || !createdBookingResponse.data) {
@@ -246,7 +246,7 @@ async function handleConfirmBooking() {
       throw new Error('Không nhận được ID booking sau khi tạo.')
     }
 
-    // Confirm booking
+    // Confirm booking (do NOT wrap in { input, id })
     await bookingService.confirmBooking(bookingId, {
       payment_method: 'cash', // Giả sử thanh toán tiền mặt
     })
