@@ -35,9 +35,6 @@ function makeBookingService() {
   /**
    * Creates a new booking
    * @param {Object} bookingData - Data to create a booking
-   * @param {number} bookingData.showtime_id - Showtime ID
-   * @param {Array<number>} bookingData.seat_ids - Array of selected seat IDs
-   * @param {Array<{food_id: number, quantity: number}>} [bookingData.foods] - Array of selected foods (optional)
    * @returns {Promise<Object>} - The created booking data
    */
   async function createBooking(bookingData) {
@@ -47,7 +44,7 @@ function makeBookingService() {
         ...getAuthHeaders(),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(bookingData),
+      body: JSON.stringify({ input: bookingData }),
     })
   }
 
@@ -67,7 +64,6 @@ function makeBookingService() {
    * Confirms and pays for a booking
    * @param {number} id - Booking ID
    * @param {Object} confirmData - Confirmation data (e.g., payment method)
-   * @param {string} confirmData.payment_method - Payment method
    * @returns {Promise<Object>} - Booking data after confirmation
    */
   async function confirmBooking(id, confirmData) {
@@ -77,7 +73,7 @@ function makeBookingService() {
         ...getAuthHeaders(),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(confirmData),
+      body: JSON.stringify({ input: confirmData, id }),
     })
   }
 

@@ -1,4 +1,5 @@
 const express = require("express");
+const { z } = require("zod");
 
 const bookingController = require("../controllers/booking.controller");
 const {
@@ -7,7 +8,6 @@ const {
 } = require("../middlewares/auth.middleware");
 const {
   validateRequest,
-  validate,
 } = require("../middlewares/validator.middleware");
 const {
   getBookingsQuerySchema,
@@ -31,7 +31,11 @@ router.post(
   "/",
   authenticateToken,
   authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-  validate(createBookingSchema, "body"),
+  validateRequest(
+    z.object({
+      input: createBookingSchema.strict(),
+    })
+  ),
   bookingController.createBooking
 );
 
@@ -45,7 +49,11 @@ router.get(
   "/",
   authenticateToken,
   authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-  validate(getBookingsQuerySchema, "query"),
+  validateRequest(
+    z.object({
+      input: getBookingsQuerySchema.strict(),
+    })
+  ),
   bookingController.getAllBookings
 );
 
@@ -59,7 +67,11 @@ router.get(
   "/:id",
   authenticateToken,
   authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-  validate(bookingParamsSchema, "params"),
+  validateRequest(
+    z.object({
+      input: bookingParamsSchema.strict(),
+    })
+  ),
   bookingController.getBookingById
 );
 
@@ -72,7 +84,11 @@ router.get(
   "/code/:code",
   authenticateToken,
   authorizeRoles([ROLES.ADMIN, ROLES.STAFF]),
-  validate(bookingCodeParamsSchema, "params"),
+  validateRequest(
+    z.object({
+      input: bookingCodeParamsSchema.strict(),
+    })
+  ),
   bookingController.getBookingByCode
 );
 
@@ -86,7 +102,12 @@ router.post(
   "/:id/confirm",
   authenticateToken,
   authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-  validate(confirmBookingSchema, "body"),
+  validateRequest(
+    z.object({
+      input: confirmBookingSchema.strict(),
+      id: z.coerce.number().positive("ID phải là số dương"),
+    })
+  ),
   bookingController.confirmBooking
 );
 
@@ -100,8 +121,12 @@ router.put(
   "/:id",
   authenticateToken,
   authorizeRoles([ROLES.ADMIN, ROLES.STAFF, ROLES.CUSTOMER]),
-  validate(bookingParamsSchema, "params"),
-  validate(updateBookingSchema, "body"),
+  validateRequest(
+    z.object({
+      input: updateBookingSchema.strict(),
+      id: z.coerce.number().positive("ID phải là số dương"),
+    })
+  ),
   bookingController.updateBooking
 );
 

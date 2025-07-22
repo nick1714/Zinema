@@ -181,7 +181,8 @@ async function deleteBooking(req, res) {
  */
 async function createBooking(req, res) {
     try {
-        const bookingData = req.body;
+        // Extract booking data from req.body.input (not req.body)
+        const bookingData = req.body.input;
         const user = req.user; // Từ auth middleware
 
         console.log('Create booking request:', {
@@ -215,7 +216,8 @@ async function createBooking(req, res) {
 async function confirmBooking(req, res) {
     try {
         const { id } = req.params;
-        const confirmData = req.body;
+        // Extract confirm data from req.body.input
+        const confirmData = req.body.input;
         const user = req.user; // Từ auth middleware
 
         console.log('Confirm booking request:', {
@@ -256,7 +258,7 @@ async function confirmBooking(req, res) {
 async function cleanupExpiredBookings(req, res) {
     try {
         const user = req.user; // Từ auth middleware
-        
+
         // Chỉ admin mới có quyền cleanup
         if (user.role !== 'admin') {
             return res.status(403).json(JSend.fail('Bạn không có quyền thực hiện thao tác này'));
