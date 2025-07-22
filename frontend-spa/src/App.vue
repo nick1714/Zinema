@@ -1,20 +1,26 @@
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
-import { useAuth } from '@/composables/useAuth'
 
-const { isAuthenticated } = useAuth()
+const authStore = useAuthStore()
+const route = useRoute()
+
+// Chỉ hiển thị header/footer nếu đã đăng nhập và không ở trang login
+const shouldShowNavigation = computed(() => {
+  return authStore.isAuthenticated && route.name !== 'login'
+})
 </script>
 
 <template>
-  <div id="app">
-    <AppHeader v-if="isAuthenticated" />
-
+  <div id="app-container">
+    <AppHeader v-if="shouldShowNavigation" />
     <main class="main-content">
-      <router-view />
+      <RouterView />
     </main>
-
-    <AppFooter v-if="isAuthenticated" />
+    <AppFooter v-if="shouldShowNavigation" />
   </div>
 </template>
 

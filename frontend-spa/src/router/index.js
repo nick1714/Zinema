@@ -1,5 +1,5 @@
 import { createWebHistory, createRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
+import { useAuthStore } from '@/stores/auth.store'
 
 // Lazy loading cho performance
 const LoginPage = () => import('@/views/LoginPage.vue')
@@ -171,29 +171,38 @@ const router = createRouter({
 })
 
 // Navigation guards
-router.beforeEach((to, from, next) => {
-  const { isAuthenticated, userRole } = useAuth()
+router.beforeEach(async (to, from, next) => {
+  // Store phải được gọi bên trong guard
+  const authStore = useAuthStore()
+
+  // Đảm bảo rằng quá trình initAuth đã hoàn tất trước khi kiểm tra
+  // Chỉ chạy initAuth nếu currentUser chưa được load
+  if (!authStore.currentUser && localStorage.getItem('cinema_token')) {
+    await authStore.initAuth()
+  }
+
+  const { isAuthenticated, userRole } = authStore
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const requiresGuest = to.matched.some((record) => record.meta.requiresGuest)
 
-  if (requiresAuth && !isAuthenticated.value) {
+  if (requiresAuth && !isAuthenticated) {
     // Người dùng chưa đăng nhập, chuyển hướng đến trang login
     return next({ name: 'login', query: { redirect: to.fullPath } })
   }
 
-  if (requiresGuest && isAuthenticated.value) {
+  if (requiresGuest && isAuthenticated) {
     // Người dùng đã đăng nhập, không cho vào trang login/register
-    if (userRole.value === 'admin') return next({ name: 'admin.dashboard' })
-    if (userRole.value === 'employee') return next({ name: 'staff.dashboard' })
+    if (userRole === 'admin') return next({ name: 'admin.dashboard' })
+    if (userRole === 'employee' || userRole === 'staff') return next({ name: 'staff.dashboard' })
     return next('/') // Mặc định cho customer
   }
 
   // Kiểm tra quyền truy cập dựa trên vai trò
-  if (requiresAuth && isAuthenticated.value) {
+  if (requiresAuth && isAuthenticated) {
     const requiredRoles = to.meta.roles
     if (requiredRoles && requiredRoles.length > 0) {
-      if (!requiredRoles.includes(userRole.value)) {
+      if (!requiredRoles.includes(userRole)) {
         // Vai trò không phù hợp, chuyển hướng đến trang cấm
         return next({ name: 'forbidden' })
       }

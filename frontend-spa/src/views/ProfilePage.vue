@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuth, usePasswordChange } from '@/composables/useAuth'
+import { storeToRefs } from 'pinia' // Import storeToRefs
+import { useAuthStore } from '@/stores/auth.store'
+import { usePasswordChange } from '@/composables/useAuth'
 import CustomerForm from '@/components/CustomerForm.vue'
 import ChangePasswordForm from '@/components/ChangePasswordForm.vue'
 
@@ -11,7 +13,12 @@ import authService from '@/services/auth.service'
 
 const route = useRoute()
 const router = useRouter()
-const { currentUser, userRole, isCustomer, isEmployee, isAdmin, setCurrentUser } = useAuth()
+const authStore = useAuthStore()
+
+// Sử dụng storeToRefs để đảm bảo reactivity
+const { currentUser, userRole, isCustomer, isEmployee, isAdmin } = storeToRefs(authStore)
+const { setCurrentUser } = authStore // Actions có thể được destructure trực tiếp
+
 const { changePassword, isChangingPassword: isPasswordLoading } = usePasswordChange()
 
 const queryClient = useQueryClient()
@@ -233,148 +240,150 @@ function goBack() {
               />
             </div>
 
-            <!-- Phone Linking Form -->
-            <div v-else-if="isLinkingPhone">
-              <h5 class="panel-title">
-                <i class="fas fa-link me-2"></i>
-                Liên kết số điện thoại
-              </h5>
-              <div class="phone-link-form">
-                <p class="form-description">
-                  Nhập số điện thoại để liên kết với tài khoản Google của bạn. Nếu số điện thoại này
-                  đã được sử dụng để đặt vé trước đó, hệ thống sẽ tự động gộp thông tin lại.
-                </p>
-                <div class="form-group">
-                  <label for="phone-input">Số điện thoại:</label>
-                  <input
-                    id="phone-input"
-                    v-model="phoneNumber"
-                    type="tel"
-                    class="form-control"
-                    placeholder="Nhập số điện thoại"
-                    :disabled="linkPhoneMutation.isLoading"
-                  />
-                </div>
-                <div class="form-actions">
-                  <button
-                    type="button"
-                    class="btn-primary"
-                    :disabled="linkPhoneMutation.isLoading"
-                    @click="handleLinkPhone"
-                  >
-                    <i v-if="linkPhoneMutation.isLoading" class="fas fa-spinner fa-spin me-2"></i>
-                    <i v-else class="fas fa-link me-2"></i>
-                    {{ linkPhoneMutation.isLoading ? 'Đang liên kết...' : 'Liên kết' }}
-                  </button>
-                  <button
-                    type="button"
-                    class="btn-secondary"
-                    :disabled="linkPhoneMutation.isLoading"
-                    @click="cancelLinkPhone"
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Customer Profile -->
-            <div v-else-if="isCustomer">
-              <h5 class="panel-title">
-                <i class="fas fa-info-circle me-2"></i>
-                Chi tiết tài khoản
-              </h5>
-              <!-- Edit Mode -->
-              <CustomerForm
-                v-if="isEditingProfile"
-                :initial-values="customerInitialValues"
-                :is-loading="updateCustomerMutation.isLoading"
-                :allow-phone-edit="true"
-                @submit="handleUpdateProfile"
-                @cancel="isEditingProfile = false"
-              />
-              <!-- View Mode -->
-              <div v-else class="details-view">
-                <div class="detail-item">
-                  <span class="detail-label">Số điện thoại:</span>
-                  <span v-if="currentUser.phone_number" class="detail-value">{{
-                    currentUser.phone_number
-                  }}</span>
-                  <div v-else class="detail-value-missing">
-                    <span class="text-muted">Chưa cập nhật</span>
+            <!-- All other views are wrapped in a v-else -->
+            <div v-else>
+              <!-- Phone Linking Form -->
+              <div v-if="isLinkingPhone">
+                <h5 class="panel-title">
+                  <i class="fas fa-link me-2"></i>
+                  Liên kết số điện thoại
+                </h5>
+                <div class="phone-link-form">
+                  <p class="form-description">
+                    Nhập số điện thoại để liên kết với tài khoản Google của bạn. Nếu số điện thoại này
+                    đã được sử dụng để đặt vé trước đó, hệ thống sẽ tự động gộp thông tin lại.
+                  </p>
+                  <div class="form-group">
+                    <label for="phone-input">Số điện thoại:</label>
+                    <input
+                      id="phone-input"
+                      v-model="phoneNumber"
+                      type="tel"
+                      class="form-control"
+                      placeholder="Nhập số điện thoại"
+                      :disabled="linkPhoneMutation.isLoading"
+                    />
+                  </div>
+                  <div class="form-actions">
                     <button
-                      v-if="isGoogleAccount"
-                      class="btn-link-phone"
-                      @click="isLinkingPhone = true"
+                      type="button"
+                      class="btn-primary"
+                      :disabled="linkPhoneMutation.isLoading"
+                      @click="handleLinkPhone"
                     >
-                      <i class="fas fa-link me-1"></i>
-                      Liên kết số điện thoại
+                      <i v-if="linkPhoneMutation.isLoading" class="fas fa-spinner fa-spin me-2"></i>
+                      <i v-else class="fas fa-link me-2"></i>
+                      {{ linkPhoneMutation.isLoading ? 'Đang liên kết...' : 'Liên kết' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-secondary"
+                      :disabled="linkPhoneMutation.isLoading"
+                      @click="cancelLinkPhone"
+                    >
+                      Hủy
                     </button>
                   </div>
                 </div>
-                <div class="detail-item">
-                  <span class="detail-label">Email:</span>
-                  <span class="detail-value">{{ currentUser.email || 'Chưa cập nhật' }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">Giới tính:</span>
-                  <span class="detail-value">{{
-                    formatGender(currentUser.gender) || 'Chưa cập nhật'
-                  }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">Ngày sinh:</span>
-                  <span class="detail-value">{{
-                    currentUser.date_of_birth
-                      ? new Date(currentUser.date_of_birth).toLocaleDateString('vi-VN')
-                      : 'Chưa cập nhật'
-                  }}</span>
-                </div>
-                <div class="detail-item full-width">
-                  <span class="detail-label">Địa chỉ:</span>
-                  <span class="detail-value">{{ currentUser.address || 'Chưa cập nhật' }}</span>
-                </div>
               </div>
-            </div>
 
-            <!-- Employee/Admin Profile (Read-only) -->
-            <div v-else-if="isEmployee || isAdmin">
-              <h5 class="panel-title">
-                <i class="fas fa-info-circle me-2"></i>
-                Chi tiết tài khoản
-              </h5>
-              <div class="details-view">
-                <div class="detail-item">
-                  <span class="detail-label">Số điện thoại:</span>
-                  <span class="detail-value">{{
-                    currentUser.phone_number || 'Chưa cập nhật'
-                  }}</span>
+              <!-- Customer or Admin/Employee Profile -->
+              <div v-else>
+                <h5 class="panel-title">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Chi tiết tài khoản
+                </h5>
+                <!-- Customer Profile -->
+                <div v-if="isCustomer">
+                  <!-- Edit Mode -->
+                  <CustomerForm
+                    v-if="isEditingProfile"
+                    :initial-values="customerInitialValues"
+                    :is-loading="updateCustomerMutation.isLoading"
+                    :allow-phone-edit="true"
+                    @submit="handleUpdateProfile"
+                    @cancel="isEditingProfile = false"
+                  />
+                  <!-- View Mode -->
+                  <div v-else class="details-view">
+                    <div class="detail-item">
+                      <span class="detail-label">Số điện thoại:</span>
+                      <span v-if="currentUser.phone_number" class="detail-value">{{
+                        currentUser.phone_number
+                      }}</span>
+                      <div v-else class="detail-value-missing">
+                        <span class="text-muted">Chưa cập nhật</span>
+                        <button
+                          v-if="isGoogleAccount"
+                          class="btn-link-phone"
+                          @click="isLinkingPhone = true"
+                        >
+                          <i class="fas fa-link me-1"></i>
+                          Liên kết số điện thoại
+                        </button>
+                      </div>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Email:</span>
+                      <span class="detail-value">{{ currentUser.email || 'Chưa cập nhật' }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Giới tính:</span>
+                      <span class="detail-value">{{
+                        formatGender(currentUser.gender) || 'Chưa cập nhật'
+                      }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Ngày sinh:</span>
+                      <span class="detail-value">{{
+                        currentUser.date_of_birth
+                          ? new Date(currentUser.date_of_birth).toLocaleDateString('vi-VN')
+                          : 'Chưa cập nhật'
+                      }}</span>
+                    </div>
+                    <div class="detail-item full-width">
+                      <span class="detail-label">Địa chỉ:</span>
+                      <span class="detail-value">{{ currentUser.address || 'Chưa cập nhật' }}</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="detail-item">
-                  <span class="detail-label">Email:</span>
-                  <span class="detail-value">{{ currentUser.email || 'Chưa cập nhật' }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">Giới tính:</span>
-                  <span class="detail-value">{{
-                    formatGender(currentUser.gender) || 'Chưa cập nhật'
-                  }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">Ngày sinh:</span>
-                  <span class="detail-value">{{
-                    currentUser.date_of_birth
-                      ? new Date(currentUser.date_of_birth).toLocaleDateString('vi-VN')
-                      : 'Chưa cập nhật'
-                  }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">Chức vụ:</span>
-                  <span class="detail-value">{{ currentUser.position || 'Chưa cập nhật' }}</span>
-                </div>
-                <div class="detail-item full-width">
-                  <span class="detail-label">Địa chỉ:</span>
-                  <span class="detail-value">{{ currentUser.address || 'Chưa cập nhật' }}</span>
+
+                <!-- Employee/Admin Profile (Read-only) -->
+                <div v-if="isEmployee || isAdmin">
+                  <div class="details-view">
+                    <div class="detail-item">
+                      <span class="detail-label">Số điện thoại:</span>
+                      <span class="detail-value">{{
+                        currentUser.phone_number || 'Chưa cập nhật'
+                      }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Email:</span>
+                      <span class="detail-value">{{ currentUser.email || 'Chưa cập nhật' }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Giới tính:</span>
+                      <span class="detail-value">{{
+                        formatGender(currentUser.gender) || 'Chưa cập nhật'
+                      }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Ngày sinh:</span>
+                      <span class="detail-value">{{
+                        currentUser.date_of_birth
+                          ? new Date(currentUser.date_of_birth).toLocaleDateString('vi-VN')
+                          : 'Chưa cập nhật'
+                      }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Chức vụ:</span>
+                      <span class="detail-value">{{ currentUser.position || 'Chưa cập nhật' }}</span>
+                    </div>
+                    <div class="detail-item full-width">
+                      <span class="detail-label">Địa chỉ:</span>
+                      <span class="detail-value">{{ currentUser.address || 'Chưa cập nhật' }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
