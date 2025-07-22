@@ -3,19 +3,18 @@ import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import authService from '@/services/auth.service'
-import { useAuth } from '@/composables/useAuth'
+import { useAuthStore } from '@/stores/auth.store'
 
 const route = useRoute()
 const router = useRouter()
-const { isAuthenticated, setCurrentUser } = useAuth()
+const authStore = useAuthStore()
 const queryClient = useQueryClient()
 
 const googleCallbackMutation = useMutation({
   mutationFn: (code) => authService.handleGoogleCallback(code),
   onSuccess: (data) => {
-    localStorage.setItem('cinema_token', data.token)
-    setCurrentUser(data.user)
-    isAuthenticated.value = true
+    // Sử dụng action từ store để quản lý state tập trung
+    authStore.setAuthenticated(data.token, data.user)
 
     queryClient.invalidateQueries({ queryKey: ['auth'] }).then(() => {
       if (data.isFirstTime) {

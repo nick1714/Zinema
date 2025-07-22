@@ -4,10 +4,10 @@ import { useRouter } from 'vue-router'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import AuthForm from '@/components/AuthForm.vue'
 import authService from '@/services/auth.service'
-import { useAuth } from '@/composables/useAuth'
+import { useAuthStore } from '@/stores/auth.store'
 
 const router = useRouter()
-const { isAuthenticated, setCurrentUser, userRole } = useAuth()
+const authStore = useAuthStore()
 const queryClient = useQueryClient()
 
 const loginMutation = useMutation({
@@ -19,14 +19,15 @@ const loginMutation = useMutation({
       return
     }
 
-    localStorage.setItem('cinema_token', data.token)
-    setCurrentUser({ ...data.user, role: data.account?.role })
-    isAuthenticated.value = true
+    // Sử dụng action từ store để quản lý state tập trung
+    const user = { ...data.user, role: data.account?.role }
+    authStore.setAuthenticated(data.token, user)
 
-    // Redirect dựa trên role
-    if (userRole.value === 'admin') {
+    // Redirect dựa trên role từ store
+    const userRole = authStore.userRole
+    if (userRole === 'admin') {
       router.push('/admin')
-    } else if (userRole.value === 'staff') {
+    } else if (userRole === 'staff') {
       router.push('/staff')
     } else {
       router.push('/')
@@ -36,7 +37,7 @@ const loginMutation = useMutation({
   },
   onError: (error) => {
     console.error('Login error:', error)
-    alert('Đăng nhập thất bại: ' + error.message)
+    alert('Đăng nhập thất bại: ' + (error?.response?.data?.message || error.message))
   },
 })
 
@@ -44,10 +45,11 @@ const isLoading = computed(() => loginMutation.isPending.value)
 
 // If already authenticated, redirect on mount
 onMounted(() => {
-  if (isAuthenticated.value) {
-    if (userRole.value === 'admin') {
+  if (authStore.isAuthenticated) {
+    const userRole = authStore.userRole
+    if (userRole === 'admin') {
       router.push('/admin')
-    } else if (userRole.value === 'staff') {
+    } else if (userRole === 'staff' || userRole === 'employee') {
       router.push('/staff')
     } else {
       router.push('/')

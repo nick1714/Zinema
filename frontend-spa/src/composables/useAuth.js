@@ -1,84 +1,41 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
 import authService from '@/services/auth.service'
-import { USER_ROLES } from '@/constants'
 
-const AUTH_QUERY_KEY = 'auth'
 const EMPLOYEES_QUERY_KEY = 'employees'
 const CUSTOMERS_QUERY_KEY = 'customers'
+const AUTH_QUERY_KEY = 'auth'
 
-// Global auth state
-const isAuthenticated = ref(!!localStorage.getItem('cinema_token'))
-const currentUser = ref(null)
-
-/**
- * Khởi tạo trạng thái xác thực khi ứng dụng tải
- * Sẽ được gọi trong main.js TRƯỚC KHI mount app
- */
-export async function initAuth() {
-  const token = localStorage.getItem('cinema_token')
-  if (token) {
-    try {
-      // Sử dụng phương thức `getCurrentUser` đã có
-      const userProfile = await authService.getCurrentUser()
-      currentUser.value = userProfile
-      isAuthenticated.value = true
-    } catch (error) {
-      console.error('Auth initialization failed:', error)
-      // Xóa token hỏng nếu có lỗi
-      localStorage.removeItem('cinema_token')
-      currentUser.value = null
-      isAuthenticated.value = false
-    }
-  }
-}
+// Toàn bộ state và logic quản lý đã được chuyển vào auth.store.js
+// Composable này bây giờ đóng vai trò là một lớp facade/helper để truy cập store dễ dàng hơn
 
 /**
- * Composable cho authentication chính
- * Chỉ chứa các state và actions cơ bản, không tự gọi useQuery
+ * Composable cho authentication chính.
+ * Lấy state và getters trực tiếp từ Pinia store.
  */
 export function useAuth() {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-
-  // Logout function
-  function logout() {
-    localStorage.removeItem('cinema_token')
-    isAuthenticated.value = false
-    currentUser.value = null
-    queryClient.clear()
-    router.push('/login')
-  }
-
-  // Permission helpers
-  const userRole = computed(() => currentUser.value?.role)
-  const isAdmin = computed(() => userRole.value === USER_ROLES.ADMIN)
-  const isEmployee = computed(() => userRole.value === USER_ROLES.EMPLOYEE)
-  const isCustomer = computed(() => userRole.value === USER_ROLES.CUSTOMER)
-  const canManageEmployees = computed(() => isAdmin.value)
-  const canManageCustomers = computed(() => isAdmin.value || isEmployee.value)
-
-  function setCurrentUser(data) {
-    currentUser.value = { ...currentUser.value, ...data }
-  }
+  const authStore = useAuthStore()
 
   return {
-    // State
-    isAuthenticated,
-    currentUser: computed(() => currentUser.value),
-    userRole,
+    // State (thông qua computed refs từ store)
+    isAuthenticated: computed(() => authStore.isAuthenticated),
+    currentUser: computed(() => authStore.currentUser),
+    isLoading: computed(() => authStore.isLoading),
 
-    // Permissions
-    isAdmin,
-    isEmployee,
-    isCustomer,
-    canManageEmployees,
-    canManageCustomers,
+    // Getters (thông qua computed refs từ store)
+    userRole: computed(() => authStore.userRole),
+    isAdmin: computed(() => authStore.isAdmin),
+    isEmployee: computed(() => authStore.isEmployee),
+    isCustomer: computed(() => authStore.isCustomer),
+    canManageEmployees: computed(() => authStore.canManageEmployees),
+    canManageCustomers: computed(() => authStore.canManageCustomers),
 
-    // Actions
-    logout,
-    setCurrentUser,
+    // Actions (trỏ trực tiếp đến store actions)
+    logout: authStore.logout,
+    setCurrentUser: authStore.setCurrentUser,
+    setAuthenticated: authStore.setAuthenticated,
+    initAuth: authStore.initAuth,
   }
 }
 

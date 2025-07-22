@@ -10,6 +10,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = ref(!!localStorage.getItem('cinema_token'))
   const currentUser = ref(null)
   const isLoading = ref(false)
+  const router = useRouter()
+  const queryClient = useQueryClient()
 
   // Getters
   const userRole = computed(() => currentUser.value?.role)
@@ -22,12 +24,23 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
   async function initAuth() {
     const token = localStorage.getItem('cinema_token')
-    if (token) {
+    if (token && !currentUser.value) {
+      // Chỉ chạy nếu chưa có user
       try {
         isLoading.value = true
-        const userProfile = await authService.getCurrentUser()
-        currentUser.value = userProfile
-        isAuthenticated.value = true
+        // API /me trả về cấu trúc { user, role }
+        const data = await authService.getCurrentUser()
+
+        // Kiểm tra và chuẩn hóa cấu trúc dữ liệu một cách chính xác
+        if (data && data.user && data.user.id && data.role) {
+          // Tạo một user object phẳng, kết hợp user và role từ đúng vị trí
+          const userProfile = { ...data.user, role: data.role }
+          currentUser.value = userProfile
+          isAuthenticated.value = true
+        } else {
+          // Nếu cấu trúc không đúng, coi như xác thực thất bại
+          throw new Error('Invalid data structure from /me endpoint. Expected { user, role }.')
+        }
       } catch (error) {
         console.error('Auth initialization failed:', error)
         // Xóa token hỏng nếu có lỗi
@@ -51,19 +64,19 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function logout() {
-    console.log('Auth store logout called')
-    console.log('Before logout - isAuthenticated:', isAuthenticated.value, 'currentUser:', currentUser.value)
-    
-    // Xóa token trước
     localStorage.removeItem('cinema_token')
-    
-    // Reset state bằng cách gán trực tiếp
     isAuthenticated.value = false
     currentUser.value = null
     isLoading.value = false
-    
-    console.log('After logout - isAuthenticated:', isAuthenticated.value, 'currentUser:', currentUser.value)
-    console.log('localStorage token:', localStorage.getItem('cinema_token'))
+
+    // Xóa cache của vue-query để đảm bảo không còn dữ liệu cũ
+    queryClient.clear()
+
+    // Chuyển hướng về trang đăng nhập
+    // Dùng replace để người dùng không thể "back" lại trang trước đó
+    if (router) {
+      router.replace('/login')
+    }
   }
 
   return {
@@ -86,4 +99,4 @@ export const useAuthStore = defineStore('auth', () => {
     setAuthenticated,
     logout,
   }
-}) 
+})
