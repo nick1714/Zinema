@@ -1,0 +1,24 @@
+:8080 {
+
+	# Set root directory
+	root * dist
+	
+	# Handle API requests - proxy to backend
+	handle /api/* {
+		reverse_proxy localhost:3000
+	}
+	
+	# Handle public assets - proxy to backend  
+	handle /public/* {
+		reverse_proxy localhost:3000
+	}
+	
+	# Handle static files and SPA routing
+	handle {
+		# Try to serve file, then directory, then fallback to index.html for SPA
+		try_files {path} {path}/ /index.html
+		file_server
+	}
+	
+
+}
