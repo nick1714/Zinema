@@ -315,11 +315,13 @@ async function getAllCustomers() {
         //const roles = await roleRepository()
         //    .select('*')
         //    .orderBy('created_at', 'desc');
-        const customersWithAccount = customers.map(customer => ({
-            ...customer,
-            email: accounts.find(account => account.id === customer.account_id).email,
-            //role: roles.find(role => role.id === customer.role_id)
-        }));
+        const customersWithAccount = customers.map(customer => {
+            const account = accounts.find(account => account.id === customer.account_id);
+            return {
+                ...customer,
+                email: account ? account.email : null,
+            };
+        });
         return customersWithAccount;
     } catch (error) {
         console.error('Get all customers error:', error);
@@ -342,7 +344,7 @@ async function getCustomerById(id) {
             .first();
         const customerWithAccount = {
             ...customer,
-            email: account.email,
+            email: account ? account.email : null,
         };
         return customerWithAccount;
     } catch (error) {

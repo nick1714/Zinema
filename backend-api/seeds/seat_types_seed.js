@@ -14,31 +14,31 @@ exports.seed = async function(knex) {
   const seatTypes = [
     {
       name: 'Standard',
-      price: 80000,
+      price: 0,
       created_at: faker.date.past(),
       updated_at: new Date()
     },
     {
       name: 'VIP',
-      price: 120000,
+      price: 20000,
       created_at: faker.date.past(),
       updated_at: new Date()
     },
     {
       name: 'Couple',
-      price: 200000,
+      price: 30000,
       created_at: faker.date.past(),
       updated_at: new Date()
     },
     {
       name: 'Premium',
-      price: 150000,
+      price: 40000,
       created_at: faker.date.past(),
       updated_at: new Date()
     },
     {
       name: 'Deluxe',
-      price: 180000,
+      price: 50000,
       created_at: faker.date.past(),
       updated_at: new Date()
     }

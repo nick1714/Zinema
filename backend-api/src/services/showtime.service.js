@@ -238,7 +238,8 @@ async function getSeatsForShowtime(showtimeId) {
             'showtimes.cinema_room_id',
             'cinema_rooms.name as room_name',
             'cinema_rooms.rows as room_rows',
-            'cinema_rooms.columns as room_columns'
+            'cinema_rooms.columns as room_columns',
+            'showtimes.price as showtime_price'
         )
         .first();
 
@@ -246,7 +247,7 @@ async function getSeatsForShowtime(showtimeId) {
         return null; // Suất chiếu không tồn tại
     }
 
-    const { cinema_room_id, room_name, room_rows, room_columns } = showtime;
+    const { cinema_room_id, room_name, room_rows, room_columns, showtime_price } = showtime;
 
     // 2. Lấy tất cả ghế trong phòng
     const allSeats = await knex('seats')
@@ -283,6 +284,7 @@ async function getSeatsForShowtime(showtimeId) {
         rows: room_rows,
         columns: room_columns,
       },
+      showtimePrice: showtime_price,
       seats: seatsWithStatus,
     };
 }

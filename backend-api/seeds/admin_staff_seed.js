@@ -70,7 +70,7 @@ exports.seed = async function (knex) {
     email: "admin1@cinema.com",
     password: "admin123",
     roleId: adminRole.id,
-    fullName: "Admin One",
+    fullName: "Admin Nhut",
     position: "Administrator",
   });
   await createUser({
@@ -78,7 +78,7 @@ exports.seed = async function (knex) {
     email: "admin2@cinema.com",
     password: "admin1234",
     roleId: adminRole.id,
-    fullName: "Admin Two",
+    fullName: "Admin Dat",
     position: "Administrator",
   });
 
