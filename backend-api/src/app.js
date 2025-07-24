@@ -1,5 +1,6 @@
-const express = require('express');
-const cors = require('cors');
+const rateLimit = require("express-rate-limit");
+const express = require("express");
+const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 
 const JSend = require("./jsend");
@@ -25,10 +26,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/', (req, res) => {
-  return res.json(JSend.success({ message: 'Cinema Management API' }));
+//Test rate limit
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  limit: 10, // Limit each IP to 20 requests per window (1 minute)
+  standardHeaders: true, // Return rate limit info in the 'RateLimit-*' headers
+  legacyHeaders: false, // Disable the 'X-RateLimit-*' headers
 });
 
+app.use(limiter);
+
+app.get("/", (req, res) => {
+  return res.json(JSend.success({ message: "Cinema Management API" }));
+});
 
 // Tài liệu API
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(getSwaggerDocument()));
