@@ -417,59 +417,6 @@ async function createCustomerWithoutAccount(req, res, next) {
   }
 }
 
-/**
- * Merge customer POS với Google account (chỉ admin)
- * @param {Object} req - Express request
- * @param {Object} res - Express response
- * @param {Function} next - Express next middleware
- */
-async function mergePosCustomerWithGoogleAccount(req, res, next) {
-  try {
-    const { posCustomerId, googleEmail } = req.body.input;
-    
-    if (!posCustomerId || !googleEmail) {
-      return next(new ApiError(400, 'POS Customer ID và Google Email là bắt buộc'));
-    }
-
-    const mergedCustomer = await authService.mergePosCustomerWithGoogleAccount(
-      parseInt(posCustomerId), 
-      googleEmail
-    );
-    
-    return res.json(JSend.success({
-      customer: mergedCustomer,
-      message: 'Merge customer thành công'
-    }));
-  } catch (error) {
-    console.error('Merge POS customer with Google account error:', error);
-    
-    if (error.message.includes('not found') || error.message.includes('already has account')) {
-      return next(new ApiError(404, error.message));
-    }
-    
-    return next(new ApiError(500, 'Lỗi khi merge customer'));
-  }
-}
-
-/**
- * Lấy danh sách customer POS (không có account) để admin merge
- * @param {Object} req - Express request
- * @param {Object} res - Express response
- * @param {Function} next - Express next middleware
- */
-async function getPosCustomers(req, res, next) {
-  try {
-    const posCustomers = await authService.getPosCustomers();
-    
-    return res.json(JSend.success({
-      customers: posCustomers,
-      count: posCustomers.length
-    }));
-  } catch (error) {
-    console.error('Get POS customers error:', error);
-    return next(new ApiError(500, 'Lỗi khi lấy danh sách customer POS'));
-  }
-}
 
 /**
  * Link số điện thoại với Google account (merge với customer POS nếu có)
@@ -526,7 +473,5 @@ module.exports = {
   changePassword,
   checkCustomerByPhone,
   createCustomerWithoutAccount,
-  mergePosCustomerWithGoogleAccount,
-  getPosCustomers,
   linkPhoneNumberToGoogleAccount
 }; 

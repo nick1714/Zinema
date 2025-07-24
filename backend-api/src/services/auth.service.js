@@ -825,117 +825,6 @@ async function createCustomerWithoutAccount(customerData) {
 }
 
 /**
- * Merge customer POS (không có account) với Google account hiện có
- * @param {number} posCustomerId - ID của customer POS (account_id = null)
- * @param {string} googleEmail - Email của Google account cần merge
- * @returns {Promise<Object>} - Thông tin customer sau khi merge
- */
-async function mergePosCustomerWithGoogleAccount(posCustomerId, googleEmail) {
-    try {
-        return await knex.transaction(async (trx) => {
-            // Tìm customer POS (không có account)
-            const posCustomer = await trx('customers')
-                .where('id', posCustomerId)
-                .whereNull('account_id')
-                .first();
-                
-            if (!posCustomer) {
-                throw new Error('POS customer not found or already has account');
-            }
-
-            // Tìm Google account
-            const googleAccount = await trx('accounts')
-                .where('email', googleEmail)
-                .whereNotNull('google_id')
-                .first();
-                
-            if (!googleAccount) {
-                throw new Error('Google account not found');
-            }
-
-            // Tìm customer hiện tại của Google account
-            const googleCustomer = await trx('customers')
-                .where('account_id', googleAccount.id)
-                .first();
-
-            if (!googleCustomer) {
-                throw new Error('Google customer not found');
-            }
-
-            // Merge thông tin: giữ thông tin chi tiết từ POS customer, 
-            // nhưng dùng account của Google
-            await trx('customers')
-                .where('id', googleCustomer.id)
-                .update({
-                    full_name: posCustomer.full_name || googleCustomer.full_name,
-                    phone_number: posCustomer.phone_number || googleCustomer.phone_number,
-                    date_of_birth: posCustomer.date_of_birth || googleCustomer.date_of_birth,
-                    gender: posCustomer.gender || googleCustomer.gender,
-                    address: posCustomer.address || googleCustomer.address,
-                    loyalty_points: (posCustomer.loyalty_points || 0) + (googleCustomer.loyalty_points || 0),
-                    updated_at: new Date()
-                });
-
-            // Cập nhật phone_number trong accounts table nếu POS customer có
-            if (posCustomer.phone_number) {
-                await trx('accounts')
-                    .where('id', googleAccount.id)
-                    .update({
-                        phone_number: posCustomer.phone_number,
-                        updated_at: new Date()
-                    });
-            }
-
-            // TODO: Chuyển tất cả bookings từ POS customer sang Google customer
-            await trx('ticket_bookings')
-                .where('customer_id', posCustomerId)
-                .update({
-                    customer_id: googleCustomer.id,
-                    updated_at: new Date()
-                });
-
-            // Xóa POS customer (vì đã merge)
-            await trx('customers').where('id', posCustomerId).del();
-
-            // Trả về thông tin customer sau merge
-            const mergedCustomer = await trx('customers')
-                .where('id', googleCustomer.id)
-                .first();
-                
-            const account = await trx('accounts')
-                .where('id', googleAccount.id)
-                .first();
-
-            return {
-                ...mergedCustomer,
-                email: account.email,
-                phone_number: account.phone_number
-            };
-        });
-    } catch (error) {
-        console.error('Merge POS customer with Google account error:', error);
-        throw error;
-    }
-}
-
-/**
- * Lấy danh sách customer POS (không có account) để admin merge
- * @returns {Promise<Array>} - Danh sách customer POS
- */
-async function getPosCustomers() {
-    try {
-        const posCustomers = await customerRepository()
-            .whereNull('account_id')
-            .orderBy('created_at', 'desc');
-            
-        return posCustomers;
-    } catch (error) {
-        console.error('Get POS customers error:', error);
-        throw error;
-    }
-}
-
-/**
  * Link số điện thoại với Google account (merge với customer POS nếu có)
  * @param {number} accountId - ID của Google account
  * @param {string} phoneNumber - Số điện thoại cần link
@@ -1059,7 +948,5 @@ module.exports = {
     changePassword,
     checkCustomerByPhone,
     createCustomerWithoutAccount,
-    mergePosCustomerWithGoogleAccount,
-    getPosCustomers,
     linkPhoneNumberToGoogleAccount
 }; 

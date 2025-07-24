@@ -167,28 +167,6 @@ module.exports.setup = (app) => {
   );
   router.all("/create-customer", methodNotAllowed);
 
-  // Merge customer POS với Google account (Admin only)
-  router.post(
-    "/merge-customer",
-    [
-      authenticateToken,
-      authorizeRoles([ROLES.ADMIN]),
-    ],
-    authController.mergePosCustomerWithGoogleAccount
-  );
-  router.all("/merge-customer", methodNotAllowed);
-
-  // Lấy danh sách customer POS (không có account) để merge (Admin only)
-  router.get(
-    "/pos-customers",
-    [
-      authenticateToken,
-      authorizeRoles([ROLES.ADMIN]),
-    ],
-    authController.getPosCustomers
-  );
-  router.all("/pos-customers", methodNotAllowed);
-
   // Link số điện thoại với Google account (Customer only)
   router.post(
     "/link-phone",
