@@ -299,6 +299,17 @@ function goToCustomerDetail(customer) {
   margin-bottom: 1rem;
 }
 
+.btn-cinema {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .header-content {

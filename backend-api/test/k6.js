@@ -13,7 +13,7 @@ export const options = {
   duration: "60s", // Maximum time for the single iteration to complete (acts as a timeout)
   thresholds: {
     // We expect the first 10 requests to be successful (200 OK).
-    http_200_responses: ["count>=10", "count<=11"],
+    http_200_responses: ["count>=20", "count<=21"],
     // We expect to trigger the rate limit for the 11th, 12th and 13th requests.
     http_429_responses: ["count>=2", "count<=3"],
     // Ideally, no other HTTP errors
@@ -24,10 +24,10 @@ export const options = {
 };
 
 export default function () {
-  const totalRequestsToSend = 13; // Send 13 requests in total
+  const totalRequestsToSend = 23; // Send 13 requests in total
   // To test a limit of 10 req/min (1 req/6s), we send requests slightly faster:
   // 1 req/3s = 20 req/min.
-  const intervalSeconds = 3;
+  const intervalSeconds = 1.5;
   const targetUrl = "http://localhost:3000/";
 
   console.log(
