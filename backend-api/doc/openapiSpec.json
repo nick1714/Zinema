@@ -115,6 +115,96 @@
             "$ref": "#/components/responses/InternalServerError"
           }
         }
+      },
+      "post": {
+        "summary": "Create a new cinema room",
+        "description": "Create a new cinema room (Admin only)",
+        "operationId": "createRoom",
+        "tags": ["cinema-rooms"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoomRequest"
+              },
+              "example": {
+                "name": "Phòng chiếu 5",
+                "capacity": 120,
+                "status": "active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cinema room created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cinema room created successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "room": {
+                          "$ref": "#/components/schemas/CinemaRoom"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete all cinema rooms",
+        "description": "Delete all cinema rooms (Admin only)",
+        "operationId": "deleteAllRooms",
+        "tags": ["cinema-rooms"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "description": "All cinema rooms deleted successfully",
+            "$ref": "#/components/responses/SuccessNoData"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
       }
     },
     "/api/rooms/{id}": {
@@ -153,6 +243,135 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update cinema room by ID",
+        "description": "Update a cinema room by its ID (Admin only)",
+        "operationId": "updateRoom",
+        "tags": ["cinema-rooms"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoomRequest"
+              },
+              "example": {
+                "name": "Phòng chiếu VIP",
+                "capacity": 80,
+                "status": "active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cinema room updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cinema room updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "room": {
+                          "$ref": "#/components/schemas/CinemaRoom"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete cinema room by ID",
+        "description": "Delete a cinema room by its ID (Admin only)",
+        "operationId": "deleteRoom",
+        "tags": ["cinema-rooms"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Cinema room deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cinema room deleted successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "room": {
+                          "$ref": "#/components/schemas/CinemaRoom"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
@@ -936,7 +1155,7 @@
               },
               "example": {
                 "phone_number": "0912345678",
-                "password": "securepassword123"
+                "password": "admin123"
               }
             }
           }
@@ -2177,6 +2396,51 @@
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "CreateRoomRequest": {
+        "type": "object",
+        "required": ["name", "capacity", "status"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Cinema room name"
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "description": "Cinema room capacity"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive", "maintenance"],
+            "description": "Cinema room status"
+          }
+        }
+      },
+      "UpdateRoomRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Cinema room name"
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "description": "Cinema room capacity"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive", "maintenance"],
+            "description": "Cinema room status"
           }
         }
       },
