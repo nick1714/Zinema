@@ -29,7 +29,13 @@ app.use(express.urlencoded({ extended: true }));
 //Test rate limit
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  limit: 10, // Limit each IP to 20 requests per window (1 minute)
+  limit: 20, // Limit each IP to 20 requests per window (1 minute)
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: "Too many requests, please try again later.",
+    });
+  },
   standardHeaders: true, // Return rate limit info in the 'RateLimit-*' headers
   legacyHeaders: false, // Disable the 'X-RateLimit-*' headers
 });
