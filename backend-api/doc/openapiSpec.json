@@ -1086,12 +1086,12 @@
               "example": {
                 "full_name": "Lê Văn Minh",
                 "email": "levanminh@company.com",
-                "phone_number": "0912345678",
+                "phone_number": "0912345679",
                 "password": "securepassword123",
                 "password_confirm": "securepassword123",
                 "date_of_birth": "1988-03-10",
                 "address": "789 Đường DEF, Quận Bình Thạnh, TP.HCM",
-                "position": "Marketing Manager"
+                "position": "Nhân viên bán vé"
               }
             }
           }
@@ -1484,6 +1484,77 @@
             "$ref": "#/components/responses/InternalServerError"
           }
         }
+      },
+      "delete": {
+        "summary": "Delete customer by ID",
+        "description": "Delete a customer and their associated account (Admin only)",
+        "operationId": "deleteCustomer",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Customer deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Customer deleted successfully"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete customer with active bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["error"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cannot delete customer with active bookings"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
       }
     },
     "/api/auth/employees/{id}": {
@@ -1571,7 +1642,7 @@
                   "phone_number": "0123456789",
                   "date_of_birth": "1990-05-15",
                   "address": "123 Đường ABC, Quận 1, TP.HCM",
-                  "position": "Senior Developer"
+                  "position": "Nhân viên vệ sinh"
                 }
               }
             }
@@ -1608,6 +1679,77 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete employee by ID",
+        "description": "Delete an employee and their associated account (Admin only)",
+        "operationId": "deleteEmployee",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Employee deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Employee deleted successfully"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete employee with active bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["error"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cannot delete employee with active bookings"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
