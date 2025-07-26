@@ -112,6 +112,16 @@ module.exports.setup = (app) => {
     ],
     authController.updateCustomer
   );
+
+  // Xóa khách hàng theo ID (chỉ admin)
+  router.delete(
+    "/customers/:id",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN]),
+    ],
+    authController.deleteCustomer
+  );
   
   // Bất kỳ phương thức nào khác sẽ bị chặn ở đây
   router.all("/customers/:id", methodNotAllowed);
@@ -135,6 +145,16 @@ module.exports.setup = (app) => {
       validateRequest(updateEmployeeRequestSchema),
     ],
     authController.updateEmployee
+  );
+
+  // Xóa nhân viên theo ID (chỉ admin)
+  router.delete(
+    "/employees/:id",
+    [
+      authenticateToken,
+      authorizeRoles([ROLES.ADMIN]),
+    ],
+    authController.deleteEmployee
   );
   
   // Method not allowed cho employees/:id

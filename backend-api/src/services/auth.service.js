@@ -930,6 +930,100 @@ async function linkPhoneNumberToGoogleAccount(accountId, phoneNumber) {
     }
 }
 
+/**
+ * Xóa nhân viên theo ID
+ * @param {Number} id - ID của nhân viên cần xóa
+ * @returns {Promise<void>}
+ */
+async function deleteEmployee(id) {
+    try {
+        // Kiểm tra nhân viên có tồn tại không
+        const employee = await employeeRepository()
+            .where('id', id)
+            .first();
+
+        if (!employee) {
+            throw new Error('Employee not found');
+        }
+
+        // Kiểm tra xem nhân viên có booking nào đang hoạt động không
+        // (Có thể thêm logic kiểm tra booking nếu cần)
+        // Note: Employee thường không tạo booking cho chính mình, nên có thể bỏ qua kiểm tra này
+        // const hasActiveBookings = await knex('ticket_bookings')
+        //     .where('customer_id', employee.account_id)
+        //     .whereNot('status', 'cancelled')
+        //     .first();
+
+        // if (hasActiveBookings) {
+        //     throw new Error('Cannot delete employee with active bookings');
+        // }
+
+        // Xóa nhân viên và tài khoản liên quan
+        await knex.transaction(async (trx) => {
+            // Xóa nhân viên
+            await trx('employees')
+                .where('id', id)
+                .delete();
+
+            // Xóa tài khoản liên quan
+            await trx('accounts')
+                .where('id', employee.account_id)
+                .delete();
+        });
+
+    } catch (error) {
+        console.error('Delete employee error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Xóa khách hàng theo ID
+ * @param {Number} id - ID của khách hàng cần xóa
+ * @returns {Promise<void>}
+ */
+async function deleteCustomer(id) {
+    try {
+        // Kiểm tra khách hàng có tồn tại không
+        const customer = await customerRepository()
+            .where('id', id)
+            .first();
+
+        if (!customer) {
+            throw new Error('Customer not found');
+        }
+
+        // Kiểm tra xem khách hàng có booking nào đang hoạt động không
+        const hasActiveBookings = await knex('ticket_bookings')
+            .where('customer_id', id)
+            .whereNot('status', 'cancelled')
+            .first();
+
+        if (hasActiveBookings) {
+            throw new Error('Cannot delete customer with active bookings');
+        }
+
+        // Xóa khách hàng và tài khoản liên quan
+        await knex.transaction(async (trx) => {
+            // Xóa khách hàng
+            await trx('customers')
+                .where('id', id)
+                .delete();
+
+            // Xóa tài khoản liên quan (nếu có)
+            if (customer.account_id) {
+                await trx('accounts')
+                    .where('id', customer.account_id)
+                    .delete();
+            }
+        });
+
+    } catch (error) {
+        console.error('Delete customer error:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     registerEmployee,
     login,
@@ -942,6 +1036,8 @@ module.exports = {
     getEmployeeById,
     updateCustomer,
     updateEmployee,
+    deleteEmployee,
+    deleteCustomer,
     getUserInfoByAccountId,
     getGoogleAuthUrl,
     handleGoogleCallback,

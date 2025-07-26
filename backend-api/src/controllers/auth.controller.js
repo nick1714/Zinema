@@ -457,6 +457,70 @@ async function linkPhoneNumberToGoogleAccount(req, res, next) {
   }
 }
 
+/**
+ * Xóa nhân viên theo ID
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function deleteEmployee(req, res, next) {
+  try {
+    const { id } = req.params;
+    
+    await authService.deleteEmployee(id);
+    
+    return res.json(
+      JSend.success({
+        message: 'Employee deleted successfully'
+      })
+    );
+  } catch (error) {
+    console.error('Delete employee error:', error);
+    
+    if (error.message === 'Employee not found') {
+      return next(new ApiError(404, 'Employee not found'));
+    }
+    
+    if (error.message === 'Cannot delete employee with active bookings') {
+      return next(new ApiError(400, 'Cannot delete employee with active bookings'));
+    }
+    
+    return next(new ApiError(500, 'Internal Server Error'));
+  }
+}
+
+/**
+ * Xóa khách hàng theo ID
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next middleware
+ */
+async function deleteCustomer(req, res, next) {
+  try {
+    const { id } = req.params;
+    
+    await authService.deleteCustomer(id);
+    
+    return res.json(
+      JSend.success({
+        message: 'Customer deleted successfully'
+      })
+    );
+  } catch (error) {
+    console.error('Delete customer error:', error);
+    
+    if (error.message === 'Customer not found') {
+      return next(new ApiError(404, 'Customer not found'));
+    }
+    
+    if (error.message === 'Cannot delete customer with active bookings') {
+      return next(new ApiError(400, 'Cannot delete customer with active bookings'));
+    }
+    
+    return next(new ApiError(500, 'Internal Server Error'));
+  }
+}
+
 module.exports = {
   registerEmployee,
   login,
@@ -470,6 +534,8 @@ module.exports = {
   getEmployeeById,
   updateCustomer,
   updateEmployee,
+  deleteEmployee,
+  deleteCustomer,
   changePassword,
   checkCustomerByPhone,
   createCustomerWithoutAccount,
