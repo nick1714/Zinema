@@ -1067,79 +1067,6 @@
         }
       }
     },
-    "/api/auth/employee/register": {
-      "post": {
-        "summary": "Register new employee",
-        "description": "Register a new employee account (Admin only)",
-        "operationId": "registerEmployee",
-        "tags": ["auth"],
-        "security": [{
-          "bearerAuth": []
-        }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterEmployeeRequest"
-              },
-              "example": {
-                "full_name": "Lê Văn Minh",
-                "email": "levanminh@company.com",
-                "phone_number": "0912345679",
-                "password": "securepassword123",
-                "password_confirm": "securepassword123",
-                "date_of_birth": "1988-03-10",
-                "address": "789 Đường DEF, Quận Bình Thạnh, TP.HCM",
-                "position": "Nhân viên bán vé"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Employee registered successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["success"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Employee registered successfully"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "employee": {
-                          "$ref": "#/components/schemas/Employee"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
     "/api/auth/login": {
       "post": {
         "summary": "User login",
@@ -1293,6 +1220,288 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/employee/register": {
+      "post": {
+        "summary": "Register new employee",
+        "description": "Register a new employee account (Admin only)",
+        "operationId": "registerEmployee",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterEmployeeRequest"
+              },
+              "example": {
+                "full_name": "Lê Văn Minh",
+                "email": "levanminh@company.com",
+                "phone_number": "0912345679",
+                "password": "securepassword123",
+                "password_confirm": "securepassword123",
+                "date_of_birth": "1988-03-10",
+                "address": "789 Đường DEF, Quận Bình Thạnh, TP.HCM",
+                "position": "Nhân viên bán vé"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Employee registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Employee registered successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "employee": {
+                          "$ref": "#/components/schemas/Employee"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/auth/employees/{id}": {
+      "get": {
+        "summary": "Get employee by ID",
+        "description": "Get detailed information about a specific employee (Admin only)",
+        "operationId": "getEmployeeById",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Employee details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "employee": {
+                          "$ref": "#/components/schemas/Employee"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update employee by ID",
+        "description": "Update employee information (Admin only)",
+        "operationId": "updateEmployee",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["input"],
+                "properties": {
+                  "input": {
+                    "$ref": "#/components/schemas/UpdateEmployeeRequest"
+                  }
+                }
+              },
+              "example": {
+                "input": {
+                  "full_name": "Nguyễn Văn An",
+                  "email": "nguyenvanan@company.com",
+                  "phone_number": "0123456789",
+                  "date_of_birth": "1990-05-15",
+                  "address": "123 Đường ABC, Quận 1, TP.HCM",
+                  "position": "Nhân viên vệ sinh"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Employee updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Employee updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "employee": {
+                          "$ref": "#/components/schemas/Employee"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete employee by ID",
+        "description": "Delete an employee and their associated account (Admin only)",
+        "operationId": "deleteEmployee",
+        "tags": ["auth"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "parameters": [{
+          "$ref": "#/components/parameters/idParam"
+        }],
+        "responses": {
+          "200": {
+            "description": "Employee deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Employee deleted successfully"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete employee with active bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["error"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cannot delete employee with active bookings"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
@@ -1557,286 +1766,7 @@
         }
       }
     },
-    "/api/auth/employees/{id}": {
-      "get": {
-        "summary": "Get employee by ID",
-        "description": "Get detailed information about a specific employee (Admin only)",
-        "operationId": "getEmployeeById",
-        "tags": ["auth"],
-        "security": [{
-          "bearerAuth": []
-        }],
-        "parameters": [{
-          "$ref": "#/components/parameters/idParam"
-        }],
-        "responses": {
-          "200": {
-            "description": "Employee details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["success"]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "employee": {
-                          "$ref": "#/components/schemas/Employee"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update employee by ID",
-        "description": "Update employee information (Admin only)",
-        "operationId": "updateEmployee",
-        "tags": ["auth"],
-        "security": [{
-          "bearerAuth": []
-        }],
-        "parameters": [{
-          "$ref": "#/components/parameters/idParam"
-        }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["input"],
-                "properties": {
-                  "input": {
-                    "$ref": "#/components/schemas/UpdateEmployeeRequest"
-                  }
-                }
-              },
-              "example": {
-                "input": {
-                  "full_name": "Nguyễn Văn An",
-                  "email": "nguyenvanan@company.com",
-                  "phone_number": "0123456789",
-                  "date_of_birth": "1990-05-15",
-                  "address": "123 Đường ABC, Quận 1, TP.HCM",
-                  "position": "Nhân viên vệ sinh"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Employee updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["success"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Employee updated successfully"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "employee": {
-                          "$ref": "#/components/schemas/Employee"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete employee by ID",
-        "description": "Delete an employee and their associated account (Admin only)",
-        "operationId": "deleteEmployee",
-        "tags": ["auth"],
-        "security": [{
-          "bearerAuth": []
-        }],
-        "parameters": [{
-          "$ref": "#/components/parameters/idParam"
-        }],
-        "responses": {
-          "200": {
-            "description": "Employee deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["success"]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "Employee deleted successfully"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Cannot delete employee with active bookings",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["error"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Cannot delete employee with active bookings"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
     "/api/bookings": {
-      "post": {
-        "summary": "Create a new booking",
-        "description": "Create a new booking with tickets and food orders",
-        "operationId": "createBooking",
-        "tags": ["bookings"],
-        "security": [{
-          "bearerAuth": []
-        }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBookingRequest"
-              },
-              "example": {
-                "showtime_id": 100,
-                "seats": [1, 2, 3],
-                "food_items": [{
-                    "food_id": 1,
-                    "quantity": 2
-                  },
-                  {
-                    "food_id": 2,
-                    "quantity": 1
-                  }
-                ],
-                "customer_phone": "0987954320"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Booking created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["success"]
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Tạo booking thành công"
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/BookingDetail"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      },
       "get": {
         "summary": "Get all bookings",
         "description": "Get all bookings with pagination and filtering. Customers can only see their own bookings.",
@@ -1923,6 +1853,76 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new booking",
+        "description": "Create a new booking with tickets and food orders",
+        "operationId": "createBooking",
+        "tags": ["bookings"],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookingRequest"
+              },
+              "example": {
+                "showtime_id": 100,
+                "seats": [1, 2, 3],
+                "food_items": [{
+                    "food_id": 1,
+                    "quantity": 2
+                  },
+                  {
+                    "food_id": 2,
+                    "quantity": 1
+                  }
+                ],
+                "customer_phone": "0987954320"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Tạo booking thành công"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BookingDetail"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
