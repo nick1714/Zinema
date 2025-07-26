@@ -10,7 +10,7 @@ module.exports = [
       globals: globals.node,
     },
     files: ["**/*.{js,mjs,cjs}"],
-    ignores: ["{dist,public}/**/*"],
+    ignores: ["{dist,public}/**/*", "test/**/*"],
   },
   js.configs.recommended,
   eslintConfigPrettier,
