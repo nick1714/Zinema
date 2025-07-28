@@ -16,21 +16,21 @@ function validateRequest(validator) {
       // GET/DELETE: Wrap query params và params trong input
       if (req.method === "GET" || req.method === "DELETE") {
         input = {
-          input: { ...req.params, ...req.query }
+          input: { ...req.params, ...req.query },
         };
       }
-      
+
       // POST/PUT: Xử lý theo content-type
       if (req.method === "POST" || req.method === "PUT") {
-        const contentType = req.get('Content-Type') || '';
-        
+        const contentType = req.get("Content-Type") || "";
+
         // Multipart form data: wrap fields trong input + thêm id
-        if (contentType.includes('multipart/form-data')) {
+        if (contentType.includes("multipart/form-data")) {
           input = {
             input: {
               ...(req.body ? req.body : {}),
-              ...(req.params.id ? { id: req.params.id } : {})
-            }
+              ...(req.params.id ? { id: req.params.id } : {}),
+            },
           };
         }
         // JSON: wrap body trong input + thêm id từ params
@@ -39,22 +39,24 @@ function validateRequest(validator) {
           if (req.body && req.body.input) {
             input = {
               ...(req.body ? req.body : {}),
-              ...(req.params.id ? { id: req.params.id } : {})
+              ...(req.params.id ? { id: req.params.id } : {}),
             };
           } else {
             input = {
               input: {
-                ...(req.body ? req.body : {})
+                ...(req.body ? req.body : {}),
               },
-              ...(req.params.id ? { id: req.params.id } : {})
+              ...(req.params.id ? { id: req.params.id } : {}),
             };
           }
         }
       }
-      
+
       console.log("Input before validation:", input);
-      
+
       validator.parse(input);
+
+      req.body = input;
 
       return next();
     } catch (error) {
@@ -82,29 +84,29 @@ function validateRequest(validator) {
  * @param {z.AnyZodObject} validator
  * @param {string} target - 'body' | 'query' | 'params'
  */
-function validate(validator, target = 'body') {
+function validate(validator, target = "body") {
   return (req, res, next) => {
     try {
       let dataToValidate;
-      
+
       switch (target) {
-        case 'body':
+        case "body":
           dataToValidate = req.body || {};
           break;
-        case 'query':
+        case "query":
           dataToValidate = req.query || {};
           break;
-        case 'params':
+        case "params":
           dataToValidate = req.params || {};
           break;
         default:
           dataToValidate = req.body || {};
       }
-      
+
       console.log(`Validating ${target}:`, dataToValidate);
-      
+
       validator.parse(dataToValidate);
-      
+
       return next();
     } catch (error) {
       console.log("Validation error:", error);

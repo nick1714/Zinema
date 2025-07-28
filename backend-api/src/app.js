@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 //Test rate limit
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  limit: 30, // Limit each IP to 30 requests per window (1 minute)
+  limit: 60, // Limit each IP to 30 requests per window (1 minute)
   handler: (req, res) => {
     res.status(429).json({
       success: false,

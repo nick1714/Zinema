@@ -108,7 +108,7 @@ async function getBookingByCode(req, res) {
 async function updateBooking(req, res) {
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        const updateData = req.body.input;
         const user = req.user; // Từ auth middleware
 
         console.log('Update booking request:', {
