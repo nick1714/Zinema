@@ -139,15 +139,15 @@ async function registerEmployee(payload) {
                 .returning('id');
             
             // Lấy thông tin nhân viên vừa tạo
-            // const employee = await employeeRepository()
-            //     .transacting(trx)
-            //     .where('id', employeeId.id)
-            //     .first();
+            const employee = await employeeRepository()
+                .transacting(trx)
+                .where('id', employeeId.id)
+                .first();
             
-            // return {
-            //     ...employee,
-            //     account_id: accountId.id
-            // };
+            return {
+                ...employee,
+                account_id: accountId.id
+            };
         });
         
         return result;
