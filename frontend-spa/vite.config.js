@@ -5,13 +5,10 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig({
   base: '/',
-  plugins: [
-    vue(),
-    vueDevTools(),
-  ],
+  plugins: [vue(), vueDevTools()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
   server: {
@@ -22,9 +19,9 @@ export default defineConfig({
       },
       '/public': {
         target: 'http://localhost:3000/',
-        changeOrigin: true
-      }
+        changeOrigin: true,
+      },
     },
-    allowedHosts: ['zinema.nhutnguyen.dev'],
+    allowedHosts: ['zinema.htdat.id.vn'],
   },
-});
+})
