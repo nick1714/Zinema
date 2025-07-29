@@ -104,3 +104,23 @@ export function usePasswordChange() {
     isChangingPassword: changePasswordMutation.isLoading,
   }
 }
+
+/**
+ * Composable cho employee list
+ */
+export function useEmployeeList() {
+  return useQuery({
+    queryKey: [EMPLOYEES_QUERY_KEY],
+    queryFn: authService.getAllEmployees,
+  })
+}
+
+/**
+ * Composable cho customer list
+ */
+export function useCustomerList() {
+  return useQuery({
+    queryKey: [CUSTOMERS_QUERY_KEY],
+    queryFn: authService.getAllCustomers,
+  })
+}
