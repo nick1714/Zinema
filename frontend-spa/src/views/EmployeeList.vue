@@ -1,11 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuery } from '@tanstack/vue-query'
 import UserCard from '@/components/UserCard.vue'
 import InputSearch from '@/components/InputSearch.vue'
-import { useAuth } from '@/composables/useAuth'
-import authService from '@/services/auth.service'
+import { useAuth, useEmployeeList } from '@/composables/useAuth'
 
 const router = useRouter()
 const { canManageEmployees } = useAuth()
@@ -15,10 +13,7 @@ const {
   isLoading,
   isError,
   refetch,
-} = useQuery({
-  queryKey: ['employees'],
-  queryFn: authService.getAllEmployees,
-})
+} = useEmployeeList()
 const employees = computed(() => employeesData.value?.employees || [])
 
 const searchText = ref('')

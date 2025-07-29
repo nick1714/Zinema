@@ -1,11 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuery } from '@tanstack/vue-query'
 import UserCard from '@/components/UserCard.vue'
 import InputSearch from '@/components/InputSearch.vue'
-import { useAuth } from '@/composables/useAuth'
-import authService from '@/services/auth.service'
+import { useAuth, useCustomerList } from '@/composables/useAuth'
 
 const router = useRouter()
 const { canManageCustomers, isCustomer } = useAuth()
@@ -15,10 +13,7 @@ const {
   isLoading,
   isError,
   refetch,
-} = useQuery({
-  queryKey: ['customers'],
-  queryFn: authService.getAllCustomers,
-})
+} = useCustomerList()
 const customers = computed(() => customersData.value?.customers || [])
 
 /**
